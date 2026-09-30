@@ -1,0 +1,17 @@
+{
+  "name": "crochet-simple",
+  "private": true,
+  "description": "Crochet Simple: a one-thread homepage story, crochet patterns and a journal.",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:assets": "shasum -a 256 -c --quiet packages/artwork/approved-assets.sha256"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
+  }
+}

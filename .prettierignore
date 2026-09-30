@@ -1,0 +1,7 @@
+# Approved, protected assets: never reformat
+packages/artwork/drawings/
+packages/artwork/approved-assets.sha256
+apps/web/src/assets/
+
+
+pnpm-lock.yaml

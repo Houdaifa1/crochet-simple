@@ -159,6 +159,14 @@ const settings = defineCollection({
         .optional(),
       etsyShopUrl: url.optional(),
       contactEmail: z.email().optional(),
+      social: z
+        .array(
+          z.object({
+            platform: z.enum(['instagram', 'tiktok', 'youtube', 'facebook', 'x', 'threads']),
+            url,
+          }),
+        )
+        .default([]),
       analyticsToken: z.string().optional(),
       verification: z
         .object({ google: z.string().optional(), pinterest: z.string().optional() })
@@ -166,4 +174,47 @@ const settings = defineCollection({
     }),
 });
 
-export const collections = { categories, patterns, articles, pages, settings };
+// the words on the homepage; the products stay in their fixed order
+const homepage = defineCollection({
+  loader: glob({ base: dir, pattern: 'homepage.json' }),
+  schema: z.object({
+    seoTitle: z.string().max(70).optional(),
+    seoDescription: z.string().max(160).optional(),
+    headline: z.string().optional(),
+    headlineAccent: z.string().optional(),
+    cue: z.string().optional(),
+    products: z
+      .array(
+        z.object({
+          name: z.string().optional(),
+          description: z.string().optional(),
+          tags: z.array(z.string()).optional(),
+          alt: z.string().optional(),
+        }),
+      )
+      .max(7)
+      .default([]),
+    endingEyebrow: z.string().optional(),
+    endingTitle: z.string().optional(),
+    endingAccent: z.string().optional(),
+    endingText: z.string().optional(),
+    primaryButton: z.string().optional(),
+    secondaryButton: z.string().optional(),
+  }),
+});
+
+const heading = z
+  .object({
+    eyebrow: z.string().optional(),
+    title: z.string().optional(),
+    intro: z.string().optional(),
+    seoDescription: z.string().optional(),
+  })
+  .default({});
+
+const listings = defineCollection({
+  loader: glob({ base: dir, pattern: 'listings.json' }),
+  schema: z.object({ patterns: heading, journal: heading }),
+});
+
+export const collections = { categories, patterns, articles, pages, settings, homepage, listings };

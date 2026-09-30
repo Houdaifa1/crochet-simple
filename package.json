@@ -8,7 +8,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "check": "pnpm check:assets && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm build:test && pnpm test:browser",
+    "check": "pnpm check:assets && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm build:test && pnpm build:admin && pnpm test:browser",
     "check:assets": "shasum -a 256 -c --quiet packages/artwork/approved-assets.sha256",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -16,7 +16,8 @@
     "test": "vitest run",
     "build": "pnpm --filter @crochet-simple/web build",
     "build:test": "pnpm --filter @crochet-simple/web build:test",
-    "test:browser": "playwright test --project=chromium --project=webkit --project=performance",
+    "build:admin": "pnpm --filter @crochet-simple/cms build",
+    "test:browser": "playwright test --project=chromium --project=webkit --project=admin --project=performance",
     "measure:ios": "node --experimental-strip-types scripts/measure-ios-tip.mts"
   },
   "devDependencies": {
@@ -28,6 +29,7 @@
     "pngjs": "^7.0.0",
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "1.1.0",
+    "tsx": "4.23.15",
     "typescript": "6.0.3",
     "vitest": "5.0.2"
   }

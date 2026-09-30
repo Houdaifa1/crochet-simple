@@ -37,3 +37,6 @@ coverage/
 
 # Local working notes
 docs/
+
+# Next.js
+next-env.d.ts

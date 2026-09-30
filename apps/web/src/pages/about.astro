@@ -4,6 +4,7 @@ import { getEntry } from 'astro:content';
 import Blocks from '../components/Blocks.astro';
 import PageHead from '../components/PageHead.astro';
 import ProfileCard from '../components/ProfileCard.astro';
+import SocialLinks from '../components/SocialLinks.astro';
 import Base from '../layouts/Base.astro';
 import heroPhoto from '../assets/story/00-yarn-hero.png';
 import { isFree, patterns, settings } from '../lib/content';
@@ -90,9 +91,10 @@ const imageAlt = page?.image
         </a>
       </div>
     </section>
-    {s.pinterest && (
+    {(s.pinterest || s.social.length > 0) && (
       <div class="follow rise">
-        <ProfileCard profile={s.pinterest} />
+        {s.pinterest && <ProfileCard profile={s.pinterest} />}
+        <SocialLinks links={s.social} />
       </div>
     )}
     <section class="contact rise">
@@ -193,6 +195,8 @@ const imageAlt = page?.image
     padding: 10px 0;
   }
   .follow {
+    display: grid;
+    gap: 16px;
     margin: 32px 0 0;
   }
   .contact {

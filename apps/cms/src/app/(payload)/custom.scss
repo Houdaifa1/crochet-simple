@@ -1,0 +1,91 @@
+.cs-publish {
+  margin: 0 0 32px;
+  padding: 24px;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 12px;
+  background: var(--theme-elevation-50);
+
+  h2 {
+    margin: 0 0 6px;
+  }
+  p {
+    margin: 0;
+    max-width: 60ch;
+  }
+}
+.cs-publish__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.cs-publish__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .btn {
+    margin: 0;
+  }
+}
+.cs-publish__steps {
+  display: flex;
+  gap: 20px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    opacity: 0.45;
+  }
+  li[data-state='done'] {
+    opacity: 1;
+  }
+  li[data-state='done']::before {
+    content: '✓ ';
+    color: var(--theme-success-500);
+  }
+  li[data-state='now'] {
+    opacity: 1;
+    font-weight: 600;
+  }
+}
+.cs-publish__ok {
+  margin-top: 16px !important;
+  color: var(--theme-success-600);
+  font-weight: 600;
+}
+.cs-publish__error {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--theme-error-50);
+  color: var(--theme-error-750);
+
+  pre {
+    margin: 6px 0 0;
+    white-space: pre-wrap;
+    font-family: inherit;
+  }
+}
+.cs-publish__notes {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: var(--theme-warning-750);
+}
+.cs-publish details {
+  margin-top: 14px;
+}
+.cs-publish__log {
+  max-height: 260px;
+  overflow: auto;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+.cs-nav-publish {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}

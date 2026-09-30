@@ -1,0 +1,80 @@
+---
+import type { Settings } from '../lib/content';
+
+interface Props {
+  links: Settings['social'];
+}
+const { links } = Astro.props;
+const NAMES = {
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  youtube: 'YouTube',
+  facebook: 'Facebook',
+  x: 'X',
+  threads: 'Threads',
+};
+const ICONS = {
+  instagram:
+    '<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.2"/>',
+  tiktok:
+    '<path d="M14.2 3h2.9c.3 2.2 1.7 3.7 3.9 3.9v2.9c-1.5 0-2.8-.4-3.9-1.1v6.6a5.7 5.7 0 1 1-5.7-5.7h.6v3a2.7 2.7 0 1 0 2.2 2.7z"/>',
+  youtube:
+    '<path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.9 4.8 12 4.8 12 4.8s-5.9 0-7.6.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 7.6.4 7.6.4s5.9 0 7.6-.4a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22 12a29 29 0 0 0-.4-4.8zM10 15.1V8.9l5.2 3.1z"/>',
+  facebook:
+    '<path d="M13.4 21v-7.6h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.5-1.5h1.6V4.3c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.7v3h2.6V21z"/>',
+  x: '<path d="M17.8 3.5h3l-6.6 7.5 7.7 9.5h-6l-4.7-6-5.4 6h-3l7-8.1L2.4 3.5h6.2l4.2 5.5zm-1 15.3h1.7L7.7 5.1H5.9z"/>',
+  threads:
+    '<path d="M16.3 11.2c-.1 0-.2-.1-.3-.1-.2-2.9-1.8-4.6-4.5-4.6-1.6 0-3 .7-3.8 1.9l1.5 1c.6-.9 1.5-1.1 2.3-1.1 1.6 0 2.4.9 2.6 2.4a12 12 0 0 0-2.1-.1c-2.4.1-3.9 1.5-3.8 3.4.1 1.9 1.8 3.1 3.9 3 2-.1 3.4-1.4 3.8-3.6.9.5 1.4 1.3 1.5 2.3.1 1.9-1.4 3.9-5.3 3.9-4.1 0-6.1-2.6-6.1-7.3S8.6 5 12.7 5c3.4 0 5.4 1.6 6.1 4.4l1.8-.5C19.7 5.4 17.1 3.2 12.7 3.2 7.6 3.2 4.3 6.6 4.3 12.3s3.2 9.1 8.2 9.1c4.8 0 7.3-2.6 7.2-5.7-.1-2.2-1.4-3.7-3.4-4.5zm-4.9 4.3c-1 .1-2-.4-2.1-1.3 0-.8.7-1.5 2.1-1.6h.5c.6 0 1.2.1 1.7.2-.2 2-1.2 2.6-2.2 2.7z"/>',
+};
+---
+
+{links.length > 0 && (
+  <ul class="social" aria-label="Crochet Simple elsewhere">
+    {links.map((l) => (
+      <li>
+        <a
+          href={l.url}
+          rel="noopener me"
+          target="_blank"
+          aria-label={`${NAMES[l.platform]} (opens in a new tab)`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="currentColor"
+            set:html={ICONS[l.platform]}
+          />
+        </a>
+      </li>
+    ))}
+  </ul>
+)}
+
+<style>
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fffdf9;
+    color: var(--ink);
+    box-shadow: 0 1px 0 rgb(42 41 37 / 0.12);
+    transition: background-color 0.2s;
+  }
+  a:hover {
+    background: #fff;
+  }
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+</style>

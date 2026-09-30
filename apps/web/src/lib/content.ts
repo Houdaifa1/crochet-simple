@@ -60,7 +60,22 @@ export async function categoryOf(p: Pattern): Promise<Category> {
   return c;
 }
 
-const DEFAULT_SETTINGS: Settings = { adsense: { enabled: false, slots: {} }, verification: {} };
+const DEFAULT_SETTINGS: Settings = {
+  adsense: { enabled: false, slots: {} },
+  verification: {},
+  social: [],
+};
+
+export type Homepage = CollectionEntry<'homepage'>['data'];
+export type Heading = CollectionEntry<'listings'>['data']['patterns'];
+
+export async function homepage(): Promise<Homepage> {
+  return (await getEntry('homepage', 'homepage'))?.data ?? { products: [] };
+}
+
+export async function listing(which: 'patterns' | 'journal'): Promise<Heading> {
+  return (await getEntry('listings', 'listings'))?.data[which] ?? {};
+}
 
 export async function settings(): Promise<Settings> {
   return (await getEntry('settings', 'settings'))?.data ?? DEFAULT_SETTINGS;

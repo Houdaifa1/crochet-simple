@@ -9,6 +9,7 @@ import {
   articles,
   formatDate,
   isoDate,
+  listing,
   pageCount,
   readingMinutes,
   type Article,
@@ -31,19 +32,23 @@ interface Props {
 const { items, page, pages } = Astro.props;
 const [first, ...rest] = page === 1 ? items : [undefined, ...items];
 const minutes = (a: Article) => readingMinutes(a.data.body, a.data.summary);
+const words = await listing('journal');
+const name = words.title ?? 'Journal';
 ---
 
 <Base
-  title={`Journal${page > 1 ? `, Page ${page}` : ''} | Crochet Simple`}
-  description="Crochet tutorials, yarn notes and the stories behind each design."
+  title={`${name}${page > 1 ? `, Page ${page}` : ''} | Crochet Simple`}
+  description={
+    words.seoDescription ?? 'Crochet tutorials, yarn notes and the stories behind each design.'
+  }
   current="journal"
   ads
 >
   <div class="wrap">
     <PageHead
-      eyebrow="Notes from the studio"
-      title="Journal"
-      intro="Tutorials, yarn notes and the stories behind each design."
+      eyebrow={words.eyebrow ?? 'Notes from the studio'}
+      title={name}
+      intro={words.intro ?? 'Tutorials, yarn notes and the stories behind each design.'}
     />
     {items.length === 0 && (
       <section class="empty">

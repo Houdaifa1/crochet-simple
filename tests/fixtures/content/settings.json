@@ -19,5 +19,19 @@
   "verification": {
     "google": "test-google-token",
     "pinterest": "test-pinterest-token"
-  }
+  },
+  "social": [
+    {
+      "platform": "instagram",
+      "url": "https://www.instagram.com/crochetsimpletest/"
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@crochetsimpletest"
+    },
+    {
+      "platform": "youtube",
+      "url": "https://www.youtube.com/@crochetsimpletest"
+    }
+  ]
 }

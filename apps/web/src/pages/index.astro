@@ -2,8 +2,22 @@
 import { Picture } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { HERO, PRODUCTS } from '../data/story.ts';
+import { homepage } from '../lib/content';
 
-const words = ['Every', 'piece', 'begins', 'with'];
+// the admin's words, with the original wording wherever a field is empty
+const h = await homepage();
+const words = (h.headline ?? 'Every piece begins with').split(/\s+/).filter(Boolean);
+const accent = (h.headlineAccent ?? 'one thread.').split(/\s+/).filter(Boolean);
+const products = PRODUCTS.map((p, i) => {
+  const own = h.products[i];
+  return {
+    ...p,
+    name: own?.name ?? p.name,
+    description: own?.description ?? p.description,
+    tags: own?.tags ?? p.tags,
+    alt: own?.alt ?? p.alt,
+  };
+});
 const site = Astro.site;
 const jsonLd = site
   ? [
@@ -32,8 +46,11 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
 ---
 
 <Base
-  title="Crochet Simple | Crochet patterns and tutorials"
-  description="Follow one thread as it becomes seven crochet designs, then find clear crochet patterns, tutorials and notes from the studio."
+  title={h.seoTitle ?? 'Crochet Simple | Crochet patterns and tutorials'}
+  description={
+    h.seoDescription ??
+    'Follow one thread as it becomes seven crochet designs, then find clear crochet patterns, tutorials and notes from the studio.'
+  }
   current="home"
   jsonLd={jsonLd}
 >
@@ -47,12 +64,12 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
             </span>
           ))}
           <em>
-            <span class="w" style="--d:.36s">
-              one
-            </span>{' '}
-            <span class="w" style="--d:.44s">
-              thread.
-            </span>
+            {accent.map((w, i) => (
+              <span class="w" style={`--d:${0.05 + (words.length + i) * 0.07 + 0.05}s`}>
+                {w}
+                {i < accent.length - 1 ? ' ' : ''}
+              </span>
+            ))}
           </em>
         </h1>
       </div>
@@ -81,11 +98,11 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
           </svg>
           <i class="bead"></i>
         </span>
-        <span>Scroll to follow the thread</span>
+        <span>{h.cue ?? 'Scroll to follow the thread'}</span>
       </p>
     </section>
 
-    {PRODUCTS.map((p, i) => (
+    {products.map((p, i) => (
       <section
         class:list={['chapter', { flip: i % 2 === 1 }]}
         data-id={p.id}
@@ -124,28 +141,32 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
             {p.name}
           </h2>
           <p class="desc">{p.description}</p>
-          <ul class="tags" aria-label="Details">
-            {p.tags.map((t) => (
-              <li>{t}</li>
-            ))}
-          </ul>
+          {p.tags.length > 0 && (
+            <ul class="tags" aria-label="Details">
+              {p.tags.map((t) => (
+                <li>{t}</li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
     ))}
 
     <section class="ending" aria-labelledby="ending-title">
       <div class="knot" aria-hidden="true"></div>
-      <p class="eyebrow">Crochet Simple</p>
+      <p class="eyebrow">{h.endingEyebrow ?? 'Crochet Simple'}</p>
       <h2 id="ending-title">
-        One thread. <em>Endless things to make.</em>
+        {h.endingTitle ?? 'One thread.'} <em>{h.endingAccent ?? 'Endless things to make.'}</em>
       </h2>
-      <p class="lede">Clear patterns, step by step tutorials and notes from the studio.</p>
+      <p class="lede">
+        {h.endingText ?? 'Clear patterns, step by step tutorials and notes from the studio.'}
+      </p>
       <div class="actions">
         <a class="button" href="/patterns/">
-          Browse patterns
+          {h.primaryButton ?? 'Browse patterns'}
         </a>
         <a class="button quiet" href="/journal/">
-          Read the journal
+          {h.secondaryButton ?? 'Read the journal'}
         </a>
       </div>
     </section>

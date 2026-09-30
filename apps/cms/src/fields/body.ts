@@ -1,0 +1,45 @@
+import type { Field } from 'payload';
+import {
+  BlockquoteFeature,
+  BlocksFeature,
+  BoldFeature,
+  FixedToolbarFeature,
+  HeadingFeature,
+  InlineToolbarFeature,
+  ItalicFeature,
+  LinkFeature,
+  OrderedListFeature,
+  ParagraphFeature,
+  UnorderedListFeature,
+  UploadFeature,
+  lexicalEditor,
+} from '@payloadcms/richtext-lexical';
+import { BODY_BLOCKS } from '../blocks/index.ts';
+
+// only what the website can show, so everything written here appears as written
+export const bodyEditor = lexicalEditor({
+  features: () => [
+    ParagraphFeature(),
+    HeadingFeature({ enabledHeadingSizes: ['h2', 'h3'] }),
+    BoldFeature(),
+    ItalicFeature(),
+    LinkFeature({ enabledCollections: ['patterns', 'articles'] }),
+    UnorderedListFeature(),
+    OrderedListFeature(),
+    BlockquoteFeature(),
+    UploadFeature({
+      collections: { media: { fields: [{ name: 'caption', type: 'text' }] } },
+    }),
+    BlocksFeature({ blocks: BODY_BLOCKS }),
+    FixedToolbarFeature(),
+    InlineToolbarFeature(),
+  ],
+});
+
+export const bodyField = (description: string): Field => ({
+  name: 'body',
+  type: 'richText',
+  label: 'Write-up',
+  editor: bodyEditor,
+  admin: { description },
+});

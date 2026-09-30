@@ -43,8 +43,7 @@ export default buildConfig({
     prodMigrations: migrations,
   }),
   hooks: {
-    // production bundles can hold two copies of Payload's error class, which drops the
-    // field details from validation errors; put them back so messages show under each field
+    // production builds drop validation details; restore them so errors show under each field
     afterError: [
       ({ error, result }) => {
         const e = error as Error & { data?: Record<string, unknown>; status?: number };

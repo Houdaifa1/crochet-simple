@@ -38,7 +38,8 @@ export const HERO = {
   alt: 'Indigo, sage and clay cotton yarn on linen with a metal crochet hook and one loose blue strand',
   // where the loose strand ends, in photo pixels
   yarnEnd: { x: 1164, y: 1017 },
-  yarnDirection: { x: 0.45, y: 0.89 },
+  // the strand's own heading at its tip (right and a little up), so the line carries on from it
+  yarnDirection: { x: 0.94, y: -0.34 },
 };
 
 export const PRODUCTS: readonly StoryProduct[] = [

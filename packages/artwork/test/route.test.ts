@@ -146,6 +146,46 @@ describe('route start', () => {
   });
 });
 
+describe('route leaving a sideways strand', () => {
+  // the sharpest bend in any 40 px of the first curve out of the strand, in degrees
+  function sharpestStartBend(route: Route): number {
+    const poly = flatten(route.commands);
+    const end = poly.commandEnds[1] as number;
+    const heading: number[] = [];
+    const at: number[] = [];
+    for (let i = 1; i < poly.count && (poly.lengths[i] as number) <= end; i++) {
+      const dx = (poly.xs[i] as number) - (poly.xs[i - 1] as number);
+      const dy = (poly.ys[i] as number) - (poly.ys[i - 1] as number);
+      if (Math.hypot(dx, dy) < 1e-6) continue;
+      heading.push(Math.atan2(dy, dx));
+      at.push(poly.lengths[i] as number);
+    }
+    let worst = 0;
+    for (let i = 0; i < heading.length; i++) {
+      let turn = 0;
+      for (let j = i + 1; j < heading.length && (at[j] as number) - (at[i] as number) <= 40; j++) {
+        let d = (heading[j] as number) - (heading[j - 1] as number);
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        turn += d;
+        worst = Math.max(worst, Math.abs(turn));
+      }
+    }
+    return (worst * 180) / Math.PI;
+  }
+
+  it.each(TEST_STORIES.map((make) => make()))(
+    'carries on from it and bends gently on $name',
+    (story) => {
+      const layout = { ...story.layout, yarnDirection: { x: 0.94, y: -0.34 } };
+      const route = buildRoute(layout);
+      const [dx, dy] = leaving(route.commands, 1);
+      expect(dx * 0.94 + dy * -0.34).toBeGreaterThan(0.99);
+      expect(sharpestStartBend(route)).toBeLessThan(90);
+      expect(() => buildScrollMap(flatten(route.commands), route, story.policy)).not.toThrow();
+    },
+  );
+});
+
 describe('route rules', () => {
   it('refuses products out of order', () => {
     const story = phoneStory();

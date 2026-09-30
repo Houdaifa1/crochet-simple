@@ -142,16 +142,20 @@ export function buildRoute(layout: StoryLayout): Route {
   const bounds: XBounds = { minX: layout.edgeMargin, maxX: layout.width - layout.edgeMargin };
   const clear = layout.startClear;
   const leadIn = (): void => {
+    // a strand heading sideways or up first turns down in one smooth arc
+    if (direction.y < 0.6) {
+      const r = layout.decorationSize;
+      const x = Math.min(bounds.maxX, Math.max(bounds.minX, layout.yarnStart.x + direction.x * r));
+      curveTo(ink, { x, y: layout.yarnStart.y + r }, direction, DOWN, bounds);
+      direction = DOWN;
+    }
     if (
       !clear ||
       boxRight(clear) + layout.photoGap <= layout.yarnStart.x - layout.photoGap ||
-      boxBottom(clear) <= layout.yarnStart.y
+      boxBottom(clear) <= ink.current.y
     )
       return;
-    const x = Math.min(
-      bounds.maxX,
-      Math.max(layout.yarnStart.x, boxRight(clear) + layout.photoGap),
-    );
+    const x = Math.min(bounds.maxX, Math.max(ink.current.x, boxRight(clear) + layout.photoGap));
     curveTo(ink, { x, y: boxBottom(clear) + layout.photoGap }, direction, DOWN, bounds);
     direction = DOWN;
   };

@@ -255,9 +255,9 @@ export interface Category {
 export interface Media {
   id: number;
   /**
-   * What the photo shows, in a short sentence. Read aloud to blind visitors and used by Google. Not needed for icons or PDFs.
+   * For photos: what the photo shows, in a short sentence (read aloud to blind visitors and used by Google). For icons and PDFs: a few words, like "Bag icon" or "Blue bag pattern PDF".
    */
-  alt?: string | null;
+  alt: string;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -761,6 +761,10 @@ export interface Setting {
    */
   siteUrl?: string | null;
   /**
+   * Leave off while the site is on a test address. Turn on once your final domain is live, then publish.
+   */
+  indexable?: boolean | null;
+  /**
    * Shown on About, Privacy and Terms. Leave empty to hide.
    */
   contactEmail?: string | null;
@@ -917,6 +921,7 @@ export interface TermsSelect<T extends boolean = true> {
  */
 export interface SettingsSelect<T extends boolean = true> {
   siteUrl?: T;
+  indexable?: T;
   contactEmail?: T;
   pinterest?:
     | T

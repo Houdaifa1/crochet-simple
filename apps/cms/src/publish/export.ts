@@ -404,6 +404,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       pinterest,
       etsyShopUrl: text(s['etsyShopUrl']),
       contactEmail: text(s['contactEmail']),
+      indexable: Boolean(s['indexable']),
       social: ((s['social'] as Record<string, unknown>[] | undefined) ?? []).map((x) => ({
         platform: x['platform'],
         url: x['url'],

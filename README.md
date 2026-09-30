@@ -66,5 +66,20 @@ Backups are dated folders in `~/Crochet Simple Backups` (or `BACKUP_DIR`), one p
 one every night at 3:00; unchanged files are shared between backups, and the last 30 are kept.
 Copy that folder somewhere else (an external drive or Time Machine) as well.
 
+## Going online
+
+The site is served by Cloudflare (Workers static assets, `apps/web/wrangler.jsonc`). Publish
+puts it online when both are set:
+
+1. **Website address** in the admin's Site settings (for example `https://crochet.houdaifa.dev`),
+   which is also the address Cloudflare serves.
+2. A Cloudflare API token (template "Edit Cloudflare Workers", limited to your account and
+   domain), saved with `pnpm --filter @crochet-simple/cms cloudflare-key` after copying it.
+   It is stored in `apps/cms/.env`, never in git or on the website.
+
+Until "Show in Google" is switched on in Site settings, every page says `noindex` and
+`robots.txt` keeps crawlers out, so a test address is never indexed. GitHub runs `check` on
+every push (Chromium, WebKit, Firefox and the admin); timing tests run locally.
+
 Changing the admin's fields needs a migration: `pnpm --filter @crochet-simple/cms payload
 migrate:create <name>`; the admin applies it on its next start.

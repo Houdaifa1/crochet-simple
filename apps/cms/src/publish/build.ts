@@ -69,3 +69,19 @@ export async function buildSite(o: BuildOptions): Promise<void> {
     o.log,
   );
 }
+
+export interface DeployOptions {
+  webRoot: string;
+  domain: string;
+  log: (line: string) => void;
+}
+
+// uploads apps/web/dist to Cloudflare and points the domain at it (key and account from .env)
+export async function deploySite(o: DeployOptions): Promise<void> {
+  await node(
+    [path.join(o.webRoot, 'node_modules/wrangler/bin/wrangler.js'), 'deploy', '--domain', o.domain],
+    o.webRoot,
+    { ...process.env, WRANGLER_SEND_METRICS: 'false', CI: '1' },
+    o.log,
+  );
+}

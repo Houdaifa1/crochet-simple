@@ -13,7 +13,8 @@
     "setup:mac": "sh scripts/setup-mac.sh",
     "remove:mac": "sh scripts/remove-mac.sh",
     "backup": "node --experimental-strip-types --env-file=.env scripts/backup.ts",
-    "reset-password": "payload run scripts/reset-password.ts"
+    "reset-password": "payload run scripts/reset-password.ts",
+    "cloudflare-key": "sh scripts/set-cloudflare-key.sh"
   },
   "dependencies": {
     "@crochet-simple/shared": "workspace:*",

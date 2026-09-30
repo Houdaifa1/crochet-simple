@@ -45,7 +45,7 @@ export default defineConfig({
     {
       name: 'performance',
       testMatch: PERF,
-      dependencies: ['chromium', 'webkit', 'admin'],
+      dependencies: process.env['CI'] ? [] : ['chromium', 'webkit', 'admin'],
       use: { browserName: 'chromium' },
     },
   ],

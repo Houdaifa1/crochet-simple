@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // the website is static files served by Cloudflare; the address is passed at deploy time
+  "name": "crochet-simple",
+  "compatibility_date": "2026-09-30",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+  },
+  "workers_dev": false,
+  "preview_urls": false,
+}

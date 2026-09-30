@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface State {
   status: 'idle' | 'running' | 'done' | 'failed';
-  step?: 'backup' | 'export' | 'build';
+  step?: 'backup' | 'export' | 'build' | 'deploy';
   startedAt?: string;
   finishedAt?: string;
   summary?: string;
@@ -13,12 +13,14 @@ interface State {
   warnings: string[];
   log: string[];
   lastSuccess?: string;
+  liveUrl?: string;
 }
 
 const STEPS = [
   ['backup', 'Back up'],
   ['export', 'Collect content'],
   ['build', 'Build the website'],
+  ['deploy', 'Put it online'],
 ] as const;
 
 const when = (iso?: string) =>
@@ -76,6 +78,11 @@ export function PublishPanel() {
           <Button onClick={publish} disabled={running || !state} buttonStyle="primary" size="large">
             {running ? 'Publishing…' : 'Publish now'}
           </Button>
+          {state?.liveUrl && !running && (
+            <Button el="anchor" url={state.liveUrl} newTab buttonStyle="secondary" size="large">
+              Open the live site
+            </Button>
+          )}
           {state?.lastSuccess && !running && (
             <Button onClick={openPreview} buttonStyle="secondary" size="large">
               Open the built site

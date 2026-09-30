@@ -313,7 +313,7 @@ export function startStory(): void {
     const height = story.offsetHeight;
     // sub-pixel rounding moves the height by a pixel; the yarn keeps a 10 px gap anyway
     if (
-      scene &&
+      // compared with the build in progress too, so a slow first build is never thrown away
       width === built.width &&
       vh === built.vh &&
       motion.matches === built.reduced &&
@@ -341,7 +341,12 @@ export function startStory(): void {
     clearTimeout(timer);
     timer = window.setTimeout(() => requestAnimationFrame(rebuild), 160);
   };
-  new ResizeObserver(later).observe(story);
+  // sub-pixel wobbles in the page height are ignored before anything is measured
+  new ResizeObserver(([entry]) => {
+    const r = entry!.contentRect;
+    if (Math.round(r.width) === built.width && Math.abs(r.height - built.height) <= 2) return;
+    later();
+  }).observe(story);
   addEventListener('resize', later, { passive: true });
   motion.addEventListener('change', later);
   document.fonts.ready.then(() => requestAnimationFrame(rebuild));

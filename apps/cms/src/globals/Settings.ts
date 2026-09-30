@@ -25,6 +25,16 @@ export const Settings: GlobalConfig = {
               },
             },
             {
+              name: 'indexable',
+              type: 'checkbox',
+              label: 'Show in Google and other search engines',
+              defaultValue: false,
+              admin: {
+                description:
+                  'Leave off while the site is on a test address. Turn on once your final domain is live, then publish.',
+              },
+            },
+            {
               name: 'contactEmail',
               type: 'email',
               admin: { description: 'Shown on About, Privacy and Terms. Leave empty to hide.' },

@@ -215,7 +215,9 @@ test('publishing builds the site with published content only, and makes a backup
   expect(draft.ok(), await draft.text()).toBe(true);
 
   await publish();
-  await expect(page.getByText(/Published .* 2 patterns and 0 articles are ready\./)).toBeVisible();
+  await expect(
+    page.getByText(/Published .* 2 patterns and 0 articles are ready on this Mac\./),
+  ).toBeVisible();
   const cozy = readFileSync(resolve(ROOT, 'site/patterns/olive-cup-cozy/index.html'), 'utf8');
   expect(cozy).toContain('Deep <strong>olive</strong> ribbing, worked flat and seamed.');
   expect(cozy).toContain('<h2 id="pattern">Pattern</h2>');

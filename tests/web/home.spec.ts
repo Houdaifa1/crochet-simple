@@ -165,11 +165,13 @@ test.describe('homepage behaviour', () => {
     const before = await page.locator('.guide').getAttribute('d');
     await page.setViewportSize({ width: 430, height: 932 });
     await expect.poll(() => page.locator('.guide').getAttribute('d')).not.toBe(before);
-    const builds = await page.evaluate(() =>
-      performance.getEntriesByName('story-build').map((e) => e.duration),
-    );
-    expect(builds.length).toBe(2);
-    expect(Math.max(...builds)).toBeLessThan(120);
+    const [builds, steps] = await page.evaluate(() => [
+      performance.getEntriesByName('story-build').length,
+      performance.getEntriesByName('story-step').map((e) => e.duration),
+    ]);
+    expect(builds).toBe(2);
+    // built in short steps, none long enough to hold up a tap
+    expect(Math.max(...(steps as number[]))).toBeLessThan(50);
     expect(await page.locator('.thread').count()).toBe(1);
   });
 

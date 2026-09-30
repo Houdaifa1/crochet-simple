@@ -64,6 +64,7 @@ const DEFAULT_SETTINGS: Settings = {
   adsense: { enabled: false, slots: {} },
   verification: {},
   social: [],
+  indexable: false,
 };
 
 export type Homepage = CollectionEntry<'homepage'>['data'];

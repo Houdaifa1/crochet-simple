@@ -5,6 +5,8 @@ packages:
 # Only these dependencies may run install scripts (they fetch native binaries).
 allowBuilds:
   esbuild: true
+  # only needed for running workers locally; deploys do not use it
+  workerd: false
 
 minimumReleaseAgeExclude:
   - '@next/env@16.3.8'
@@ -17,3 +19,11 @@ minimumReleaseAgeExclude:
   - '@next/swc-win32-arm64-msvc@16.3.8'
   - '@next/swc-win32-x64-msvc@16.3.8'
   - next@16.3.8
+  - '@cloudflare/workerd-darwin-64@1.20260930.2'
+  - '@cloudflare/workerd-darwin-arm64@1.20260930.2'
+  - '@cloudflare/workerd-linux-64@1.20260930.2'
+  - '@cloudflare/workerd-linux-arm64@1.20260930.2'
+  - '@cloudflare/workerd-windows-64@1.20260930.2'
+  - miniflare@5.20260930.0-alpha
+  - workerd@1.20260930.2
+  - wrangler@4.145.0

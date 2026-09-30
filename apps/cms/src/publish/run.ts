@@ -12,10 +12,10 @@ import {
   WEB_ROOT,
 } from '../paths.ts';
 import { backup } from './backup.ts';
-import { buildSite } from './build.ts';
+import { buildSite, deploySite } from './build.ts';
 import { PublishError, exportContent } from './export.ts';
 
-export type Step = 'backup' | 'export' | 'build';
+export type Step = 'backup' | 'export' | 'build' | 'deploy';
 export interface PublishState {
   status: 'idle' | 'running' | 'done' | 'failed';
   step?: Step;
@@ -26,6 +26,7 @@ export interface PublishState {
   warnings: string[];
   log: string[];
   lastSuccess?: string;
+  liveUrl?: string;
 }
 
 const STATE_FILE = () => path.join(DATA_DIR, 'publish.json');
@@ -114,10 +115,32 @@ export function startPublish(payload: Payload): PublishState {
       });
       log('Website built');
 
+      // online only with a Cloudflare key and an address; otherwise the build stays on this Mac
+      let live: string | undefined;
+      if (
+        process.env['CLOUDFLARE_API_TOKEN'] &&
+        siteUrl &&
+        SITE_OUT === path.join(WEB_ROOT, 'dist')
+      ) {
+        state.step = 'deploy';
+        log(`Putting the website online at ${siteUrl}`);
+        await deploySite({ webRoot: WEB_ROOT, domain: new URL(siteUrl).hostname, log });
+        live = siteUrl;
+        log('Website is online');
+      } else {
+        log(
+          siteUrl
+            ? 'Built on this Mac only: add the Cloudflare key to go online.'
+            : 'Built on this Mac only: add the website address in Site settings to go online.',
+        );
+      }
+
       state.status = 'done';
       state.lastSuccess = new Date().toISOString();
+      if (live) state.liveUrl = live;
+      else delete state.liveUrl;
       const n = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
-      state.summary = `${n(r.patterns, 'pattern')} and ${n(r.articles, 'article')} are ready${r.warnings.length ? `, with ${n(r.warnings.length, 'note')} below` : ''}.`;
+      state.summary = `${n(r.patterns, 'pattern')} and ${n(r.articles, 'article')} are ${live ? `live at ${live}` : 'ready on this Mac'}${r.warnings.length ? `, with ${n(r.warnings.length, 'note')} below` : ''}.`;
     } catch (e) {
       state.status = 'failed';
       state.error =
@@ -125,7 +148,9 @@ export function startPublish(payload: Payload): PublishState {
           ? e.message
           : state.step === 'build'
             ? `The website could not be built. Details:\n${(e as Error).message}`
-            : `Something went wrong: ${(e as Error).message}`;
+            : state.step === 'deploy'
+              ? `The website was built but could not be put online (check the internet connection and the Cloudflare key). The live site is unchanged. Details:\n${(e as Error).message}`
+              : `Something went wrong: ${(e as Error).message}`;
       log(`Stopped: ${state.error}`);
     } finally {
       state.finishedAt = new Date().toISOString();

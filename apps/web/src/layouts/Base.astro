@@ -1,19 +1,42 @@
 ---
 import '../styles/global.css';
 import Dock from '../components/Dock.astro';
+import ProfileCard from '../components/ProfileCard.astro';
 import fontUrl from '../assets/fonts/fraunces.woff2?url';
 import italicUrl from '../assets/fonts/fraunces-italic.woff2?url';
+import { absolute, settings } from '../lib/content';
 
 interface Props {
   title: string;
   description: string;
-  current: 'home' | 'patterns' | 'journal' | 'about';
-  image?: string;
+  current: 'home' | 'patterns' | 'journal' | 'about' | 'none';
+  // a path on this site; made absolute once the domain is set
+  image?: string | undefined;
+  type?: 'website' | 'article';
+  published?: Date | undefined;
+  modified?: Date | undefined;
+  jsonLd?: object[];
+  noindex?: boolean;
+  ads?: boolean;
 }
-const { title, description, current, image } = Astro.props;
+const {
+  title,
+  description,
+  current,
+  image,
+  type = 'website',
+  published,
+  modified,
+  jsonLd = [],
+  noindex = false,
+  ads = false,
+} = Astro.props;
 const site = Astro.site;
-const canonical = site ? new URL(Astro.url.pathname, site).href : undefined;
-const shareImage = site && image ? new URL(image, site).href : undefined;
+const s = await settings();
+const canonical = absolute(Astro.url.pathname, site);
+const shareImage = image ? absolute(image, site) : undefined;
+const adClient = s.adsense.enabled && ads ? s.adsense.client : undefined;
+const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
@@ -23,22 +46,51 @@ const shareImage = site && image ? new URL(image, site).href : undefined;
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <meta name="theme-color" content="#faf7f1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={italicUrl} as="font" type="font/woff2" crossorigin />
     {canonical && <link rel="canonical" href={canonical} />}
-    <meta property="og:type" content="website" />
+    {site && (
+      <link rel="alternate" type="application/rss+xml" title="Crochet Simple" href="/rss.xml" />
+    )}
+    <meta property="og:type" content={type} />
     <meta property="og:site_name" content="Crochet Simple" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:locale" content="en_US" />
     {canonical && <meta property="og:url" content={canonical} />}
     {shareImage && <meta property="og:image" content={shareImage} />}
+    {published && <meta property="article:published_time" content={published.toISOString()} />}
+    {modified && <meta property="article:modified_time" content={modified.toISOString()} />}
+    {type === 'article' && <meta property="article:author" content="Crochet Simple" />}
     <meta name="twitter:card" content="summary_large_image" />
+    {s.verification.google && (
+      <meta name="google-site-verification" content={s.verification.google} />
+    )}
+    {s.verification.pinterest && <meta name="p:domain_verify" content={s.verification.pinterest} />}
+    {jsonLd.map((o) => (
+      <script type="application/ld+json" set:html={ld(o)} />
+    ))}
     <script is:inline>
       document.documentElement.classList.add('js');
     </script>
+    {adClient && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
+        crossorigin="anonymous"
+      />
+    )}
+    {s.analyticsToken && site && (
+      <script
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: s.analyticsToken })}
+      />
+    )}
     <slot name="head" />
   </head>
   <body>
@@ -55,12 +107,17 @@ const shareImage = site && image ? new URL(image, site).href : undefined;
       <slot />
     </main>
     <footer class="site-footer">
-      <span>© {new Date().getFullYear()} Crochet Simple</span>
-      <nav aria-label="Footer">
-        <a href="/about/">About</a>
-        <a href="/privacy/">Privacy</a>
-        <a href="/terms/">Terms</a>
-      </nav>
+      {s.pinterest && <ProfileCard profile={s.pinterest} compact />}
+      <div class="footer-row">
+        <span>© {new Date().getFullYear()} Crochet Simple</span>
+        <nav aria-label="Footer">
+          <a href="/patterns/">Patterns</a>
+          <a href="/journal/">Journal</a>
+          <a href="/about/">About</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </nav>
+      </div>
     </footer>
   </body>
 </html>

@@ -17,6 +17,9 @@ test('the homepage scrolls smoothly on a 4× slower CPU (phone, 3×)', async ({ 
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await page.route(/googlesyndication|cloudflareinsights|pinterest\.com|etsy\.com/, (r) =>
+    r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
+  );
   await page.goto('/');
   await page.locator('.story.ready').waitFor();
   const steps = await page.evaluate(() =>

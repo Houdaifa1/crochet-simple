@@ -1,0 +1,29 @@
+{
+  "title": "AirPods pouch",
+  "summary": "A compact buttoned pouch with a soft crochet wrist strap.",
+  "category": "tech-cases",
+  "cover": "../../../../apps/web/src/assets/story/04-airpods-pouch.png",
+  "coverAlt": "AirPods pouch (test fixture photo)",
+  "gallery": [
+    {
+      "image": "../../../../apps/web/src/assets/details/04a-pouch-button.png",
+      "alt": "AirPods pouch close-up"
+    }
+  ],
+  "details": {
+    "hook": "3.5 mm",
+    "size": "7 × 6 cm"
+  },
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text for the pouch."
+        }
+      ]
+    }
+  ],
+  "published": "2026-09-05",
+  "etsyUrl": "https://www.etsy.com/listing/9999913/airpods-pouch"
+}

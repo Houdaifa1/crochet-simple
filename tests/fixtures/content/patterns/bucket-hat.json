@@ -1,0 +1,31 @@
+{
+  "title": "Bucket hat",
+  "summary": "Open stitches in warm pink and orange, shaped into a bright brim.",
+  "category": "hats",
+  "cover": "../../../../apps/web/src/assets/story/06-bucket-hat.png",
+  "coverAlt": "Bucket hat (test fixture photo)",
+  "gallery": [
+    {
+      "image": "../../../../apps/web/src/assets/details/06b-hat-brim.png",
+      "alt": "Bucket hat close-up"
+    }
+  ],
+  "details": {
+    "hook": "4.5 mm"
+  },
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text for the bucket hat. This page has ads switched off."
+        }
+      ]
+    }
+  ],
+  "published": "2026-08-20",
+  "pdf": {
+    "file": "../media/sample-pattern.pdf"
+  },
+  "ads": false
+}

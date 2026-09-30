@@ -1,0 +1,6 @@
+{
+  "name": "Tech cases",
+  "description": "Test category: tech cases patterns.",
+  "icon": "./icons/tech-cases.svg",
+  "order": 3
+}

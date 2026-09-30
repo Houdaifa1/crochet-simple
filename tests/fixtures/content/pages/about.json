@@ -1,0 +1,24 @@
+{
+  "title": "About",
+  "intro": "Test fixture: patterns for pieces you will use every day, written so you can finish them.",
+  "image": "../../../../apps/web/src/assets/story/00-yarn-hero.png",
+  "imageAlt": "Yarn and a crochet hook on linen",
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture story paragraph for the About page."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "A second test paragraph."
+        }
+      ]
+    }
+  ]
+}

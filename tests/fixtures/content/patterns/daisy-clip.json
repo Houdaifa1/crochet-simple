@@ -1,0 +1,30 @@
+{
+  "title": "Daisy clip",
+  "summary": "White petals around a golden centre, with a small olive leaf.",
+  "category": "accessories",
+  "cover": "../../../../apps/web/src/assets/story/02-daisy-clip.png",
+  "coverAlt": "Daisy clip (test fixture photo)",
+  "gallery": [
+    {
+      "image": "../../../../apps/web/src/assets/details/02a-daisy-centre.png",
+      "alt": "Daisy clip close-up"
+    }
+  ],
+  "details": {
+    "hook": "2.5 mm"
+  },
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text for the daisy clip."
+        }
+      ]
+    }
+  ],
+  "published": "2026-09-20",
+  "pdf": {
+    "file": "../media/sample-pattern.pdf"
+  }
+}

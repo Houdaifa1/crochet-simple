@@ -1,0 +1,270 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import Blocks from '../../components/Blocks.astro';
+import Base from '../../layouts/Base.astro';
+import {
+  absolute,
+  articles,
+  formatDate,
+  isoDate,
+  readingMinutes,
+  type Article,
+} from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = await articles();
+  return all.map((a, i) => ({
+    params: { slug: a.id },
+    props: { article: a, more: [...all.slice(i + 1), ...all.slice(0, i)].slice(0, 2) },
+  }));
+}
+
+interface Props {
+  article: Article;
+  more: Article[];
+}
+const { article, more } = Astro.props;
+const d = article.data;
+const site = Astro.site;
+const path = `/journal/${article.id}/`;
+const og = await getImage({
+  src: d.cover,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+  quality: 82,
+});
+const pageUrl = absolute(path, site);
+const ogUrl = absolute(og.src, site);
+const saveHref =
+  pageUrl && ogUrl
+    ? `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(pageUrl)}&media=${encodeURIComponent(ogUrl)}&description=${encodeURIComponent(d.title)}`
+    : undefined;
+const modified = d.updated ?? d.published;
+const jsonLd = site
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: d.title,
+        description: d.summary,
+        image: [ogUrl],
+        datePublished: isoDate(d.published),
+        dateModified: isoDate(modified),
+        author: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
+        publisher: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
+        mainEntityOfPage: pageUrl,
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Journal', item: absolute('/journal/', site) },
+          { '@type': 'ListItem', position: 2, name: d.title, item: pageUrl },
+        ],
+      },
+    ]
+  : [];
+const thumb = await getImage({
+  src: d.cover,
+  width: 320,
+  height: 400,
+  fit: 'cover',
+  format: 'webp',
+});
+---
+
+<Base
+  title={`${d.title} | Crochet Simple`}
+  description={d.summary}
+  current="journal"
+  image={og.src}
+  type="article"
+  published={d.published}
+  modified={modified}
+  jsonLd={jsonLd}
+  ads={d.ads}
+>
+  <div class="wrap" data-pagefind-body data-pagefind-meta={`image:${thumb.src}`}>
+    <span data-pagefind-filter="type" hidden>
+      Journal
+    </span>
+    <header class="a-head">
+      <nav class="crumbs" aria-label="Breadcrumb" data-pagefind-ignore>
+        <a href="/journal/">Journal</a>
+      </nav>
+      {d.topic && <p class="kicker">{d.topic}</p>}
+      <h1>{d.title}</h1>
+      <p class="lede">{d.summary}</p>
+      <p class="byline" data-pagefind-ignore>
+        <time datetime={isoDate(d.published)}>{formatDate(d.published)}</time>
+        <i aria-hidden="true"></i>
+        {readingMinutes(d.body, d.summary)} min read
+      </p>
+    </header>
+    <figure class="cover">
+      <Picture
+        src={d.cover}
+        alt={d.coverAlt}
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        widths={[400, 560, 720, 960, 1280, 1600]}
+        sizes="(min-width: 1180px) 1100px, calc(100vw - 40px)"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </figure>
+    <article class="prose">
+      <Blocks blocks={d.body} adAfter={d.body.length >= 5 ? 2 : undefined} ads={d.ads} />
+    </article>
+    {saveHref && (
+      <div class="share" data-pagefind-ignore>
+        <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
+          Save to Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+        <button class="btn ghost" type="button" data-copy={pageUrl}>
+          Copy link
+        </button>
+      </div>
+    )}
+    {more.length > 0 && (
+      <section class="more" aria-labelledby="more-title" data-pagefind-ignore>
+        <h2 id="more-title">Keep reading</h2>
+        <div class="row">
+          {more.map((a) => (
+            <a class="next" href={`/journal/${a.id}/`}>
+              <Picture
+                src={a.data.cover}
+                alt=""
+                formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+                widths={[240, 360, 480, 640]}
+                sizes="(min-width: 780px) 360px, 45vw"
+                loading="lazy"
+              />
+              <h3>{a.data.title}</h3>
+              {a.data.topic && <p>{a.data.topic}</p>}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</Base>
+
+<script>
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    b.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(b.dataset.copy!);
+      const label = b.textContent;
+      b.textContent = 'Link copied';
+      setTimeout(() => (b.textContent = label), 1800);
+    });
+  }
+</script>
+
+<style>
+  .a-head,
+  .prose,
+  .share,
+  .more {
+    max-width: 780px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .prose {
+    max-width: 680px;
+  }
+  .crumbs a {
+    display: inline-block;
+    padding: 12px 0 4px;
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .kicker {
+    margin: 12px 0 0;
+    font: 700 12px/1.2 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  h1 {
+    margin: 12px 0 0;
+    font-size: clamp(38px, 10vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variation-settings: 'opsz' 144;
+    text-wrap: balance;
+  }
+  .lede {
+    margin: 16px 0 0;
+    font-size: 20px;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 0;
+    font-size: 14px;
+    color: #6e675c;
+  }
+  .byline i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .cover {
+    max-width: 1100px;
+    margin: 28px auto 40px;
+  }
+  .cover :global(img) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 20px;
+    background: #e6dccd;
+  }
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 40px;
+    max-width: 680px;
+  }
+  .more {
+    margin-top: 64px;
+  }
+  .more h2 {
+    margin: 0 0 16px;
+    font-size: 32px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .next {
+    text-decoration: none;
+  }
+  .next :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 14px;
+  }
+  .next h3 {
+    margin: 10px 0 2px;
+    font-size: 19px;
+    line-height: 1.2;
+  }
+  .next p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+</style>

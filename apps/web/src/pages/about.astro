@@ -1,0 +1,226 @@
+---
+import { Picture } from 'astro:assets';
+import { getEntry } from 'astro:content';
+import Blocks from '../components/Blocks.astro';
+import PageHead from '../components/PageHead.astro';
+import ProfileCard from '../components/ProfileCard.astro';
+import Base from '../layouts/Base.astro';
+import heroPhoto from '../assets/story/00-yarn-hero.png';
+import { isFree, patterns, settings } from '../lib/content';
+
+const page = (await getEntry('pages', 'about'))?.data;
+const s = await settings();
+const all = await patterns();
+const hasFree = all.some(isFree);
+const image = page?.image ?? heroPhoto;
+const imageAlt = page?.image
+  ? (page.imageAlt ?? '')
+  : 'Indigo, sage and clay cotton yarn on linen with a crochet hook';
+---
+
+<Base
+  title="About | Crochet Simple"
+  description="Crochet Simple shares crochet patterns and tutorials with clear steps, good photos and printable PDFs."
+  current="about"
+  image={undefined}
+>
+  <div class="wrap">
+    <PageHead eyebrow="About" title="Crochet Simple" />
+    <p class="statement rise">
+      {page?.intro ?? (
+        <>
+          Patterns for pieces you will <em>use every day,</em> written so you can finish them.
+        </>
+      )}
+    </p>
+    <figure class="photo rise">
+      <Picture
+        src={image}
+        alt={imageAlt}
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        widths={[480, 800, 1200, 1600]}
+        sizes="(min-width: 1320px) 1200px, calc(100vw - 40px)"
+        loading="eager"
+      />
+    </figure>
+    {page && page.body.length > 0 && (
+      <section class="story rise">
+        <h2>The story</h2>
+        <div class="prose">
+          <Blocks blocks={page.body} />
+        </div>
+      </section>
+    )}
+    <section class="offers" aria-label="What you will find here">
+      {hasFree && (
+        <div class="offer rise">
+          <svg viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M11 5h13l7 7v21a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+            <path d="M24 5v7h7M20 17v11m0 0-4-4m4 4 4-4" />
+          </svg>
+          <h2>Free patterns</h2>
+          <p>Download the PDF, print it and start. No account needed.</p>
+          <a class="link" href="/patterns/free/">
+            Browse free patterns
+          </a>
+        </div>
+      )}
+      {s.etsyShopUrl && (
+        <div class="offer rise">
+          <svg viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M8 14h24l-2 19a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2z" />
+            <path d="M14 14v-2a6 6 0 0 1 12 0v2" />
+          </svg>
+          <h2>Patterns on Etsy</h2>
+          <p>Some designs are sold on Etsy, where your purchase and download are handled.</p>
+          <a class="link" href={s.etsyShopUrl} rel="noopener" target="_blank">
+            Visit the Etsy shop<span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        </div>
+      )}
+      <div class="offer rise">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M8 8h10a4 4 0 0 1 4 4v22a3 3 0 0 0-3-3H8zM32 8H22a4 4 0 0 0-4 4v22a3 3 0 0 1 3-3h11z"></path>
+        </svg>
+        <h2>The journal</h2>
+        <p>Tutorials, yarn notes and the stories behind each design.</p>
+        <a class="link" href="/journal/">
+          Read the journal
+        </a>
+      </div>
+    </section>
+    {s.pinterest && (
+      <div class="follow rise">
+        <ProfileCard profile={s.pinterest} />
+      </div>
+    )}
+    <section class="contact rise">
+      <h2>Say hello</h2>
+      {s.contactEmail ? (
+        <p>
+          Questions about a pattern or the site? Write to{' '}
+          <a href={`mailto:${s.contactEmail}`}>{s.contactEmail}</a>.
+        </p>
+      ) : (
+        <p>
+          Contact details are coming soon. Until then, the journal is the best place to follow
+          along.
+        </p>
+      )}
+    </section>
+  </div>
+</Base>
+
+<script>
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach(
+        (e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target)),
+      ),
+    { rootMargin: '0px 0px -6% 0px' },
+  );
+  document.querySelectorAll('.rise').forEach((el) => io.observe(el));
+</script>
+
+<style>
+  .statement {
+    max-width: 20ch;
+    margin: 24px 0 0;
+    font: 400 clamp(32px, 8.4vw, 64px) / 1.08 var(--serif);
+    letter-spacing: -0.03em;
+    font-variation-settings: 'opsz' 144;
+    text-wrap: balance;
+  }
+  .statement em {
+    font-style: italic;
+    color: var(--blue);
+  }
+  .photo {
+    margin: 36px 0 0;
+  }
+  .photo :global(img) {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 20px;
+    background: #e6dccd;
+  }
+  .story {
+    display: grid;
+    gap: 16px;
+    margin: 64px 0 0;
+  }
+  .story h2,
+  .contact h2 {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.05;
+  }
+  .offers {
+    display: grid;
+    gap: 14px;
+    margin: 56px 0 0;
+  }
+  .offer {
+    padding: 24px;
+    border-radius: 20px;
+    background: #fffdf9;
+    box-shadow:
+      0 1px 0 rgb(42 41 37 / 0.1),
+      0 18px 40px -30px rgb(42 41 37 / 0.45);
+  }
+  .offer svg {
+    width: 40px;
+    height: 40px;
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .offer h2 {
+    margin: 14px 0 6px;
+    font-size: 24px;
+  }
+  .offer p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .offer .link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 0;
+  }
+  .follow {
+    margin: 32px 0 0;
+  }
+  .contact {
+    margin: 56px 0 0;
+    padding: 32px 24px;
+    border-radius: 22px;
+    background: var(--blue);
+    color: #fff;
+  }
+  .contact p {
+    max-width: 44ch;
+    margin: 10px 0 0;
+    color: rgb(255 255 255 / 0.86);
+  }
+  .contact a {
+    color: #fff;
+  }
+  @media (min-width: 1000px) {
+    .story {
+      grid-template-columns: 5fr 7fr;
+      gap: 64px;
+    }
+    .offers {
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+      gap: 22px;
+    }
+    .contact {
+      padding: 48px;
+    }
+  }
+</style>

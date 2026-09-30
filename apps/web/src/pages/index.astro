@@ -4,6 +4,29 @@ import Base from '../layouts/Base.astro';
 import { HERO, PRODUCTS } from '../data/story.ts';
 
 const words = ['Every', 'piece', 'begins', 'with'];
+const site = Astro.site;
+const jsonLd = site
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Crochet Simple',
+        url: site.href,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${new URL('/search/', site).href}?q={query}`,
+          'query-input': 'required name=query',
+        },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'Crochet Simple',
+        url: site.href,
+        logo: new URL('/apple-touch-icon.png', site).href,
+      },
+    ]
+  : [];
 const photoSizes = '(min-width: 1320px) 588px, (min-width: 900px) 45vw, calc(100vw - 72px)';
 const detailSizes = '(min-width: 900px) 170px, 110px';
 ---
@@ -12,6 +35,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
   title="Crochet Simple | Crochet patterns and tutorials"
   description="Follow one thread as it becomes seven crochet designs, then find clear crochet patterns, tutorials and notes from the studio."
   current="home"
+  jsonLd={jsonLd}
 >
   <div class="story">
     <section class="hero" aria-labelledby="hero-title">

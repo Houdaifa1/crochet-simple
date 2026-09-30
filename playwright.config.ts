@@ -11,7 +11,10 @@ export default defineConfig({
   use: { baseURL: 'http://127.0.0.1:4321' },
   // the built site, so tests see exactly what ships
   webServer: {
-    command: 'pnpm --filter @crochet-simple/web preview --port 4321 --ignore-lock',
+    // started directly (not through pnpm) so it stops cleanly when the tests end
+    command:
+      'cd apps/web && OUT_DIR=dist-test exec ./node_modules/.bin/astro preview --port 4321 --ignore-lock',
+    gracefulShutdown: { signal: 'SIGTERM', timeout: 3000 },
     url: 'http://127.0.0.1:4321/',
     reuseExistingServer: true,
   },

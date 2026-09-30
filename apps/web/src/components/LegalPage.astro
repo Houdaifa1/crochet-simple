@@ -1,0 +1,52 @@
+---
+import { getEntry } from 'astro:content';
+import Blocks from './Blocks.astro';
+import PageHead from './PageHead.astro';
+import Base from '../layouts/Base.astro';
+import { LEGAL_UPDATED, privacy, terms } from '../data/legal';
+import { formatDate, isoDate, settings } from '../lib/content';
+
+interface Props {
+  id: 'privacy' | 'terms';
+}
+const { id } = Astro.props;
+const own = (await getEntry('pages', id))?.data;
+const { contactEmail } = await settings();
+const title = own?.title ?? (id === 'privacy' ? 'Privacy policy' : 'Terms of use');
+const body = own?.body.length ? own.body : (id === 'privacy' ? privacy : terms)(contactEmail);
+const updated = own?.updated ?? LEGAL_UPDATED;
+---
+
+<Base
+  title={`${title} | Crochet Simple`}
+  description={
+    id === 'privacy'
+      ? 'How Crochet Simple handles information, cookies and advertising.'
+      : 'The terms for using Crochet Simple and its crochet patterns.'
+  }
+  current="none"
+>
+  <div class="wrap">
+    <PageHead title={title} />
+    <p class="updated">
+      Last updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>
+    </p>
+    <article class="prose legal">
+      <Blocks blocks={body} />
+    </article>
+  </div>
+</Base>
+
+<style>
+  .updated {
+    margin: 12px 0 32px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .legal {
+    font-size: 17px;
+  }
+  .legal :global(h2) {
+    font-size: 26px;
+  }
+</style>

@@ -1,0 +1,173 @@
+---
+import PageHead from '../components/PageHead.astro';
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Search | Crochet Simple"
+  description="Search Crochet Simple patterns and journal stories."
+  current="patterns"
+  noindex
+>
+  <div class="wrap">
+    <PageHead title="Search">
+      <form class="search" role="search" action="/search/" method="get">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="m16 16 4 4"></path>
+        </svg>
+        <label class="visually-hidden" for="q">
+          Search patterns and stories
+        </label>
+        <input
+          id="q"
+          name="q"
+          type="search"
+          placeholder="Search patterns and stories"
+          autocomplete="off"
+        />
+      </form>
+    </PageHead>
+    <p class="status" role="status" aria-live="polite"></p>
+    <ol class="results"></ol>
+  </div>
+</Base>
+
+<script>
+  type Result = {
+    url: string;
+    excerpt: string;
+    meta: { title?: string; image?: string };
+    filters: { type?: string[] };
+  };
+  type Pagefind = {
+    options(o: object): Promise<void>;
+    debouncedSearch(q: string): Promise<{ results: { data(): Promise<Result> }[] } | null>;
+  };
+  const input = document.querySelector<HTMLInputElement>('#q')!;
+  const status = document.querySelector<HTMLElement>('.status')!;
+  const list = document.querySelector<HTMLOListElement>('.results')!;
+  let engine: Promise<Pagefind> | null = null;
+  // the index is built with the site; load it only when someone searches
+  const load = () =>
+    (engine ??= import(/* @vite-ignore */ `${location.origin}/pagefind/pagefind.js`).then(
+      async (m: Pagefind) => {
+        await m.options({ excerptLength: 18 });
+        return m;
+      },
+    ));
+  const escape = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  async function run(q: string) {
+    const query = q.trim();
+    history.replaceState(null, '', query ? `?q=${encodeURIComponent(query)}` : location.pathname);
+    if (!query) {
+      list.replaceChildren();
+      status.textContent = '';
+      return;
+    }
+    const found = await (await load()).debouncedSearch(query);
+    if (!found) return;
+    const results = await Promise.all(found.results.slice(0, 30).map((r) => r.data()));
+    status.textContent = results.length
+      ? `${results.length} ${results.length === 1 ? 'result' : 'results'} for “${query}”`
+      : `Nothing found for “${query}”. Try a shorter word, like bag or hat.`;
+    list.innerHTML = results
+      .map(
+        (r) =>
+          `<li><a href="${escape(r.url)}">${r.meta.image ? `<img src="${escape(r.meta.image)}" alt="" width="80" height="100" loading="lazy">` : '<span class="ph"></span>'}<span><span class="kind">${escape(r.filters.type?.[0] ?? '')}</span><strong>${escape(r.meta.title ?? '')}</strong><span class="ex">${r.excerpt}</span></span></a></li>`,
+      )
+      .join('');
+  }
+
+  input.addEventListener('input', () => run(input.value));
+  input.addEventListener('focus', () => void load(), { once: true });
+  document.querySelector('form')!.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run(input.value);
+  });
+  const start = new URLSearchParams(location.search).get('q');
+  if (start) {
+    input.value = start;
+    run(start);
+  } else input.focus();
+</script>
+
+<style>
+  .search {
+    position: relative;
+    max-width: 640px;
+    margin: 24px 0 0;
+  }
+  .search input {
+    width: 100%;
+    height: 56px;
+    padding: 0 20px 0 50px;
+    border: 1px solid rgb(42 41 37 / 0.14);
+    border-radius: 999px;
+    background: #fffdf9;
+    font: 17px var(--sans);
+    color: var(--ink);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .search svg {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translateY(-50%);
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .status {
+    min-height: 1.5em;
+    margin: 20px 0 8px;
+    color: var(--muted);
+  }
+  .results {
+    max-width: 760px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .results :global(a) {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgb(42 41 37 / 0.12);
+    text-decoration: none;
+  }
+  .results :global(img),
+  .results :global(.ph) {
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #e6dccd;
+  }
+  .results :global(.kind) {
+    display: block;
+    font: 700 11px/1.2 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  .results :global(strong) {
+    display: block;
+    margin: 4px 0;
+    font: 400 21px/1.2 var(--serif);
+  }
+  .results :global(.ex) {
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .results :global(mark) {
+    background: #ffe3ef;
+    color: inherit;
+  }
+</style>

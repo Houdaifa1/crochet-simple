@@ -1,0 +1,114 @@
+---
+import { Picture } from 'astro:assets';
+import AdSlot from './AdSlot.astro';
+import LinkCards from './LinkCards.astro';
+import { headingId, type Blocks } from '../lib/content';
+
+interface Props {
+  blocks: Blocks;
+  // in-article ad goes after this many blocks, never next to a download button
+  adAfter?: number | undefined;
+  ads?: boolean;
+}
+const { blocks, adAfter, ads = false } = Astro.props;
+const external = (href: string) => /^https?:/.test(href);
+---
+
+{blocks.map((b, i) => (
+  <>
+    {b.type === 'paragraph' && (
+      <p>
+        {b.content.map((t) => {
+          const inner = t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text;
+          return t.href ? (
+            <a href={t.href} rel={external(t.href) ? 'noopener' : undefined}>
+              {inner}
+            </a>
+          ) : (
+            inner
+          );
+        })}
+      </p>
+    )}
+    {b.type === 'heading' && b.level === 2 && <h2 id={headingId(b.text)}>{b.text}</h2>}
+    {b.type === 'heading' && b.level === 3 && <h3 id={headingId(b.text)}>{b.text}</h3>}
+    {b.type === 'list' &&
+      (b.ordered ? (
+        <ol>
+          {b.items.map((item) => (
+            <li>
+              {item.map((t) =>
+                t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <ul>
+          {b.items.map((item) => (
+            <li>
+              {item.map((t) =>
+                t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+              )}
+            </li>
+          ))}
+        </ul>
+      ))}
+    {b.type === 'image' && (
+      <figure>
+        <Picture
+          src={b.image}
+          alt={b.alt}
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          widths={[400, 560, 720, 1000, 1360]}
+          sizes="(min-width: 760px) 680px, calc(100vw - 40px)"
+        />
+        {b.caption && <figcaption>{b.caption}</figcaption>}
+      </figure>
+    )}
+    {b.type === 'tip' && (
+      <div class="tip">
+        <strong>{b.title ?? 'Tip'}</strong>
+        <p>
+          {b.content.map((t) =>
+            t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+          )}
+        </p>
+      </div>
+    )}
+    {b.type === 'rounds' && (
+      <>
+        {b.title && <h3>{b.title}</h3>}
+        <ol class="rounds">
+          {b.items.map((r) => (
+            <li>
+              <b>{r.label}</b>
+              {r.text}
+              {r.count && <span class="count"> ({r.count})</span>}
+            </li>
+          ))}
+        </ol>
+      </>
+    )}
+    {b.type === 'table' && (
+      <table class="terms">
+        <tbody>
+          {b.rows.map(([k, v]) => (
+            <tr>
+              <th scope="row">{k}</th>
+              <td>{v}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+    {b.type === 'quote' && (
+      <blockquote>
+        <p>{b.text}</p>
+      </blockquote>
+    )}
+    {b.type === 'cards' && <LinkCards cards={b.cards} />}
+    {adAfter !== undefined && i + 1 === adAfter && <AdSlot kind="inArticle" allowed={ads} />}
+  </>
+))}

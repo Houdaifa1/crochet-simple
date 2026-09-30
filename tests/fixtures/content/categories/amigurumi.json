@@ -1,0 +1,6 @@
+{
+  "name": "Amigurumi",
+  "description": "Test category: amigurumi patterns.",
+  "icon": "./icons/amigurumi.svg",
+  "order": 5
+}

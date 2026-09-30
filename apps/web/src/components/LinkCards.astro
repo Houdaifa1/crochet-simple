@@ -1,0 +1,208 @@
+---
+import { Picture } from 'astro:assets';
+import type { Blocks } from '../lib/content';
+
+type Cards = Extract<Blocks[number], { type: 'cards' }>['cards'];
+interface Props {
+  cards: Cards;
+}
+const { cards } = Astro.props;
+const money = (p: { amount: number; currency: string }) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: p.currency }).format(p.amount);
+const action = { pinterest: 'View on Pinterest', etsy: 'View on Etsy', link: 'Open link' };
+---
+
+<div class:list={['cards', { single: cards.length === 1 }]}>
+  {cards.map((c) => (
+    <a class:list={['link-card', c.kind]} href={c.url} rel="noopener" target="_blank">
+      {c.image && (
+        <div class="thumb">
+          <Picture
+            src={c.image}
+            alt=""
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            widths={[240, 400, 560]}
+            sizes="(min-width: 760px) 280px, 70vw"
+            loading="lazy"
+          />
+        </div>
+      )}
+      <div class="text">
+        <span class="site">{c.siteName ?? new URL(c.url).hostname.replace(/^www\./, '')}</span>
+        <strong class="title">{c.title}</strong>
+        {c.description && <span class="desc">{c.description}</span>}
+        {(c.price || c.rating) && (
+          <span class="facts">
+            {c.price && <span class="price">{money(c.price)}</span>}
+            {c.rating && (
+              <span
+                class="rating"
+                aria-label={`Rated ${c.rating.value} out of 5 from ${c.rating.count} reviews`}
+              >
+                <span class="stars" style={`--r:${c.rating.value}`} aria-hidden="true" />
+                {c.rating.value.toFixed(1)}{' '}
+                <span class="count">({c.rating.count.toLocaleString('en-US')})</span>
+              </span>
+            )}
+          </span>
+        )}
+        <span class="go">
+          {action[c.kind]}
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 17 17 7M9 7h8v8" />
+          </svg>
+        </span>
+      </div>
+      <span class="visually-hidden"> (opens in a new tab)</span>
+    </a>
+  ))}
+</div>
+
+<style>
+  .cards {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(78%, 300px);
+    gap: 14px;
+    margin: 2em calc(var(--gutter) * -1);
+    padding: 4px var(--gutter) 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .cards::-webkit-scrollbar {
+    display: none;
+  }
+  .link-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #fffdf9;
+    text-decoration: none;
+    scroll-snap-align: start;
+    box-shadow:
+      0 1px 0 rgb(42 41 37 / 0.1),
+      0 18px 40px -28px rgb(42 41 37 / 0.45);
+    transition: transform 0.3s var(--ease-out);
+  }
+  .link-card:hover {
+    transform: translateY(-3px);
+  }
+  .thumb {
+    aspect-ratio: 4 / 5;
+    background: #e6dccd;
+  }
+  .etsy .thumb {
+    aspect-ratio: 1;
+  }
+  .link .thumb {
+    aspect-ratio: 16 / 9;
+  }
+  .thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .text {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px 16px;
+  }
+  .site {
+    font: 700 11px/1.2 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #c8001f;
+  }
+  .etsy .site {
+    color: #b3470e;
+  }
+  .link .site {
+    color: var(--blue);
+  }
+  .title {
+    font: 400 20px/1.2 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  .desc {
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    font-size: 15px;
+  }
+  .price {
+    font-weight: 700;
+  }
+  .rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  .count {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .stars {
+    --star: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M10 1.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L10 14.8l-5.2 2.8 1-5.8L1.5 7.7l5.9-.8z'/></svg>");
+    width: 80px;
+    height: 16px;
+    background: linear-gradient(90deg, #f1a51e calc(var(--r) / 5 * 100%), rgb(42 41 37 / 0.18) 0);
+    mask: var(--star) 0 0 / 16px 16px repeat-x;
+  }
+  .go {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font: 600 15px/1 var(--sans);
+  }
+  .go svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* one card on its own sits side by side with its picture */
+  .single {
+    display: block;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  .single .link-card {
+    flex-direction: row;
+  }
+  .single .thumb {
+    flex: 0 0 38%;
+    aspect-ratio: auto;
+    min-height: 100%;
+  }
+  @media (min-width: 760px) {
+    .cards:not(.single) {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      margin-left: 0;
+      margin-right: 0;
+      padding: 4px 0 12px;
+      overflow: visible;
+    }
+  }
+</style>

@@ -1,0 +1,34 @@
+{
+  "title": "Olive cup cozy",
+  "summary": "Deep olive ribbing that turns a takeaway cup into something you want to hold.",
+  "category": "home",
+  "cover": "../../../../apps/web/src/assets/story/03-olive-cup-cozy.png",
+  "coverAlt": "Olive cup cozy (test fixture photo)",
+  "gallery": [
+    {
+      "image": "../../../../apps/web/src/assets/details/03a-cozy-ribbing.png",
+      "alt": "Olive cup cozy close-up"
+    },
+    {
+      "image": "../../../../apps/web/src/assets/details/03b-cozy-rim.png",
+      "alt": "Olive cup cozy close-up"
+    }
+  ],
+  "details": {
+    "yarn": "Wool blend, worsted"
+  },
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text for the cup cozy."
+        }
+      ]
+    }
+  ],
+  "published": "2026-09-12",
+  "pdf": {
+    "file": "../media/sample-pattern.pdf"
+  }
+}

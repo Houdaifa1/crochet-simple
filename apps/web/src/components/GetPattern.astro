@@ -1,0 +1,112 @@
+---
+import { fileSize, type PdfInfo } from '../lib/content';
+
+interface Props {
+  slug: string;
+  pdf: PdfInfo | null;
+  etsyUrl?: string | undefined;
+  jump?: boolean;
+  variant?: 'card' | 'end';
+}
+const { slug, pdf, etsyUrl, jump = false, variant = 'card' } = Astro.props;
+const facts = pdf
+  ? ['PDF', pdf.pages && `${pdf.pages} ${pdf.pages === 1 ? 'page' : 'pages'}`, fileSize(pdf.bytes)]
+  : [];
+---
+
+{(pdf || etsyUrl) && (
+  <div class:list={['get', variant]} data-get>
+    {variant === 'end' && (
+      <>
+        <h2>Make your own</h2>
+        <p class="lead">
+          {pdf
+            ? 'The full pattern with every round and photo, ready to print.'
+            : 'The full pattern is available on Etsy.'}
+        </p>
+      </>
+    )}
+    {pdf ? (
+      <a class="btn" href={`/downloads/${slug}.pdf`} download>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" />
+        </svg>
+        Download free PDF
+      </a>
+    ) : (
+      <a class="btn etsy" href={etsyUrl} rel="noopener" target="_blank">
+        Get the pattern on Etsy
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 17 17 7M9 7h8v8" />
+        </svg>
+        <span class="visually-hidden"> (opens in a new tab)</span>
+      </a>
+    )}
+    {variant === 'card' && (
+      <div class="fine">
+        <span>{pdf ? facts.filter(Boolean).join(' · ') : 'Opens Etsy in a new tab'}</span>
+        {jump && (
+          <a href="#pattern" class="jump">
+            Jump to pattern
+          </a>
+        )}
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .get.card {
+    margin: 22px 0 0;
+    padding: 18px;
+    border-radius: 20px;
+    background: #fffdf9;
+    box-shadow:
+      0 1px 0 rgb(42 41 37 / 0.1),
+      0 18px 40px -28px rgb(42 41 37 / 0.45);
+  }
+  .card .btn {
+    width: 100%;
+  }
+  .etsy {
+    background: #f1641e;
+  }
+  .fine {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px 12px;
+    margin: 8px 2px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .jump {
+    display: inline-block;
+    padding: 12px 0;
+    font-weight: 600;
+    color: var(--ink);
+    text-underline-offset: 4px;
+  }
+  .get.end {
+    margin: 56px 0 0;
+    padding: 30px 22px;
+    border-radius: 22px;
+    background: var(--ink);
+    color: #fbf7f0;
+    text-align: center;
+  }
+  .end h2 {
+    margin: 0 0 8px;
+    font-size: 32px;
+  }
+  .lead {
+    margin: 0 auto 20px;
+    max-width: 32ch;
+    color: rgb(251 247 240 / 0.78);
+  }
+  .end .btn:not(.etsy) {
+    background: #fbf7f0;
+    color: var(--ink);
+  }
+</style>

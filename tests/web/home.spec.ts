@@ -13,6 +13,10 @@ async function open(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  // tests never talk to outside services
+  await page.route(/googlesyndication|cloudflareinsights|pinterest\.com|etsy\.com/, (r) =>
+    r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
+  );
   await page.goto('/');
   await page.locator('.story.ready').waitFor();
   return errors;

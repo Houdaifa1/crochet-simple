@@ -1,0 +1,55 @@
+---
+import { settings } from '../lib/content';
+
+interface Props {
+  kind: 'inFeed' | 'inArticle' | 'sidebar';
+  // the page's own switch from the admin
+  allowed?: boolean;
+}
+const { kind, allowed = true } = Astro.props;
+const { adsense } = await settings();
+const slot = adsense.slots[kind];
+const show = allowed && adsense.enabled && Boolean(adsense.client) && Boolean(slot);
+---
+
+{show && (
+  <aside class:list={['ad', kind]} aria-label="Advertisement">
+    <span class="label">Advertisement</span>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={adsense.client}
+      data-ad-slot={slot}
+      data-ad-format={kind === 'sidebar' ? 'vertical' : 'auto'}
+      data-full-width-responsive="true"
+    />
+    <script is:inline>
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </aside>
+)}
+
+<style>
+  /* space is held before the ad arrives, so nothing on the page moves */
+  .ad {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 6px;
+    min-height: 300px;
+    margin: 40px 0;
+    padding: 8px;
+    border-radius: 12px;
+    background: rgb(42 41 37 / 0.035);
+  }
+  .ad.sidebar {
+    min-height: 620px;
+    margin: 0;
+  }
+  .label {
+    font: 600 11px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6e675c;
+    text-align: center;
+  }
+</style>

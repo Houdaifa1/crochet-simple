@@ -1,0 +1,13 @@
+{
+  "name": "@crochet-simple/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Content format shared by the website and the admin, and link card resolvers.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

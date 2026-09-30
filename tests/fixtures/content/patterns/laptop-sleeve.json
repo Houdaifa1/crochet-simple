@@ -1,0 +1,21 @@
+{
+  "title": "Laptop sleeve",
+  "summary": "Dense charcoal stitches closed with a simple tan leather tab.",
+  "category": "tech-cases",
+  "cover": "../../../../apps/web/src/assets/story/05-laptop-sleeve.png",
+  "coverAlt": "Laptop sleeve (test fixture photo)",
+  "gallery": [],
+  "details": {},
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text for the laptop sleeve."
+        }
+      ]
+    }
+  ],
+  "published": "2026-08-28",
+  "etsyUrl": "https://www.etsy.com/listing/9999913/laptop-sleeve"
+}

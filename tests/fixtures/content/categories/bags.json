@@ -1,0 +1,6 @@
+{
+  "name": "Bags",
+  "description": "Test category: bags patterns.",
+  "icon": "./icons/bags.svg",
+  "order": 0
+}

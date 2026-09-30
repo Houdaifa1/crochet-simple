@@ -1,0 +1,6 @@
+{
+  "name": "Home",
+  "description": "Test category: home patterns.",
+  "icon": "./icons/home.svg",
+  "order": 2
+}

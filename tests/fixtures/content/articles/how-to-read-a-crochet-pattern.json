@@ -1,0 +1,54 @@
+{
+  "title": "How to read a crochet pattern",
+  "summary": "Rounds, repeats and the little numbers in brackets, explained one line at a time.",
+  "topic": "Tutorials",
+  "cover": "../../../../apps/web/src/assets/details/05b-laptop-stitches.png",
+  "coverAlt": "How to read a crochet pattern (test fixture photo)",
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text. Rounds, repeats and the little numbers in brackets, explained one line at a time."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Start with the abbreviations"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Every pattern lists its short forms near the top."
+        }
+      ]
+    },
+    {
+      "type": "quote",
+      "text": "Count at the end of every round."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Rounds and rows"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Rounds are worked in a spiral or joined circle; rows go back and forth."
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/details/03a-cozy-ribbing.png",
+      "alt": "Olive ribbing close-up",
+      "caption": "Ribbing is a repeat of the same two stitches."
+    }
+  ],
+  "published": "2026-09-30"
+}

@@ -1,0 +1,54 @@
+{
+  "title": "Blocking small pieces",
+  "summary": "A few minutes of steam that make small projects look finished.",
+  "topic": "Tutorials",
+  "cover": "../../../../apps/web/src/assets/details/06a-hat-stitches.png",
+  "coverAlt": "Blocking small pieces (test fixture photo)",
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text. A few minutes of steam that make small projects look finished."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Start with the abbreviations"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Every pattern lists its short forms near the top."
+        }
+      ]
+    },
+    {
+      "type": "quote",
+      "text": "Count at the end of every round."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Rounds and rows"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Rounds are worked in a spiral or joined circle; rows go back and forth."
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/details/03a-cozy-ribbing.png",
+      "alt": "Olive ribbing close-up",
+      "caption": "Ribbing is a repeat of the same two stitches."
+    }
+  ],
+  "published": "2026-09-08"
+}

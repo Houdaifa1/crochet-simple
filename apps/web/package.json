@@ -6,19 +6,28 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "dev:sample": "CONTENT_DIR=../../tests/fixtures/content SITE_URL=http://127.0.0.1:4321 astro dev",
+    "build": "astro build && pagefind --site ${OUT_DIR:-dist} --quiet",
+    "build:test": "CONTENT_DIR=../../tests/fixtures/content OUT_DIR=dist-test SITE_URL=https://example.com PAGE_SIZE=6 pnpm build",
     "preview": "astro preview",
-    "typecheck": "astro check"
+    "preview:test": "OUT_DIR=dist-test astro preview",
+    "typecheck": "CONTENT_DIR=../../tests/fixtures/content astro check"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
     "@fontsource-variable/fraunces": "5.3.0",
+    "@resvg/resvg-js": "2.6.2",
+    "pagefind": "1.5.2",
+    "satori": "0.33.5",
     "sharp": "0.35.5",
     "typescript": "6.0.3",
     "vite": "^8.3.1"
   },
   "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.4",
     "@crochet-simple/artwork": "workspace:*",
+    "@crochet-simple/shared": "workspace:*",
     "astro": "7.3.5"
   }
 }

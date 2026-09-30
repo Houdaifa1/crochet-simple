@@ -1,0 +1,441 @@
+---
+import { getImage } from 'astro:assets';
+import Blocks from '../../components/Blocks.astro';
+import Gallery from '../../components/Gallery.astro';
+import GetPattern from '../../components/GetPattern.astro';
+import PatternCard from '../../components/PatternCard.astro';
+import Base from '../../layouts/Base.astro';
+import {
+  absolute,
+  categoryOf,
+  formatDate,
+  isoDate,
+  patterns,
+  pdfInfo,
+  related,
+  sections,
+  type Pattern,
+} from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = await patterns();
+  return all.map((p) => ({ params: { slug: p.id }, props: { pattern: p, all } }));
+}
+
+interface Props {
+  pattern: Pattern;
+  all: Pattern[];
+}
+const { pattern, all } = Astro.props;
+const d = pattern.data;
+const category = await categoryOf(pattern);
+const pdf = pdfInfo(pattern);
+const site = Astro.site;
+const path = `/patterns/${pattern.id}/`;
+const og = await getImage({
+  src: d.cover,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+  quality: 82,
+});
+const pin = `/pins/${pattern.id}.jpg`;
+const pageUrl = absolute(path, site);
+const pinUrl = absolute(pin, site);
+const saveHref =
+  pageUrl && pinUrl
+    ? `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(pageUrl)}&media=${encodeURIComponent(pinUrl)}&description=${encodeURIComponent(`${d.title}: ${d.summary}`)}`
+    : undefined;
+const photos = [{ image: d.cover, alt: d.coverAlt }, ...d.gallery];
+const facts = [
+  ['Hook', d.details.hook],
+  ['Yarn', d.details.yarn],
+  ['Finished size', d.details.size],
+].filter((f): f is [string, string] => Boolean(f[1]));
+const toc = sections(d.body);
+const patternHeading = toc.some((t) => t.id === 'pattern');
+const adAfter = d.body.length >= 6 ? 2 : undefined;
+const more = related(pattern, all);
+const names = new Map([[category.id, category.data.name]]);
+for (const p of more)
+  if (!names.has(p.data.category.id))
+    names.set(p.data.category.id, (await categoryOf(p)).data.name);
+const modified = d.updated ?? d.published;
+const jsonLd = site
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: d.title,
+        description: d.summary,
+        image: [absolute(og.src, site), pinUrl],
+        datePublished: isoDate(d.published),
+        dateModified: isoDate(modified),
+        author: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
+        publisher: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
+        mainEntityOfPage: pageUrl,
+        ...(pdf ? { isAccessibleForFree: true } : {}),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Patterns',
+            item: absolute('/patterns/', site),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: category.data.name,
+            item: absolute(`/patterns/category/${category.id}/`, site),
+          },
+          { '@type': 'ListItem', position: 3, name: d.title, item: pageUrl },
+        ],
+      },
+    ]
+  : [];
+const thumb = await getImage({
+  src: d.cover,
+  width: 320,
+  height: 400,
+  fit: 'cover',
+  format: 'webp',
+});
+---
+
+<Base
+  title={`${d.title} ${pdf ? 'Free ' : ''}Crochet Pattern | Crochet Simple`}
+  description={d.summary}
+  current="patterns"
+  image={og.src}
+  type="article"
+  published={d.published}
+  modified={modified}
+  jsonLd={jsonLd}
+  ads={d.ads}
+>
+  <div class="wrap" data-pagefind-body data-pagefind-meta={`image:${thumb.src}`}>
+    <span data-pagefind-filter="type" hidden>
+      Pattern
+    </span>
+    <nav class="crumbs" aria-label="Breadcrumb" data-pagefind-ignore>
+      <a href="/patterns/">Patterns</a>
+      <span aria-hidden="true">/</span>
+      <a href={`/patterns/category/${category.id}/`}>{category.data.name}</a>
+    </nav>
+    <div class="top">
+      <div>
+        <header class="p-head">
+          <h1>{d.title}</h1>
+          <p class="lede">{d.summary}</p>
+          <div class="tags" data-pagefind-ignore>
+            {pdf && <span class="tag free">Free PDF</span>}
+            {!pdf && d.etsyUrl && <span class="tag etsy">On Etsy</span>}
+            <span class="tag">{category.data.name}</span>
+            <span class="tag">
+              {d.updated ? 'Updated' : 'Published'}
+              <time datetime={isoDate(modified)}>{formatDate(modified)}</time>
+            </span>
+          </div>
+        </header>
+        <Gallery photos={photos} saveHref={saveHref} />
+      </div>
+      <div class="side" data-pagefind-ignore>
+        <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} jump={d.body.length > 0} />
+        {facts.length > 0 && (
+          <dl class="facts" style={`--n:${facts.length}`}>
+            {facts.map(([k, v]) => (
+              <div>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </div>
+
+    {toc.length > 1 && (
+      <nav class="toc" aria-label="On this page" data-pagefind-ignore>
+        {toc.map((t) => (
+          <a href={`#${t.id}`}>{t.text}</a>
+        ))}
+      </nav>
+    )}
+    {d.body.length > 0 && (
+      <article class="prose body" id={patternHeading ? 'write-up' : 'pattern'}>
+        <Blocks blocks={d.body} adAfter={adAfter} ads={d.ads} />
+      </article>
+    )}
+
+    <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} variant="end" />
+    {saveHref && (
+      <div class="share" data-pagefind-ignore>
+        <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
+          Save to Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+        <button class="btn ghost" type="button" data-copy={pageUrl}>
+          Copy link
+        </button>
+      </div>
+    )}
+  </div>
+
+  {more.length > 0 && (
+    <section class="wrap related" aria-labelledby="more-title">
+      <h2 id="more-title">More patterns</h2>
+      <div class="row">
+        {more.map((p) => (
+          <PatternCard pattern={p} category={names.get(p.data.category.id)!} headingLevel={3} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  {(pdf || d.etsyUrl) && (
+    <a
+      class="pill"
+      href={pdf ? `/downloads/${pattern.id}.pdf` : d.etsyUrl}
+      download={pdf ? '' : undefined}
+      aria-hidden="true"
+      tabindex="-1"
+    >
+      {pdf ? 'Free PDF' : 'Get it on Etsy'}
+    </a>
+  )}
+</Base>
+
+<script>
+  const pill = document.querySelector<HTMLElement>('.pill');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-get]')];
+  if (pill && cards.length) {
+    const seen = new Set<Element>();
+    let passedTop = false;
+    new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) seen.add(e.target);
+        else seen.delete(e.target);
+        if (e.target === cards[0]) passedTop = !e.isIntersecting && e.boundingClientRect.top < 0;
+      }
+      pill.classList.toggle('on', passedTop && seen.size === 0);
+    }).observe(cards[0]!);
+    cards.slice(1).forEach((c) =>
+      new IntersectionObserver(([e]) => {
+        if (e!.isIntersecting) seen.add(c);
+        else seen.delete(c);
+        pill.classList.toggle('on', passedTop && seen.size === 0);
+      }).observe(c),
+    );
+  }
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    b.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(b.dataset.copy!);
+      const label = b.textContent;
+      b.textContent = 'Link copied';
+      setTimeout(() => (b.textContent = label), 1800);
+    });
+  }
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach(
+        (e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target)),
+      ),
+    { rootMargin: '0px 0px -6% 0px' },
+  );
+  document.querySelectorAll('.rise').forEach((el) => io.observe(el));
+</script>
+
+<style>
+  .crumbs {
+    margin: 12px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .crumbs a {
+    display: inline-block;
+    padding: 12px 0;
+    text-decoration: none;
+  }
+  .crumbs span {
+    margin: 0 8px;
+    color: #6e675c;
+  }
+  h1 {
+    margin: 6px 0 0;
+    font-size: clamp(40px, 11vw, 76px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-variation-settings: 'opsz' 144;
+    text-wrap: balance;
+  }
+  .lede {
+    max-width: 40ch;
+    margin: 14px 0 0;
+    font-size: 19px;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 0;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgb(42 41 37 / 0.06);
+    font: 600 13px/1 var(--sans);
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .tag.free {
+    background: #ffe3ef;
+    color: #a1004a;
+  }
+  .tag.etsy {
+    background: #fde8dc;
+    color: #9a3a0a;
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 1px;
+    margin: 18px 0 0;
+    overflow: hidden;
+    border-radius: 16px;
+    background: rgb(42 41 37 / 0.12);
+    box-shadow: inset 0 0 0 1px rgb(42 41 37 / 0.12);
+  }
+  .facts div {
+    padding: 14px 14px;
+    background: var(--paper);
+  }
+  dt {
+    font: 700 11px/1.2 var(--sans);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6e675c;
+  }
+  dd {
+    margin: 6px 0 0;
+    font: 400 18px/1.2 var(--serif);
+  }
+  .toc {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 36px calc(var(--gutter) * -1) 0;
+    padding: 0 var(--gutter);
+  }
+  .toc a {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: #e8eef8;
+    color: var(--blue);
+    font: 600 14px/1 var(--sans);
+    text-decoration: none;
+  }
+  .body {
+    margin: 28px 0 0;
+  }
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 24px 0 0;
+  }
+  .related h2 {
+    margin: 72px 0 18px;
+    font-size: 32px;
+  }
+  .row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 62%;
+    gap: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter) 6px;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+  }
+  .row > :global(*) {
+    scroll-snap-align: start;
+  }
+  .pill {
+    position: fixed;
+    z-index: 9;
+    left: 50%;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+    font: 700 15px/1 var(--sans);
+    text-decoration: none;
+    box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.5);
+    transform: translate(-50%, 16px);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.3s,
+      transform 0.4s var(--ease-out);
+  }
+  .pill:global(.on) {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+  @media (min-width: 1000px) {
+    .top {
+      display: grid;
+      grid-template-columns: 7fr 5fr;
+      gap: 56px;
+      align-items: start;
+    }
+    .side {
+      position: sticky;
+      top: 24px;
+      padding-top: 190px;
+    }
+    .body,
+    .toc {
+      max-width: 680px;
+    }
+    .toc {
+      margin-left: 0;
+      margin-right: 0;
+      padding: 0;
+      flex-wrap: wrap;
+    }
+    .row {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: visible;
+      margin: 0;
+      padding: 0;
+    }
+    .pill {
+      display: none;
+    }
+  }
+</style>

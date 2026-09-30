@@ -1,0 +1,23 @@
+{
+  "adsense": {
+    "enabled": true,
+    "client": "ca-pub-0000000000000000",
+    "slots": {
+      "inFeed": "1111111111",
+      "inArticle": "2222222222",
+      "sidebar": "3333333333"
+    }
+  },
+  "pinterest": {
+    "url": "https://www.pinterest.com/crochetsimple/",
+    "name": "Crochet Simple",
+    "description": "Test fixture profile.",
+    "image": "../../../apps/web/src/assets/details/02a-daisy-centre.png"
+  },
+  "etsyShopUrl": "https://www.etsy.com/shop/CrochetSimpleTest",
+  "analyticsToken": "test-token",
+  "verification": {
+    "google": "test-google-token",
+    "pinterest": "test-pinterest-token"
+  }
+}

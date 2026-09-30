@@ -1,0 +1,175 @@
+{
+  "title": "Blue market bag",
+  "summary": "A structured tote in cobalt blue, finished with a pair of cherry charms.",
+  "category": "bags",
+  "cover": "../../../../apps/web/src/assets/story/01-blue-market-bag.png",
+  "coverAlt": "Blue market bag (test fixture photo)",
+  "gallery": [
+    {
+      "image": "../../../../apps/web/src/assets/details/01a-bag-stitches.png",
+      "alt": "Blue market bag close-up"
+    },
+    {
+      "image": "../../../../apps/web/src/assets/details/01b-bag-cherries.png",
+      "alt": "Blue market bag close-up"
+    }
+  ],
+  "details": {
+    "hook": "4.0 mm (G)",
+    "yarn": "Cotton, DK",
+    "size": "34 × 30 cm"
+  },
+  "body": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Test fixture text. This tote is worked from the base up in rounds, then the handles are added and the cherry charms are sewn on last."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Dense single crochet keeps the shape firm enough to stand on its own."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Materials"
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        [
+          {
+            "text": "Cotton DK yarn in cobalt, about 300 g"
+          }
+        ],
+        [
+          {
+            "text": "4.0 mm crochet hook"
+          }
+        ],
+        [
+          {
+            "text": "Stitch markers and a "
+          },
+          {
+            "text": "tapestry needle",
+            "bold": true
+          }
+        ]
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Abbreviations"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["ch", "chain"],
+        ["sc", "single crochet"],
+        ["inc", "2 sc in the same stitch"],
+        ["sl st", "slip stitch"]
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Pattern"
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "text": "Base"
+    },
+    {
+      "type": "rounds",
+      "items": [
+        {
+          "label": "Rnd 1",
+          "text": "Ch 41, sc in 2nd ch from hook and across.",
+          "count": "80 sts"
+        },
+        {
+          "label": "Rnd 2",
+          "text": "Inc in each of the first 3 sts, sc to the end.",
+          "count": "86 sts"
+        },
+        {
+          "label": "Rnd 3",
+          "text": "Sc around, placing a marker at each side.",
+          "count": "86 sts"
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/details/01a-bag-stitches.png",
+      "alt": "Rows of cobalt single crochet",
+      "caption": "Rows of single crochet give the bag its firm shape."
+    },
+    {
+      "type": "tip",
+      "title": "Tip",
+      "content": [
+        {
+          "text": "Count your stitches at the end of every round."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Finishing"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Weave in all ends, sew the cherries to the left handle and lightly steam the bag into shape."
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "cards": [
+        {
+          "kind": "pinterest",
+          "url": "https://www.pinterest.com/pin/1234567890/",
+          "title": "Blue market bag in progress",
+          "description": "Test fixture pin.",
+          "image": "../../../../apps/web/src/assets/details/01b-bag-cherries.png",
+          "siteName": "Pinterest"
+        },
+        {
+          "kind": "etsy",
+          "url": "https://www.etsy.com/listing/1234567890/test-listing",
+          "title": "Cherry charm pattern (test listing)",
+          "image": "../../../../apps/web/src/assets/details/01b-bag-cherries.png",
+          "siteName": "Etsy",
+          "price": {
+            "amount": 6.5,
+            "currency": "USD"
+          },
+          "rating": {
+            "value": 4.9,
+            "count": 212
+          }
+        }
+      ]
+    }
+  ],
+  "published": "2026-09-28",
+  "pdf": {
+    "file": "../media/sample-pattern.pdf"
+  },
+  "updated": "2026-09-29"
+}

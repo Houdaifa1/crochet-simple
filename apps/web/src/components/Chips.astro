@@ -1,0 +1,125 @@
+---
+import type { Category } from '../lib/content';
+
+interface Props {
+  items: { category: Category; count: number }[];
+  total: number;
+  current: string | null;
+  free: boolean;
+}
+const { items, total, current, free } = Astro.props;
+const suffix = free ? 'free/' : '';
+const at = (id: string | null) => (id === current ? 'page' : undefined);
+---
+
+<div class="filters">
+  <nav class="chips" aria-label="Categories">
+    <a class="chip" href={`/patterns/${suffix}`} aria-current={at(null)}>
+      <span class="icon all" aria-hidden="true"></span>All <span class="n">{total}</span>
+    </a>
+    {items.map(({ category, count }) => (
+      <a
+        class="chip"
+        href={`/patterns/category/${category.id}/${suffix}`}
+        aria-current={at(category.id)}
+      >
+        {category.data.icon && (
+          <span class="icon" aria-hidden="true" style={`--icon:url(${category.data.icon.src})`} />
+        )}
+        {category.data.name} <span class="n">{count}</span>
+      </a>
+    ))}
+  </nav>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('.filters');
+  if (bar) {
+    new IntersectionObserver(([e]) => bar.classList.toggle('stuck', e!.intersectionRatio < 1), {
+      threshold: [1],
+      rootMargin: '-1px 0px 0px 0px',
+    }).observe(bar);
+    const row = bar.querySelector<HTMLElement>('.chips')!;
+    const on = row.querySelector<HTMLElement>('[aria-current="page"]');
+    if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
+  }
+</script>
+
+<style>
+  .filters {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin: 22px calc(var(--gutter) * -1) 0;
+    padding: 12px 0;
+    background: rgb(250 247 241 / 0.9);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: box-shadow 0.2s;
+  }
+  .filters.stuck {
+    box-shadow: 0 1px 0 rgb(42 41 37 / 0.12);
+  }
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+    padding: 2px var(--gutter);
+  }
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+  .chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px 0 12px;
+    border: 1px solid rgb(42 41 37 / 0.12);
+    border-radius: 999px;
+    background: #fffdf9;
+    font: 600 15px/1 var(--sans);
+    text-decoration: none;
+    scroll-snap-align: start;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+  .chip[aria-current='page'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .n {
+    font-weight: 500;
+    color: #6e675c;
+  }
+  .chip[aria-current='page'] .n {
+    color: rgb(255 255 255 / 0.62);
+  }
+  /* uploaded icons are used as a mask, so they take the chip's colour */
+  .icon {
+    width: 22px;
+    height: 22px;
+    background: currentColor;
+    mask: var(--icon) center / contain no-repeat;
+  }
+  .icon.all {
+    --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'><rect x='4' y='4' width='6.5' height='6.5' rx='1.6'/><rect x='13.5' y='4' width='6.5' height='6.5' rx='1.6'/><rect x='4' y='13.5' width='6.5' height='6.5' rx='1.6'/><rect x='13.5' y='13.5' width='6.5' height='6.5' rx='1.6'/></svg>");
+  }
+  @media (min-width: 1100px) {
+    .filters {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .chips {
+      padding-left: 0;
+      padding-right: 0;
+      flex-wrap: wrap;
+    }
+  }
+</style>

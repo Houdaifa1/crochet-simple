@@ -1,11 +1,16 @@
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import type { Plugin } from 'vite';
 import { encodeCommands, type PathCommand } from '@crochet-simple/artwork';
 
 // canonical urls, share images and the sitemap switch on once the domain is set
 const site = process.env.SITE_URL;
+const here = fileURLToPath(new URL('.', import.meta.url));
+// the admin's export by default; tests point this at their fixtures and build into dist-test
+process.env.CONTENT_DIR = resolve(here, process.env.CONTENT_DIR ?? '.content');
 const codec = fileURLToPath(new URL('../../packages/artwork/src/codec.ts', import.meta.url));
 
 // the approved drawing files stay untouched; the browser gets them encoded (~30 KB gzipped)
@@ -31,7 +36,9 @@ function compactDrawings(): Plugin {
 
 export default defineConfig({
   ...(site ? { site } : {}),
+  outDir: process.env.OUT_DIR ?? 'dist',
   trailingSlash: 'always',
+  integrations: site ? [sitemap({ filter: (page) => !page.includes('/search/') })] : [],
   build: { format: 'directory', inlineStylesheets: 'always' },
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   devToolbar: { enabled: false },

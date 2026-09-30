@@ -1,0 +1,6 @@
+{
+  "name": "Accessories",
+  "description": "Test category: accessories patterns.",
+  "icon": "./icons/accessories.svg",
+  "order": 1
+}

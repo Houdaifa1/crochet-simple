@@ -1,0 +1,55 @@
+---
+interface Props {
+  base: string;
+  current: number;
+  total: number;
+}
+const { base, current, total } = Astro.props;
+const href = (n: number) => (n === 1 ? base : `${base}page/${n}/`);
+---
+
+{total > 1 && (
+  <nav class="pager" aria-label="Pages">
+    {current > 1 && (
+      <a class="step" href={href(current - 1)} rel="prev">
+        Previous
+      </a>
+    )}
+    {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+      <a href={href(n)} aria-current={n === current ? 'page' : undefined} aria-label={`Page ${n}`}>
+        {n}
+      </a>
+    ))}
+    {current < total && (
+      <a class="step" href={href(current + 1)} rel="next">
+        Next
+      </a>
+    )}
+  </nav>
+)}
+
+<style>
+  .pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 48px 0 0;
+  }
+  a {
+    display: grid;
+    place-items: center;
+    min-width: 46px;
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgb(42 41 37 / 0.14);
+  }
+  a[aria-current='page'] {
+    background: var(--ink);
+    color: #fff;
+    box-shadow: none;
+  }
+</style>

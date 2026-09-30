@@ -80,6 +80,47 @@ test('homepage words are edited from the admin', async () => {
   await expect(page.getByText(/updated successfully/i).first()).toBeVisible();
 });
 
+test('a pattern is written by hand in the editor: text, bold, heading and rounds', async () => {
+  await page.goto('/admin/collections/patterns/create', { waitUntil: 'networkidle' });
+  await page.locator('#field-title').fill('Olive cup cozy');
+  await page.locator('#field-summary').fill('Deep olive ribbing for a takeaway cup.');
+  await page.getByRole('combobox').first().click();
+  await page.getByRole('option', { name: 'Home & Kitchen' }).click();
+  await page.getByRole('button', { name: 'Choose from existing' }).first().click();
+  await page.getByText('03-olive-cup-cozy.png').first().click();
+  await expect(page.getByText('03-olive-cup-cozy.png').first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Write-up' }).click();
+  await page.locator('[contenteditable="true"]').first().click();
+  await page.keyboard.type('Deep ');
+  await page.keyboard.press('ControlOrMeta+b');
+  await page.keyboard.type('olive');
+  await page.keyboard.press('ControlOrMeta+b');
+  await page.keyboard.type(' ribbing, worked flat and seamed.');
+  await page.keyboard.press('Enter');
+  // pick from the "/" menu with the keyboard once it has narrowed to the match
+  await page.keyboard.type('/heading');
+  await expect(page.getByRole('option')).toHaveText(['Heading 2', 'Heading 3']);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(300);
+  await page.keyboard.type('Pattern');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('/rounds');
+  await expect(page.getByRole('option')).toHaveText(['Rounds or rows']);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(300);
+  await page.getByRole('button', { name: 'Add Step' }).click();
+  await page.locator('#field-items__0__label').fill('Row 1');
+  await page.locator('#field-items__0__text').fill('Ch 18, dc in 4th ch from hook and across.');
+  await page.locator('#field-items__0__count').fill('16 sts');
+  // the form registers typing after a short pause, as it would for a person
+  await page.waitForTimeout(600);
+
+  await page.getByRole('button', { name: 'Publish changes' }).click();
+  await expect(page).toHaveURL(/\/admin\/collections\/patterns\/\d+/);
+  await expect(page.locator('#field-slug')).toHaveValue('olive-cup-cozy');
+});
+
 test('publishing builds the site with published content only, and makes a backup', async () => {
   const cats = (await (
     await page.request.get(`${ORIGIN}/api/categories`, { headers: { origin: ORIGIN } })
@@ -174,7 +215,12 @@ test('publishing builds the site with published content only, and makes a backup
   expect(draft.ok(), await draft.text()).toBe(true);
 
   await publish();
-  await expect(page.getByText(/Published .* 1 pattern and 0 articles are ready\./)).toBeVisible();
+  await expect(page.getByText(/Published .* 2 patterns and 0 articles are ready\./)).toBeVisible();
+  const cozy = readFileSync(resolve(ROOT, 'site/patterns/olive-cup-cozy/index.html'), 'utf8');
+  expect(cozy).toContain('Deep <strong>olive</strong> ribbing, worked flat and seamed.');
+  expect(cozy).toContain('<h2 id="pattern">Pattern</h2>');
+  expect(cozy).toContain('Ch 18, dc in 4th ch from hook and across.');
+  expect(cozy).toContain('16 sts');
   const page1 = readFileSync(resolve(ROOT, 'site/patterns/blue-market-bag/index.html'), 'utf8');
   expect(page1).toContain('Ch 41, sc across.');
   expect(page1).toContain('4.0 mm (G)');

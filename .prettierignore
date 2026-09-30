@@ -1,0 +1,9 @@
+# Approved, protected assets: never reformat
+packages/artwork/drawings/
+packages/artwork/approved-assets.sha256
+apps/web/src/assets/
+
+# Historical reference, kept byte-for-byte except image paths
+docs/reference/
+
+pnpm-lock.yaml

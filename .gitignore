@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.astro/
+.next/
+.wrangler/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# CMS data: content lives in the database and media folders, backed up separately
+apps/cms/data/
+apps/cms/media/
+backups/
+
+# Content export used as build input
+apps/web/.content/
+
+# Tests and reports
+test-results/
+playwright-report/
+coverage/
+.lighthouseci/
+
+# OS and editors
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/

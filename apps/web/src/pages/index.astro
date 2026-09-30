@@ -185,10 +185,11 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
     position: relative;
     isolation: isolate;
   }
+  /* above the yarn photo, so the line leaves from its loose strand; the route avoids every other photo */
   .story :global(.thread) {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 3;
     pointer-events: none;
     overflow: visible;
   }

@@ -98,15 +98,20 @@ test('a pattern is written by hand in the editor: text, bold, heading and rounds
   await page.keyboard.press('ControlOrMeta+b');
   await page.keyboard.type(' ribbing, worked flat and seamed.');
   await page.keyboard.press('Enter');
-  // pick from the "/" menu with the keyboard once it has narrowed to the match
-  await page.keyboard.type('/heading');
+  // pick from the "/" menu with the keyboard once it has caught up with the typing
+  const editor = page.locator('[contenteditable="true"]').first();
+  await page.keyboard.type('/heading', { delay: 40 });
+  await expect(editor).toContainText('/heading');
   await expect(page.getByRole('option')).toHaveText(['Heading 2', 'Heading 3']);
+  await page.waitForTimeout(300);
   await page.keyboard.press('Enter');
   await page.waitForTimeout(300);
   await page.keyboard.type('Pattern');
   await page.keyboard.press('Enter');
-  await page.keyboard.type('/rounds');
+  await page.keyboard.type('/rounds', { delay: 40 });
+  await expect(editor).toContainText('/rounds');
   await expect(page.getByRole('option')).toHaveText(['Rounds or rows']);
+  await page.waitForTimeout(300);
   await page.keyboard.press('Enter');
   await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'Add Step' }).click();

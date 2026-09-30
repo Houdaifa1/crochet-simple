@@ -24,6 +24,8 @@ export interface StoryLayout {
   readonly cornerRadius: number;
   readonly decorationSize: number;
   readonly edgeMargin: number;
+  // text just below where the yarn starts (the scroll cue); the yarn drops past it first
+  readonly startClear?: Box;
 }
 
 export type SegmentKind = 'connector' | 'drawing' | 'wrap' | 'tail';
@@ -138,11 +140,28 @@ export function buildRoute(layout: StoryLayout): Route {
   ink.moveTo(layout.yarnStart);
   let direction = layout.yarnDirection;
   const bounds: XBounds = { minX: layout.edgeMargin, maxX: layout.width - layout.edgeMargin };
+  const clear = layout.startClear;
+  const leadIn = (): void => {
+    if (
+      !clear ||
+      boxRight(clear) + layout.photoGap <= layout.yarnStart.x - layout.photoGap ||
+      boxBottom(clear) <= layout.yarnStart.y
+    )
+      return;
+    const x = Math.min(
+      bounds.maxX,
+      Math.max(layout.yarnStart.x, boxRight(clear) + layout.photoGap),
+    );
+    curveTo(ink, { x, y: boxBottom(clear) + layout.photoGap }, direction, DOWN, bounds);
+    direction = DOWN;
+  };
 
-  for (const chapter of layout.chapters) {
+  layout.chapters.forEach((chapter, k) => {
     const placed = placeDrawing(getDrawing(chapter.id), chapter.art);
     placements.push(placed);
-    mark('connector', chapter.id, () =>
+    mark('connector', chapter.id, () => {
+      // the drop past the scroll cue belongs to the first product's approach
+      if (k === 0) leadIn();
       drawConnector(ink, {
         to: placed.entry,
         fromDirection: direction,
@@ -150,14 +169,14 @@ export function buildRoute(layout: StoryLayout): Route {
         style: chapter.connector,
         size: layout.decorationSize,
         ...bounds,
-      }),
-    );
+      });
+    });
     mark('drawing', chapter.id, () => ink.append(placed.body));
     mark('wrap', chapter.id, () => {
       direction = wrapPhoto(ink, placed.exitDirection, layout, chapter, bounds);
       direction = passText(ink, direction, layout, chapter, bounds);
     });
-  }
+  });
   mark('tail', null, () => curveTo(ink, layout.end, direction, DOWN, bounds));
 
   return { commands: ink.toCommands(), segments, placements };

@@ -52,6 +52,11 @@ for (const [name, size] of Object.entries(SIZES)) {
           return window.scrollX;
         });
         expect(sideways).toBe(0);
+        // let fade-ins finish, so colours are checked as readers see them
+        await page.evaluate(() =>
+          document.querySelectorAll('.rise').forEach((e) => e.classList.add('in')),
+        );
+        await page.waitForTimeout(1000);
         const axe = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
           .analyze();

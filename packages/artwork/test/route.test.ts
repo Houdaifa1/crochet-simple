@@ -10,6 +10,7 @@ import {
 import { assertRouteStructure, assertSingleLinePathData } from '../src/invariants.ts';
 import { flatten, polylinePathData } from '../src/polyline.ts';
 import { buildRoute, type Route } from '../src/route.ts';
+import { buildScrollMap } from '../src/scroll-map.ts';
 import { TEST_STORIES, phoneStory } from './fixtures/layouts.ts';
 
 function leaving(commands: readonly PathCommand[], i: number): [number, number] {
@@ -115,6 +116,33 @@ describe.each(TEST_STORIES.map((make) => make()))('route on $name', (story) => {
 
   it('decorates each transition with its own crochet flourish', () => {
     expect(PRODUCT_ORDER.map((id) => loopsIn(route, id))).toEqual([0, 1, 4, 3, 2, 1, 1]);
+  });
+});
+
+describe('route start', () => {
+  it('drops past the scroll cue when the cue reaches under the yarn start', () => {
+    const story = phoneStory();
+    const cue = { x: 24, y: 560, width: 300, height: 44 };
+    const route = buildRoute({ ...story.layout, startClear: cue });
+    const poly = flatten(route.commands);
+    for (let i = 0; i < poly.count; i++) {
+      const x = poly.xs[i] as number;
+      const y = poly.ys[i] as number;
+      const inside = x > cue.x && x < cue.x + cue.width && y > cue.y && y < cue.y + cue.height;
+      expect(inside, `cue crossed at ${x},${y}`).toBe(false);
+    }
+    assertRouteStructure(route);
+    expect(() => buildScrollMap(poly, route, story.policy)).not.toThrow();
+  });
+
+  it('leaves the start alone when the cue is well to the side', () => {
+    const story = phoneStory();
+    const plain = buildRoute(story.layout);
+    const withCue = buildRoute({
+      ...story.layout,
+      startClear: { x: 24, y: 560, width: 120, height: 44 },
+    });
+    expect(withCue.commands).toEqual(plain.commands);
   });
 });
 

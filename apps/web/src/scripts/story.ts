@@ -94,6 +94,7 @@ async function build(
     };
   });
   const knot = box(story.querySelector('.knot')!);
+  const cue = box(story.querySelector('.cue')!);
 
   const pageBox = (el: Element) => {
     const r = el.getBoundingClientRect();
@@ -155,6 +156,7 @@ async function build(
     cornerRadius: phone ? 16 : 20,
     decorationSize: phone ? 64 : 104,
     edgeMargin: phone ? 8 : 24,
+    startClear: cue,
   });
   if (!(await step(stale))) return null;
   const poly = flatten(route.commands);

@@ -7,3 +7,5 @@ apps/web/src/assets/
 docs/reference/
 
 pnpm-lock.yaml
+
+test-results/

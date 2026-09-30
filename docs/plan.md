@@ -50,11 +50,21 @@ Tip: pink `#ff2f83` dot with a thin white ring so it reads on the pink section.
 2. One route built from layout: yarn strand → per product (connector, approved drawing scaled
    uniformly "meet" into its box, two-sided photo wrap) → tail. Build fails unless: exactly
    one `M`, no `Z`/`z`, seven products in order, no gaps, all coordinates finite.
-3. Flatten to straight segments (≤ 0.12 CSS px from the curves) + cumulative length table.
-   Guide, dark line (single path, one `M`, dash-revealed) and tip all use this table.
-4. Scroll map: piecewise-linear table from scroll position to drawn length, built at layout
-   time; each drawing is fully traced while it crosses the middle band of the viewport.
-   Per frame: two binary searches, one style write, one attribute write.
+3. Flatten to straight segments (≤ 0.1 CSS px from the curves, coordinates rounded to
+   0.01 px before measuring) + cumulative length table. The faint guide is the whole route as
+   one path (one `M`, no `Z`). The dark line is the same route in ≤ 128-point pieces that
+   share their joint vertices; full pieces are shown, the piece under the tip is dashed to
+   the drawn length, later pieces are hidden. The tip is a disc at the table's point.
+   (iOS Safari cannot dash-reveal one path over ~256 points; owner decision 2026-09-30.)
+4. Scroll map (`buildScrollMap`): for every route point, a visibility corridor (the tip must
+   be on screen between the header and the bottom margin), preferred pacing (travel rides an
+   anchor line at 58 % of the viewport; the pen reaches a drawing at 72 % or when the whole
+   drawing is in view, whichever is first; drawings use 90 % of their window), then a
+   forward/backward projection that caps drawing speed at 48 px of line per px of scroll. The
+   result is strictly increasing, never jumps, keeps the tip visible, or rejects the layout.
+   Per frame: one binary search for the length, one for the tip point, and updates to the
+   pieces whose state changed. Layout rule found: a drawing box may be at most ≈ 51 % of
+   the viewport height on desktop (≈ 52 % on phones) for the densest drawings.
 5. Width changes rebuild geometry and restore the reader's story position; height-only
    changes (mobile address bar) do not rebuild.
 6. Reduced motion / no JavaScript: complete static drawings, no tip, no effects; all text and
@@ -102,16 +112,30 @@ Cloudflare R2 is connected).
 
 ## Steps (one at a time; stop, report with evidence, wait for "go")
 
-| Step | Work                                                              |
-| ---- | ----------------------------------------------------------------- |
-| 0    | Clean-up, repo, structure, CLAUDE.md, AGENTS.md                   |
-| 1    | Geometry engine and invariant tests                               |
-| 2    | Homepage design preview → owner approval                          |
-| 3    | Homepage build                                                    |
-| 4    | Admin (Payload)                                                   |
-| 5    | Patterns, Journal, About, legal pages, SEO outputs, ad components |
-| 6    | Deploy to Cloudflare                                              |
-| 7    | Full browser test pass and report                                 |
+Frontend first: the whole visible site is finished for phone and desktop before the admin.
+
+| Step | Work                                                                                                            |
+| ---- | --------------------------------------------------------------------------------------------------------------- |
+| 0    | Clean-up, repo, structure, CLAUDE.md, AGENTS.md                                                                 |
+| 1    | Drawing engine (route, flattening, length table, scroll map) and invariant tests                                |
+| 2    | Homepage design preview → owner approval                                                                        |
+| 3    | Homepage build (phone first)                                                                                    |
+| 4    | Design previews: Patterns, pattern page, Journal, About → owner approval                                        |
+| 5    | Content pages, SEO outputs, ad components, built on the shared content model with test fixtures that never ship |
+| 6    | Admin (Payload) connected to the content model; Publish button                                                  |
+| 7    | CI/CD and deploy to Cloudflare                                                                                  |
+| 8    | Full browser test pass and report                                                                               |
+
+## Delivery pipeline (CI/CD)
+
+- One road to production for code and content: push to GitHub → GitHub Actions runs
+  `check:assets`, route invariants, type checks, unit and browser tests, and the production
+  build → deploys to Cloudflare only if everything passes. A failing change never goes live.
+- Every branch/pull request gets a preview deployment; previous versions can be rolled back.
+- The admin's Publish button commits the content export (text, structure) to the repository
+  and uploads photos and PDFs to Cloudflare R2, which triggers the same pipeline.
+- Until a domain exists the site uses its free `workers.dev` address; connecting the domain
+  switches canonical URLs, sitemap and `ads.txt` through one setting.
 
 Owner-provided later: domain, Cloudflare account, AdSense publisher ID, contact email, Etsy
 shop URL, real patterns and posts. Each is a setting; the features are built and tested

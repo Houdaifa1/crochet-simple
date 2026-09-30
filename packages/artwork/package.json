@@ -1,0 +1,14 @@
+{
+  "name": "@crochet-simple/artwork",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Approved one-line drawings and the geometry engine for the homepage yarn route.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

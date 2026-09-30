@@ -1,0 +1,11 @@
+{
+  "browser": "iOS Safari (iOS Simulator)",
+  "device": "4781F5E7-E3D7-4969-BA1B-33CD2EACED6B",
+  "dpr": 3,
+  "samples": 23,
+  "tipToLineEnd": {
+    "median": 0.013,
+    "max": 0.578
+  },
+  "tolerancePx": 0.75
+}

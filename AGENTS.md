@@ -10,17 +10,19 @@ only what the task needs, and open a pull request.
 ## Hard rules (summary of `CLAUDE.md`)
 
 - The homepage yarn route has exactly one `M`, no `Z`/`z`, no gaps, and the products in order:
-  bag, daisy, cozy, pouch, laptop, hat, panda. Never weaken the tests that enforce this.
+  bag, daisy, cozy, pouch, laptop, hat, panda. The faint guide renders it as one path; the
+  dark line renders it as ≤ 128-point pieces with shared joints (iOS Safari limit). Never
+  weaken the tests that enforce this.
 - `packages/artwork/drawings/*` and `apps/web/src/assets/story/*` are approved and read-only;
   `pnpm check:assets` must pass.
-- Line, guide and tip share one flattened geometry and one length table. No
-  `getPointAtLength()` in the scroll path, no compensating offsets, no time-based easing.
+- Guide, line pieces and tip share one flattened geometry and one length table. No
+  `getPointAtLength()` in the scroll path, no compensating offsets, no time-based easing, no
+  single long dashed path.
 - Native scrolling only: no scroll interception, snapping, smooth-scroll libraries or pinning.
 - No fake or placeholder content in production output.
 - Phone-first; WCAG AA; no layout shift; performance budgets in `docs/plan.md`.
 
 ## Before opening a pull request
 
-- All checks pass (`pnpm check:assets`, `pnpm format:check`, and the type checks and tests
-  listed in `CLAUDE.md` once they exist).
+- `pnpm check` passes (assets, formatting, types, unit and browser tests).
 - Describe what changed, how it was verified, and anything not verified.

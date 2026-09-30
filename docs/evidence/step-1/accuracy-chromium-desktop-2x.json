@@ -1,0 +1,17 @@
+{
+  "browser": "chromium",
+  "story": "desktop",
+  "dpr": 2,
+  "points": 54946,
+  "pieces": 433,
+  "routeLength": 96195,
+  "samples": 23,
+  "tipToLineEnd": {
+    "median": 0.019,
+    "max": 0.07
+  },
+  "browserToEngine": {
+    "median": 0.012,
+    "max": 0.058
+  }
+}

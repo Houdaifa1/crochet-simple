@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload';
 import { slugField } from '../fields/slug.ts';
 import { onlyIcons } from '../fields/validators.ts';
+import { categoryInUse } from '../hooks/in-use.ts';
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -12,6 +13,7 @@ export const Categories: CollectionConfig = {
       'Shown as the chips above the patterns, in this order. Categories with no patterns are hidden.',
   },
   defaultSort: 'order',
+  hooks: { beforeDelete: [categoryInUse] },
   fields: [
     { name: 'name', type: 'text', required: true, maxLength: 40 },
     slugField('name'),

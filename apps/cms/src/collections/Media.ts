@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload';
 import { MEDIA_DIR } from '../paths.ts';
 import { IMAGE_TYPES } from '../fields/validators.ts';
+import { fileInUse } from '../hooks/in-use.ts';
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -11,6 +12,7 @@ export const Media: CollectionConfig = {
     description:
       'Photos (PNG, JPG, WebP, AVIF), icons (SVG or PNG) and PDFs. Upload large originals; the site makes the small versions.',
   },
+  hooks: { beforeDelete: [fileInUse] },
   upload: {
     staticDir: MEDIA_DIR,
     mimeTypes: [...IMAGE_TYPES, 'image/svg+xml', 'application/pdf'],

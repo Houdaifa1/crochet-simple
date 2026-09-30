@@ -32,6 +32,54 @@ const upload = async (file: string, alt: string) => {
   expect(res.ok(), await res.text()).toBe(true);
   return ((await res.json()) as { doc: { id: number; filename: string } }).doc;
 };
+const find = async (collection: string, slug: string) => {
+  const res = await page.request.get(`${ORIGIN}/api/${collection}?where[slug][equals]=${slug}`, {
+    headers: { origin: ORIGIN },
+  });
+  return ((await res.json()) as { docs: { id: number }[] }).docs[0]!.id;
+};
+const site = (file: string) => resolve(ROOT, 'site', file);
+const built = (file: string) => readFileSync(site(file), 'utf8');
+// a write-up with one paragraph, as the editor stores it
+const doc = (words: string) => ({
+  root: {
+    type: 'root',
+    format: '',
+    indent: 0,
+    version: 1,
+    direction: 'ltr',
+    children: [
+      {
+        type: 'paragraph',
+        format: '',
+        indent: 0,
+        version: 1,
+        direction: 'ltr',
+        textFormat: 0,
+        children: [
+          {
+            type: 'text',
+            text: words,
+            format: 0,
+            detail: 0,
+            mode: 'normal',
+            style: '',
+            version: 1,
+          },
+        ],
+      },
+    ],
+  },
+});
+const deleteFromList = async (collection: string, name: string) => {
+  await page.goto(`/admin/collections/${collection}`, { waitUntil: 'networkidle' });
+  await page
+    .getByRole('row', { name: new RegExp(name) })
+    .getByRole('checkbox')
+    .check();
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
+};
 const publish = async () => {
   await page.goto('/admin', { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Publish now' }).click();
@@ -244,6 +292,223 @@ test('publishing builds the site with published content only, and makes a backup
   expect(existsSync(resolve(ROOT, 'backups', backups.at(-1)!, 'cms.db'))).toBe(true);
   // the Etsy key and other private settings never reach the website
   expect(readFileSync(resolve(ROOT, 'content/settings.json'), 'utf8')).not.toContain('etsyApiKey');
+});
+
+test('editing a published pattern updates its page and keeps its web address', async () => {
+  await page.goto(`/admin/collections/patterns/${await find('patterns', 'olive-cup-cozy')}`, {
+    waitUntil: 'networkidle',
+  });
+  await page.locator('#field-title').fill('Ribbed olive cup cozy');
+  await page.locator('#field-summary').fill('Deep olive ribbing that hugs a takeaway cup.');
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: 'Publish changes' }).click();
+  await expect(
+    page.getByText(/published successfully|updated successfully/i).first(),
+  ).toBeVisible();
+  await expect(page.locator('#field-slug')).toHaveValue('olive-cup-cozy');
+  await publish();
+  const cozy = built('patterns/olive-cup-cozy/index.html');
+  expect(cozy).toContain('Ribbed olive cup cozy');
+  expect(cozy).toContain('Deep olive ribbing that hugs a takeaway cup.');
+  expect(built('patterns/index.html')).toContain('Ribbed olive cup cozy');
+});
+
+test('unpublishing a pattern takes it off the site, and publishing it brings it back', async () => {
+  await page.goto(`/admin/collections/patterns/${await find('patterns', 'olive-cup-cozy')}`, {
+    waitUntil: 'networkidle',
+  });
+  // Unpublish sits in the ⋯ menu next to "Publish changes"
+  await page.locator('.doc-controls__dots').click();
+  await page.getByText('Unpublish', { exact: true }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
+  await expect(page.getByText(/unpublished successfully/i).first()).toBeVisible();
+  await publish();
+  expect(existsSync(site('patterns/olive-cup-cozy'))).toBe(false);
+  expect(built('patterns/index.html')).not.toContain('Ribbed olive cup cozy');
+
+  await page.goto(`/admin/collections/patterns/${await find('patterns', 'olive-cup-cozy')}`, {
+    waitUntil: 'networkidle',
+  });
+  await page.getByRole('button', { name: 'Publish changes' }).click();
+  await expect(
+    page.getByText(/published successfully|updated successfully/i).first(),
+  ).toBeVisible();
+  await publish();
+  expect(built('patterns/olive-cup-cozy/index.html')).toContain('Ribbed olive cup cozy');
+});
+
+test('a replaced photo shows on the site', async () => {
+  const media = (await (
+    await page.request.get(`${ORIGIN}/api/media?where[filename][equals]=03-olive-cup-cozy.png`, {
+      headers: { origin: ORIGIN },
+    })
+  ).json()) as { docs: { id: number }[] };
+  const res = await page.request.patch(`${ORIGIN}/api/media/${media.docs[0]!.id}`, {
+    headers: { origin: ORIGIN },
+    multipart: {
+      file: {
+        name: '05-laptop-sleeve.png',
+        mimeType: 'image/png',
+        buffer: readFileSync(resolve(REPO, 'apps/web/src/assets/story/05-laptop-sleeve.png')),
+      },
+      _payload: JSON.stringify({ alt: 'Olive crochet cup cozy, new photo' }),
+    },
+  });
+  expect(res.ok(), await res.text()).toBe(true);
+  await publish();
+  const cozy = built('patterns/olive-cup-cozy/index.html');
+  expect(cozy).toContain('05-laptop-sleeve');
+  expect(cozy).not.toContain('03-olive-cup-cozy');
+  expect(cozy).toContain('Olive crochet cup cozy, new photo');
+});
+
+test('a category or file that is still used cannot be deleted, and the admin says where', async () => {
+  await deleteFromList('categories', 'Home & Kitchen');
+  await expect(
+    page.getByText(/This category is still used by .*pattern "Blue market bag"/).first(),
+  ).toBeVisible();
+  await deleteFromList('media', '01-blue-market-bag.png');
+  await expect(
+    page.getByText(/This file is still used by .*pattern "Blue market bag" \(cover\)/).first(),
+  ).toBeVisible();
+  const stillThere = await page.request.get(`${ORIGIN}/api/categories?limit=0`, {
+    headers: { origin: ORIGIN },
+  });
+  expect(((await stillThere.json()) as { totalDocs: number }).totalDocs).toBe(1);
+});
+
+test('deleting a pattern and then its category removes both pages', async () => {
+  const hats = await api('post', '/categories', { name: 'Hats' });
+  expect(hats.ok(), await hats.text()).toBe(true);
+  const category = ((await hats.json()) as { doc: { id: number } }).doc.id;
+  const cover = await upload('apps/web/src/assets/story/06-bucket-hat.png', 'Crochet bucket hat');
+  const made = await api('post', '/patterns?draft=false', {
+    title: 'Bucket hat',
+    summary: 'A soft bucket hat worked in rounds.',
+    category,
+    cover: cover.id,
+    body: doc('Worked from the crown down.'),
+    _status: 'published',
+  });
+  expect(made.ok(), await made.text()).toBe(true);
+  await publish();
+  expect(existsSync(site('patterns/bucket-hat/index.html'))).toBe(true);
+  expect(existsSync(site('patterns/category/hats/index.html'))).toBe(true);
+
+  await deleteFromList('patterns', 'Bucket hat');
+  await expect(page.getByText(/Deleted .*successfully/).first()).toBeVisible();
+  await deleteFromList('categories', 'Hats');
+  await expect(page.getByText(/Deleted .*successfully/).first()).toBeVisible();
+  await deleteFromList('media', '06-bucket-hat.png');
+  await expect(page.getByText(/Deleted .*successfully/).first()).toBeVisible();
+  await publish();
+  expect(existsSync(site('patterns/bucket-hat'))).toBe(false);
+  expect(existsSync(site('patterns/category/hats'))).toBe(false);
+  expect(built('patterns/index.html')).not.toContain('Bucket hat');
+});
+
+test('a journal article is written, shown in the journal, then deleted', async () => {
+  await upload('apps/web/src/assets/story/02-daisy-clip.png', 'Crochet daisy clip');
+  await page.goto('/admin/collections/articles/create', { waitUntil: 'networkidle' });
+  await page.locator('#field-title').fill('Five stitches to learn first');
+  await page.locator('#field-summary').fill('The five stitches behind almost every pattern here.');
+  await page.locator('#field-topic').fill('Tutorials');
+  await page.getByRole('button', { name: 'Choose from existing' }).first().click();
+  await page.getByText('02-daisy-clip.png').first().click();
+  await expect(page.getByText('02-daisy-clip.png').first()).toBeVisible();
+  await page.locator('[contenteditable="true"]').first().click();
+  await page.keyboard.type('Start with the chain, then the single crochet.');
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: 'Publish changes' }).click();
+  await expect(page).toHaveURL(/\/admin\/collections\/articles\/\d+/);
+  await publish();
+  const article = built('journal/five-stitches-to-learn-first/index.html');
+  expect(article).toContain('Start with the chain, then the single crochet.');
+  expect(article).toContain('Tutorials');
+  expect(built('journal/index.html')).toContain('Five stitches to learn first');
+
+  await deleteFromList('articles', 'Five stitches to learn first');
+  await expect(page.getByText(/Deleted .*successfully/).first()).toBeVisible();
+  await publish();
+  expect(existsSync(site('journal/five-stitches-to-learn-first'))).toBe(false);
+  expect(built('journal/index.html')).not.toContain('Five stitches to learn first');
+});
+
+test('About, Privacy and Terms are written from the admin, and empty text brings back the default', async () => {
+  const set = (slug: string, data: object) =>
+    page.request.post(`${ORIGIN}/api/globals/${slug}`, { data, headers: { origin: ORIGIN } });
+  expect(
+    (
+      await set('about', {
+        intro: 'Patterns made to be finished.',
+        body: doc('I started with one granny square.'),
+      })
+    ).ok(),
+  ).toBe(true);
+  expect(
+    (
+      await set('privacy', { title: 'Your privacy', body: doc('We keep no accounts at all.') })
+    ).ok(),
+  ).toBe(true);
+  expect((await set('terms', { body: doc('Patterns are for personal use.') })).ok()).toBe(true);
+  expect((await set('settings', { contactEmail: 'hello@example.com' })).ok()).toBe(true);
+  await publish();
+  const about = built('about/index.html');
+  expect(about).toContain('Patterns made to be finished.');
+  expect(about).toContain('I started with one granny square.');
+  expect(about).toContain('hello@example.com');
+  const privacy = built('privacy/index.html');
+  expect(privacy).toContain('Your privacy');
+  expect(privacy).toContain('We keep no accounts at all.');
+  expect(built('terms/index.html')).toContain('Patterns are for personal use.');
+
+  expect((await set('privacy', { title: '', body: null })).ok()).toBe(true);
+  await publish();
+  expect(built('privacy/index.html')).toContain(
+    'This policy explains what information is collected when you visit Crochet Simple',
+  );
+  expect(built('privacy/index.html')).not.toContain('We keep no accounts at all.');
+});
+
+test('site settings reach the website: social links, Pinterest card, ads and search visibility', async () => {
+  const photo = await upload('apps/web/src/assets/story/00-yarn-hero.png', 'Yarn and a hook');
+  const set = (data: object) =>
+    page.request.post(`${ORIGIN}/api/globals/settings`, { data, headers: { origin: ORIGIN } });
+  const on = await set({
+    indexable: true,
+    social: [{ platform: 'instagram', url: 'https://www.instagram.com/crochetsimple' }],
+    pinterest: {
+      url: 'https://www.pinterest.com/hdrahm/',
+      name: 'Crochet Simple',
+      photo: photo.id,
+    },
+    adsense: { enabled: true, client: 'ca-pub-1234567890123456', inArticle: '1234567890' },
+  });
+  expect(on.ok(), await on.text()).toBe(true);
+  await publish();
+  const home = built('index.html');
+  expect(home).toContain('https://www.instagram.com/crochetsimple');
+  expect(home).toContain('https://www.pinterest.com/hdrahm/');
+  expect(home).not.toContain('name="robots"');
+  const bag = built('patterns/blue-market-bag/index.html');
+  expect(bag).toContain('ca-pub-1234567890123456');
+  expect(bag).toContain('adsbygoogle');
+  expect(built('robots.txt')).not.toMatch(/^Disallow: \/$/m);
+
+  const off = await set({
+    indexable: false,
+    social: [],
+    pinterest: { url: '', name: '', photo: null },
+    adsense: { enabled: false },
+  });
+  expect(off.ok(), await off.text()).toBe(true);
+  await publish();
+  const home2 = built('index.html');
+  expect(home2).not.toContain('instagram.com');
+  expect(home2).not.toContain('pinterest.com/hdrahm');
+  expect(home2).toContain('noindex');
+  expect(built('patterns/blue-market-bag/index.html')).not.toContain('adsbygoogle');
+  expect(built('robots.txt')).toMatch(/^Disallow: \/$/m);
 });
 
 test('a problem stops publishing with a plain explanation and leaves the live files alone', async () => {

@@ -5,6 +5,8 @@ const ADMIN = /tests\/admin\//;
 const SITE_ONLY = [PERF, ADMIN];
 // the admin under test gets a fresh database and folders on every run, never the real ones
 const ADMIN_DIR = 'test-results/admin';
+// its own port, so a preview the owner has open on 4321 is never mistaken for the test build
+const SITE_PORT = 4390;
 
 export default defineConfig({
   testDir: 'tests',
@@ -12,15 +14,14 @@ export default defineConfig({
   fullyParallel: true,
   reporter: [['list']],
   timeout: 180_000,
-  use: { baseURL: 'http://127.0.0.1:4321' },
+  use: { baseURL: `http://127.0.0.1:${SITE_PORT}` },
   webServer: [
     {
       // the built site, so tests see exactly what ships; started directly so it stops cleanly
-      command:
-        'cd apps/web && OUT_DIR=dist-test exec ./node_modules/.bin/astro preview --port 4321 --ignore-lock',
+      command: `cd apps/web && OUT_DIR=dist-test exec ./node_modules/.bin/astro preview --port ${SITE_PORT} --ignore-lock`,
       gracefulShutdown: { signal: 'SIGTERM', timeout: 3000 },
-      url: 'http://127.0.0.1:4321/',
-      reuseExistingServer: true,
+      url: `http://127.0.0.1:${SITE_PORT}/`,
+      reuseExistingServer: false,
     },
     {
       command: [

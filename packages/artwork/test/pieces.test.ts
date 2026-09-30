@@ -80,9 +80,9 @@ describe.each(TEST_STORIES.map((make) => make()))('pieces on $name', (story) => 
         state[i] = s;
         touched++;
       });
-      pieces.forEach((piece, i) => {
-        expect(same(state[i]!, pieceState(piece, drawn)), `piece ${i} at ${drawn}`).toBe(true);
-      });
+      // every piece checked on every move; one assertion per move keeps it fast
+      const wrong = pieces.findIndex((piece, i) => !same(state[i]!, pieceState(piece, drawn)));
+      expect(wrong, `piece ${wrong} at ${drawn}`).toBe(-1);
     }
     console.info(
       `[${story.name}] average pieces touched per update: ${(touched / 3000).toFixed(1)} of ${pieces.length}`,

@@ -10,6 +10,8 @@ export interface ChapterLayout {
   readonly photo: Box;
   readonly wrapSide: 'left' | 'right';
   readonly connector: ConnectorStyle;
+  // name, description and tags under the photo; the yarn passes outside it
+  readonly text?: Box;
 }
 
 export interface StoryLayout {
@@ -91,6 +93,37 @@ function wrapPhoto(
   return { x: toRight, y: 0 };
 }
 
+// round the far corner and run down past the text, never through it
+function passText(
+  ink: PathBuilder,
+  direction: Point,
+  layout: StoryLayout,
+  c: ChapterLayout,
+  bounds: XBounds,
+): Point {
+  const { text, photo } = c;
+  if (!text) return direction;
+  const gap = layout.photoGap;
+  const toRight = c.wrapSide === 'left' ? 1 : -1;
+  const edge =
+    toRight > 0 ? Math.max(boxRight(photo), boxRight(text)) + gap : Math.min(photo.x, text.x) - gap;
+  const laneX = Math.min(bounds.maxX, Math.max(bounds.minX, edge));
+  const from = ink.current;
+  const clear = boxBottom(text) + gap;
+  if (clear <= from.y) return direction;
+  const r = Math.min(layout.cornerRadius, Math.abs(laneX - from.x), (clear - from.y) / 2);
+  if (r > 0.5) {
+    ink.lineTo({ x: laneX - toRight * r, y: from.y });
+    ink.cubicTo(
+      { x: laneX - toRight * r + toRight * KAPPA * r, y: from.y },
+      { x: laneX, y: from.y + r - KAPPA * r },
+      { x: laneX, y: from.y + r },
+    );
+  }
+  ink.lineTo({ x: laneX, y: clear });
+  return DOWN;
+}
+
 export function buildRoute(layout: StoryLayout): Route {
   validateLayout(layout);
   const ink = new PathBuilder();
@@ -122,6 +155,7 @@ export function buildRoute(layout: StoryLayout): Route {
     mark('drawing', chapter.id, () => ink.append(placed.body));
     mark('wrap', chapter.id, () => {
       direction = wrapPhoto(ink, placed.exitDirection, layout, chapter, bounds);
+      direction = passText(ink, direction, layout, chapter, bounds);
     });
   }
   mark('tail', null, () => curveTo(ink, layout.end, direction, DOWN, bounds));

@@ -29,7 +29,7 @@ type Harness = {
   first: number;
   last: number;
   samples(count: number): number[];
-  focus(l: number): { x: number; y: number; tx: number; ty: number };
+  focus(l: number): { x: number; y: number; tx: number; ty: number; scrollY: number };
   showTip(l: number): void;
   showLineEnd(l: number): void;
   tipAt(s: number): { y: number; length: number; total: number };
@@ -134,31 +134,42 @@ for (const story of ['phone', 'desktop'] as const) {
           width: HALF * 2,
           height: HALF * 2,
         };
+        // page coordinates, and a retake if webkit nudges the scroll during a shot
+        const shot = async () => {
+          for (;;) {
+            const before = await page.evaluate(() => window.scrollY);
+            const img = readWeights(await page.screenshot({ clip }));
+            if (before === (await page.evaluate(() => window.scrollY)))
+              return { img, scroll: before };
+          }
+        };
         await call(page, 'showTip', length);
-        const tipImg = readWeights(await page.screenshot({ clip }));
+        const { img: tipImg, scroll: tipScroll } = await shot();
         const scale = tipImg.width / (HALF * 2);
         const c = centroid(tipImg);
         expect(c.weight, `tip not rendered at ${Math.round(length)}`).toBeGreaterThan(0);
-        const tip = { x: clip.x + c.x / scale, y: clip.y + c.y / scale };
+        const tip = { x: clip.x + c.x / scale, y: clip.y + c.y / scale + tipScroll };
 
         await call(page, 'showLineEnd', length);
-        const lineImg = readWeights(await page.screenshot({ clip }));
+        const { img: lineImg, scroll: lineScroll } = await shot();
+        const fy = f.y + f.scrollY - lineScroll;
         // integrate coverage along the line to find its end edge
         const sample = (s: number) =>
-          bilinear(lineImg, (f.x + s * f.tx - clip.x) * scale, (f.y + s * f.ty - clip.y) * scale);
+          bilinear(lineImg, (f.x + s * f.tx - clip.x) * scale, (fy + s * f.ty - clip.y) * scale);
         let inside = 0;
         for (let s = -14; s < -8; s += 0.05) inside += sample(s) * 0.05;
         inside /= 6;
         let area = 0;
         for (let s = -8; s < 8; s += 0.02) area += sample(s) * 0.02;
         const endAlong = -8 + area / inside;
-        const lineEnd = { x: f.x + endAlong * f.tx, y: f.y + endAlong * f.ty };
+        const lineEnd = { x: f.x + endAlong * f.tx, y: fy + endAlong * f.ty + lineScroll };
+        const expected = { x: f.x, y: f.y + f.scrollY };
 
         if (process.env.DEBUG_SAMPLES && Math.hypot(tip.x - lineEnd.x, tip.y - lineEnd.y) > 1) {
           console.info('outlier', JSON.stringify({ length, f, clip, inside, area, endAlong, tip }));
         }
         tipErrors.push(Math.hypot(tip.x - lineEnd.x, tip.y - lineEnd.y));
-        geometryErrors.push(Math.hypot(lineEnd.x - f.x, lineEnd.y - f.y));
+        geometryErrors.push(Math.hypot(lineEnd.x - expected.x, lineEnd.y - expected.y));
       }
       await context.close();
       const summary = {

@@ -7,3 +7,7 @@ apps/web/src/assets/
 pnpm-lock.yaml
 
 test-results/
+
+# Build output
+apps/web/dist/
+apps/web/.astro/

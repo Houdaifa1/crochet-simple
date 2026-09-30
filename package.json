@@ -8,22 +8,25 @@
     "node": ">=24"
   },
   "scripts": {
-    "check": "pnpm check:assets && pnpm format:check && pnpm typecheck && pnpm test && pnpm test:browser",
+    "check": "pnpm check:assets && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:browser",
     "check:assets": "shasum -a 256 -c --quiet packages/artwork/approved-assets.sha256",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck && tsc -p tsconfig.json",
     "test": "vitest run",
+    "build": "pnpm --filter @crochet-simple/web build",
     "test:browser": "playwright test --project=chromium --project=webkit --project=performance",
     "measure:ios": "node --experimental-strip-types scripts/measure-ios-tip.mts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
     "@types/node": "^24.19.0",
     "@types/pngjs": "^6.0.5",
     "esbuild": "0.28.2",
     "pngjs": "^7.0.0",
     "prettier": "^3.9.9",
+    "prettier-plugin-astro": "1.1.0",
     "typescript": "6.0.3",
     "vitest": "5.0.2"
   }

@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Page not found | Crochet Simple"
+  description="This page could not be found."
+  current="home"
+>
+  <section class="missing">
+    <h1>
+      This thread <em>ends here.</em>
+    </h1>
+    <p>The page you are looking for has moved or does not exist.</p>
+    <a class="button" href="/">
+      Back to the homepage
+    </a>
+  </section>
+</Base>
+
+<style>
+  .missing {
+    min-height: 62svh;
+    padding: 12svh var(--gutter) 0;
+    text-align: center;
+  }
+  h1 {
+    margin: 0 auto 16px;
+    max-width: 12ch;
+    font-size: clamp(42px, 10vw, 80px);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variation-settings: 'opsz' 144;
+  }
+  em {
+    font-style: italic;
+    color: var(--blue);
+  }
+  p {
+    margin: 0 auto 28px;
+    max-width: 34ch;
+    color: var(--muted);
+  }
+</style>

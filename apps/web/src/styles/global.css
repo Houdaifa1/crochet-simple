@@ -1,0 +1,270 @@
+@font-face {
+  font-family: 'Fraunces';
+  src: url('../assets/fonts/fraunces.woff2') format('woff2');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('../assets/fonts/fraunces-italic.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: italic;
+  font-display: swap;
+}
+/* georgia sized to fraunces, so the swap barely moves anything */
+@font-face {
+  font-family: 'Fraunces fallback';
+  src: local('Georgia');
+  font-style: normal;
+  size-adjust: 86%;
+  ascent-override: 113.7%;
+  descent-override: 29.7%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Fraunces fallback';
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  font-style: italic;
+  size-adjust: 80.8%;
+  ascent-override: 121%;
+  descent-override: 31.6%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --ink: #2a2925;
+  --muted: #5a554c;
+  --paper: #faf7f1;
+  --blue: #1f4c9c;
+  --pink: #ff2f83;
+  --gutter: 24px;
+  --serif: 'Fraunces', 'Fraunces fallback', Georgia, 'Times New Roman', serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+body {
+  margin: 0;
+  min-height: 100svh;
+  color: var(--ink);
+  background: var(--paper);
+  font: 17px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+/* paper grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .4  0 0 0 0 .32  0 0 0 .09 0'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>");
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+a {
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+.skip {
+  position: fixed;
+  z-index: 20;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 12px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+/* hidden until a keyboard user reaches it */
+.skip:not(:focus-visible) {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.site-header {
+  position: relative;
+  z-index: 3;
+  padding: 18px var(--gutter);
+}
+.wordmark {
+  display: inline-block;
+  padding: 4px 0;
+  font: 600 23px/1 var(--serif);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+.wordmark em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--blue);
+}
+
+.dock {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--blue);
+  box-shadow:
+    0 14px 30px -14px rgb(31 76 156 / 0.7),
+    0 2px 8px rgb(31 76 156 / 0.18);
+  transform: translateX(-50%);
+  animation: dock-in 0.7s var(--ease-out) 0.5s backwards;
+}
+@keyframes dock-in {
+  from {
+    transform: translate(-50%, 160%);
+  }
+}
+.dock a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: #fff;
+  font: 600 15px/1 var(--sans);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+.dock a:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+.dock a[aria-current='page'] {
+  background: rgb(255 255 255 / 0.17);
+}
+.dock .home {
+  width: 44px;
+  padding: 0;
+}
+.dock svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dock :focus-visible {
+  outline-color: #fff;
+  outline-offset: -3px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fbf7f0;
+  font: 600 16px/1 var(--sans);
+  text-decoration: none;
+}
+.button.quiet {
+  min-height: 44px;
+  padding: 0 4px;
+  background: transparent;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1.5px;
+}
+
+.site-footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 28px var(--gutter) calc(100px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(42 41 37 / 0.12);
+  font-size: 15px;
+  color: var(--muted);
+}
+.site-footer nav {
+  display: flex;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+}
+.site-footer a {
+  display: inline-block;
+  padding: 10px 0;
+  text-decoration: none;
+}
+.site-footer a:hover {
+  color: var(--ink);
+}
+
+@media (min-width: 900px) {
+  :root {
+    --gutter: 56px;
+  }
+  .site-header {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 26px var(--gutter);
+  }
+  .dock {
+    bottom: 22px;
+  }
+  .dock a {
+    padding: 0 20px;
+  }
+  .dock .home {
+    padding: 0;
+  }
+  .site-footer {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+}

@@ -8,3 +8,4 @@ export * from './route.ts';
 export * from './scroll-map.ts';
 export * from './invariants.ts';
 export * from './pieces.ts';
+export * from './codec.ts';

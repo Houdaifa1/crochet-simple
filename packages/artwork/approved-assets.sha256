@@ -27,3 +27,17 @@ ac3c3008760434fe3d7bb80539b9b123b4f5a5ebe8ddc39b145060d81ca80dad  packages/artwo
 a157ee8b6ec2dcffd369c8c60227756dbd7f58e321fb2590865f499bb540359a  packages/artwork/drawings/olive-cup-cozy-commands.json
 77f267a858e9f0f0971dba9a268808fcabb7d7bafb9636a45cb84f16f8cab310  packages/artwork/drawings/olive-cup-cozy-one-line.svg
 877c51139d5bc516088e5bdcde35666061511934184ae552b9fe771d7bbc8bd9  packages/artwork/drawings/olive-cup-cozy-preview.mjs
+7677a113477599c54573bc12c1470f2dad2024d8d09f4693a9bb0f44690233f5  apps/web/src/assets/details/01a-bag-stitches.png
+94bebf9e43c9c7bbed33841ccab829ef9cd60d6dbb65c959c3b771a73bc8e849  apps/web/src/assets/details/01b-bag-cherries.png
+7465ee358a1a21fb8b9b4a805d5dfa2beacaacfb434266afaf99e32aa0b0c9fc  apps/web/src/assets/details/02a-daisy-centre.png
+a29e775f6f682583e8e6fd6d6b214e8a81041ef80b9c5668881ed64ba5f47333  apps/web/src/assets/details/02b-daisy-leaf.png
+61895fa72aad41f649d1df917268f2a345b45d4cc43ca9574654ffe4bcc884ab  apps/web/src/assets/details/03a-cozy-ribbing.png
+f17be6eefcfbfeb82548bb21d7a941000c6f06b1db21fbef033678ed47472f19  apps/web/src/assets/details/03b-cozy-rim.png
+efbf05723246219f688e500cc3544cb9e82eb64d09bed051e7a278d4699a509c  apps/web/src/assets/details/04a-pouch-button.png
+00a718d24c12472948dab73d3875a0a523336c9255fd5a244d305465dcfffec0  apps/web/src/assets/details/04b-pouch-strap.png
+078474ceab6d8af2f58a633647b163111c4570f892165675e24b164fd030ef07  apps/web/src/assets/details/05a-laptop-tab.png
+87541e4326e28c2e663ca08e9958200ff489ad195dd56a707d12cecaa5ea30db  apps/web/src/assets/details/05b-laptop-stitches.png
+86c72a6aedf22311230356523c94a97f771b4617d7fac3dc6830ab528da63d46  apps/web/src/assets/details/06a-hat-stitches.png
+b6965f48174f5248728ea691c1c366d1e38a2f9631401bee2cce853aacda1e4b  apps/web/src/assets/details/06b-hat-brim.png
+dc29ce42091f7a0c69182271293f97f02c264df6c74108221e6975cc55cbd463  apps/web/src/assets/details/07a-panda-face.png
+2ceac38448751eb121c241f1363768535527afdf0c999216d2688f5e5f1a556f  apps/web/src/assets/details/07b-panda-ear.png

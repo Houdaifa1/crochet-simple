@@ -97,6 +97,22 @@ describe.each(TEST_STORIES.map((make) => make()))('route on $name', (story) => {
     }
   });
 
+  it('never crosses the text under a photo', () => {
+    for (const { id, text } of story.layout.chapters) {
+      if (!text) continue;
+      for (let i = 0; i < poly.count; i++) {
+        const x = poly.xs[i] as number;
+        const y = poly.ys[i] as number;
+        const inside =
+          x > text.x - 2 &&
+          x < text.x + text.width + 2 &&
+          y > text.y - 2 &&
+          y < text.y + text.height + 2;
+        expect(inside, `${id} text crossed at (${x}, ${y})`).toBe(false);
+      }
+    }
+  });
+
   it('decorates each transition with its own crochet flourish', () => {
     expect(PRODUCT_ORDER.map((id) => loopsIn(route, id))).toEqual([0, 1, 4, 3, 2, 1, 1]);
   });

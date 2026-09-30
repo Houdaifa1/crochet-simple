@@ -51,14 +51,16 @@ export function phoneStory(): TestStory {
       width: photoWidth,
       height: photoHeight,
     };
+    const text = { x: photo.x, y: photo.y + photoHeight + 30, width: photoWidth, height: 150 };
     chapters.push({
       id,
       art,
       photo,
       wrapSide: i % 2 === 0 ? 'left' : 'right',
       connector: STYLES[i] as ConnectorStyle,
+      text,
     });
-    y = photo.y + photoHeight + 260;
+    y = text.y + text.height + 180;
   });
   const height = y + 200;
   return {
@@ -105,14 +107,16 @@ export function desktopStory(): TestStory {
       width: photoWidth,
       height: photoHeight,
     };
+    const text = { x: photo.x, y: photo.y + photoHeight + 36, width: photoWidth, height: 140 };
     chapters.push({
       id,
       art,
       photo,
       wrapSide: artRight ? 'right' : 'left',
       connector: STYLES[i] as ConnectorStyle,
+      text,
     });
-    y += artHeight + 420;
+    y = Math.max(y + artHeight, text.y + text.height) + 360;
   });
   const height = y + 200;
   return {

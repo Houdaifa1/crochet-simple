@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+import Dock from '../components/Dock.astro';
+import fontUrl from '../assets/fonts/fraunces.woff2?url';
+import italicUrl from '../assets/fonts/fraunces-italic.woff2?url';
+
+interface Props {
+  title: string;
+  description: string;
+  current: 'home' | 'patterns' | 'journal' | 'about';
+  image?: string;
+}
+const { title, description, current, image } = Astro.props;
+const site = Astro.site;
+const canonical = site ? new URL(Astro.url.pathname, site).href : undefined;
+const shareImage = site && image ? new URL(image, site).href : undefined;
+---
+
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#faf7f1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={italicUrl} as="font" type="font/woff2" crossorigin />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Crochet Simple" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {shareImage && <meta property="og:image" content={shareImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">
+      Skip to content
+    </a>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="Crochet Simple, home">
+        Crochet <em>Simple</em>
+      </a>
+    </header>
+    <Dock current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <span>© {new Date().getFullYear()} Crochet Simple</span>
+      <nav aria-label="Footer">
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+      </nav>
+    </footer>
+  </body>
+</html>

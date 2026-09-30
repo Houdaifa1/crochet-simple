@@ -92,7 +92,7 @@ function mount(name: 'phone' | 'desktop') {
     samples(count: number) {
       const out: number[] = [];
       for (let k = 1; k <= count; k++) {
-        for (let l = (poly.total * k) / (count + 1), tries = 0; tries < 2000; tries++, l += 1.5) {
+        for (let l = (poly.total * k) / (count + 1), tries = 0; tries < 6000; tries++, l += 1.5) {
           const piece = pieces[reveal.pieceAt(l)] as engine.Piece;
           if (l - piece.startLength < 24 || piece.endLength - l < 2) continue;
           // straight within 0.25 px so the end edge can be measured
@@ -104,7 +104,21 @@ function mount(name: 'phone' | 'desktop') {
             const off = Math.abs((q.x - p.x) * -t.y + (q.y - p.y) * t.x);
             if (off > 0.25) isStraight = false;
           }
-          if (isStraight) {
+          // no other part of the route within 6 px, or its ink would be counted too
+          const alone = (): boolean => {
+            for (let i = 0; i < poly.count; i++) {
+              const li = poly.lengths[i] as number;
+              if (li > l - 40 && li < l + 40) continue;
+              const dx = (poly.xs[i] as number) - p.x;
+              const dy = (poly.ys[i] as number) - p.y;
+              if (Math.abs(dx) > 30 || Math.abs(dy) > 30) continue;
+              const along = dx * t.x + dy * t.y;
+              const across = Math.abs(dx * -t.y + dy * t.x);
+              if (along > -18 && along < 10 && across < 6) return false;
+            }
+            return true;
+          };
+          if (isStraight && alone()) {
             out.push(l);
             break;
           }
@@ -114,9 +128,9 @@ function mount(name: 'phone' | 'desktop') {
     },
     focus(length: number) {
       const p = engine.pointAtLength(poly, length);
-      window.scrollTo(0, Math.max(0, p.y - 300));
+      window.scrollTo(0, Math.round(Math.max(0, p.y - 300)));
       const t = direction(length);
-      return { x: p.x, y: p.y - window.scrollY, tx: t.x, ty: t.y };
+      return { x: p.x, y: p.y - window.scrollY, tx: t.x, ty: t.y, scrollY: window.scrollY };
     },
     showTip(length: number) {
       onlyProbes();

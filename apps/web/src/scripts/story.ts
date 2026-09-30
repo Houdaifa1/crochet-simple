@@ -5,7 +5,6 @@ import {
   buildScrollMap,
   flatten,
   pointAtLength,
-  polylinePathData,
   splitIntoPieces,
   type Box,
   type ChapterLayout,
@@ -179,13 +178,6 @@ async function build(
   svg.setAttribute('viewBox', `0 0 ${origin.width} ${origin.height}`);
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
-  const guide = document.createElementNS(NS, 'path');
-  guide.setAttribute('class', 'guide');
-  guide.setAttribute('d', polylinePathData(poly));
-  guide.setAttribute('fill', 'none');
-  guide.setAttribute('stroke', 'rgb(42 41 37 / 0.14)');
-  guide.setAttribute('stroke-width', phone ? '1.1' : '1.3');
-  svg.append(guide);
   if (!(await step(stale))) return null;
 
   const reveal = new PieceReveal(pieces);

@@ -27,7 +27,7 @@ const settle = (page: Page) =>
     () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null)))),
   );
 
-// guide points plus every box the yarn must stay out of, in story coordinates
+// the line's points plus every box the yarn must stay out of, in story coordinates
 function geometry(page: Page) {
   return page.evaluate(() => {
     const story = document.querySelector('.story') as HTMLElement;
@@ -49,14 +49,21 @@ function geometry(page: Page) {
       );
     });
     story.classList.remove('measuring');
-    const d = story.querySelector('.guide')!.getAttribute('d')!;
-    const pts = d
-      .slice(1)
-      .replace('L', ' ')
-      .trim()
-      .split(' ')
-      .map((p) => p.split(',').map(Number) as [number, number]);
-    return { d, pts, keepOut, width: o.width };
+    const ds = [...story.querySelectorAll('.line path')].map((p) => p.getAttribute('d')!);
+    const pieces = ds.map((d) =>
+      d
+        .slice(1)
+        .replace('L', ' ')
+        .trim()
+        .split(' ')
+        .map((p) => p.split(',').map(Number) as [number, number]),
+    );
+    // each piece starts on the previous piece's last point
+    const gaps = pieces.filter(
+      (p, i) => i && String(p[0]) !== String(pieces[i - 1]!.at(-1)),
+    ).length;
+    const pts = pieces.flatMap((p, i) => (i ? p.slice(1) : p));
+    return { ds, gaps, pts, keepOut, width: o.width };
   });
 }
 
@@ -67,8 +74,12 @@ for (const [name, size] of Object.entries(SIZES)) {
     test('renders one yarn line with the seven products in order', async ({ page }) => {
       const errors = await open(page);
       const g = await geometry(page);
-      expect(g.d.match(/M/g)).toHaveLength(1);
-      expect(g.d).not.toMatch(/[Zz]/);
+      // one unbroken line: pieces meet end to start, one move each, never closed
+      expect(g.gaps).toBe(0);
+      for (const d of g.ds) expect(d.match(/M/g)).toHaveLength(1);
+      expect(g.ds.join('')).not.toMatch(/[Zz]/);
+      // drawn only as you scroll, with no faint preview of the route
+      await expect(page.locator('.thread .guide')).toHaveCount(0);
       expect(
         await page
           .locator('.chapter')
@@ -162,9 +173,9 @@ test.describe('homepage behaviour', () => {
 
   test('redraws the line after a resize without a long pause', async ({ page }) => {
     await open(page);
-    const before = await page.locator('.guide').getAttribute('d');
+    const before = await page.locator('.line path').first().getAttribute('d');
     await page.setViewportSize({ width: 430, height: 932 });
-    await expect.poll(() => page.locator('.guide').getAttribute('d')).not.toBe(before);
+    await expect.poll(() => page.locator('.line path').first().getAttribute('d')).not.toBe(before);
     const [builds, steps] = await page.evaluate(() => [
       performance.getEntriesByName('story-build').length,
       performance.getEntriesByName('story-step').map((e) => e.duration),

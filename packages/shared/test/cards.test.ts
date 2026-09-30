@@ -125,6 +125,40 @@ describe('link cards', () => {
     ).rejects.toThrow('404');
   });
 
+  it('tidies real Pinterest pins: blank titles, save dates and small thumbnails', async () => {
+    const card = await resolveLinkCard('https://www.pinterest.com/pin/7/', {
+      fetch: fake((url) =>
+        url.includes('oembed')
+          ? Response.json({ title: ' ', thumbnail_url: 'https://i.pinimg.com/236x/13/80/db/a.jpg' })
+          : html({
+              'og:description': 'Sep 7, 2026 — Over 65 free crochet bag patterns. Pick one today!',
+            }),
+      ),
+    });
+    expect(card).toEqual({
+      kind: 'pinterest',
+      url: 'https://www.pinterest.com/pin/7/',
+      title: 'Over 65 free crochet bag patterns.',
+      description: 'Over 65 free crochet bag patterns. Pick one today!',
+      image: 'https://i.pinimg.com/736x/13/80/db/a.jpg',
+      siteName: 'Pinterest',
+    });
+  });
+
+  it('leaves out Pinterest filler text and the default logo on a profile', async () => {
+    const p = await resolveProfile('https://www.pinterest.com/hdrahm/', {
+      fetch: fake(() =>
+        html({
+          'og:title': 'hdrahm - Profile | Pinterest',
+          'og:description':
+            'See what hdrahm (hdrahm) has discovered on Pinterest, the world&#x27;s biggest collection of ideas.',
+          'og:image': 'https://s.pinimg.com/images/default_open_graph_1200.png',
+        }),
+      ),
+    });
+    expect(p).toEqual({ url: 'https://www.pinterest.com/hdrahm/', name: 'hdrahm' });
+  });
+
   it('reads a Pinterest profile', async () => {
     const p = await resolveProfile('https://www.pinterest.com/crochetsimple/', {
       fetch: fake(() =>

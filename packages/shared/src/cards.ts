@@ -22,7 +22,23 @@ const decode = (s: string): string =>
     .replace(/&#0?39;|&apos;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)));
+    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n: string) => String.fromCodePoint(parseInt(n, 16)));
+
+// Pinterest puts the save date in front of descriptions, and serves small thumbnails
+const tidy = (s: string | undefined): string | undefined =>
+  s
+    ?.replace(/^[A-Z][a-z]{2} \d{1,2}, \d{4}\s*[—–-]\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim() || undefined;
+const larger = (url: string | undefined): string | undefined =>
+  url?.replace(/(i\.pinimg\.com\/)(\d+x|\d+x\d+)\//, '$1736x/');
+// the first sentence of a description, for pins that have no title
+const headline = (d: string | undefined): string | undefined => {
+  const first = d?.split(/(?<=[.!?])\s/)[0]?.trim();
+  if (!first) return undefined;
+  return first.length > 90 ? `${first.slice(0, 87).replace(/\s+\S*$/, '')}…` : first;
+};
 
 // open graph and twitter tags, with the <title> as a last resort
 export function readMeta(html: string): Record<string, string> {
@@ -125,22 +141,23 @@ async function pinterest(url: string, f: typeof fetch): Promise<LinkCard> {
   const res = await f(`https://www.pinterest.com/oembed.json?url=${encodeURIComponent(url)}`, {
     headers: { 'user-agent': UA },
   }).catch(() => null);
-  if (res?.ok) {
-    const o = (await res.json()) as Record<string, unknown>;
-    if (o['title'] || o['thumbnail_url']) {
-      const fallback = await page(url, f).catch(() => null);
-      return clean({
-        ...(fallback ? fromMeta('pinterest', fallback.url, fallback.meta) : {}),
-        kind: 'pinterest' as const,
-        url: fallback?.url ?? url,
-        title: String(o['title'] || fallback?.meta['og:title'] || 'Pinterest'),
-        image: o['thumbnail_url'] ? String(o['thumbnail_url']) : fallback?.meta['og:image'],
-        siteName: 'Pinterest',
-      });
-    }
-  }
-  const p = await page(url, f);
-  return { ...fromMeta('pinterest', p.url, p.meta), siteName: 'Pinterest' };
+  const o = res?.ok ? ((await res.json().catch(() => ({}))) as Record<string, unknown>) : {};
+  const p = await page(url, f).catch(() => null);
+  const description = tidy(p?.meta['og:description'] ?? p?.meta['description']);
+  // Pinterest adds keyword lists after a "|"; the pin's own title comes first
+  const title =
+    tidy(String(o['title'] ?? ''))?.split(' | ')[0] ??
+    tidy(p?.meta['og:title'])?.split(' | ')[0] ??
+    headline(description);
+  if (!title) throw new Error(`${url} has no title to show`);
+  return clean({
+    kind: 'pinterest' as const,
+    url: p?.url ?? url,
+    title,
+    description: description === title ? undefined : description,
+    image: larger(o['thumbnail_url'] ? String(o['thumbnail_url']) : p?.meta['og:image']),
+    siteName: 'Pinterest',
+  });
 }
 
 // turns a pasted link into what the card shows; real data only, never typed in by hand
@@ -164,10 +181,15 @@ export async function resolveProfile(url: string, options: ResolveOptions = {}):
     .replace(/\s*on Pinterest$/i, '')
     .replace(/\s*\([^)]*\)$/, '');
   if (!name) throw new Error(`${url} has no profile name`);
+  // Pinterest's own filler text and logo are not the owner's; leave them out
+  const description = tidy(p.meta['og:description']);
+  const image = p.meta['og:image'];
   return clean({
     url: p.url,
     name,
-    description: p.meta['og:description'],
-    image: p.meta['og:image'],
+    description:
+      description && !/has discovered on Pinterest/i.test(description) ? description : undefined,
+    image:
+      image && !/default_open_graph|\/images\/(?:user\/)?default/i.test(image) ? image : undefined,
   });
 }

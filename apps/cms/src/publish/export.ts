@@ -3,7 +3,7 @@ import { copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promis
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { Payload } from 'payload';
-import { resolveLinkCard, resolveProfile, type LinkCard } from '@crochet-simple/shared';
+import { cardKind, resolveLinkCard, resolveProfile, type LinkCard } from '@crochet-simple/shared';
 import { toBlocks, type OutBlock, type Resolvers } from './lexical.ts';
 
 export class PublishError extends Error {}
@@ -132,6 +132,12 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       cache[url] = fresh;
       return fresh;
     } catch (e) {
+      if (cardKind(url) === 'etsy' && !etsyApiKey) {
+        warn(
+          `${where}: ${url} needs your Etsy API key to show as a card (Site settings, Connections). The card is left out.`,
+        );
+        return cache[url] ?? null;
+      }
       if (cache[url]) {
         warn(
           `${where}: ${url} could not be read (${(e as Error).message}); the last saved card is used.`,

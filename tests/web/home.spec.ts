@@ -171,6 +171,23 @@ for (const [name, size] of Object.entries(SIZES)) {
 test.describe('homepage behaviour', () => {
   test.use(SIZES.phone);
 
+  test("takes on each product's soft colour as it reaches the middle of the screen", async ({
+    page,
+  }) => {
+    await open(page);
+    const tint = page.locator('.tint');
+    const colour = () => tint.evaluate((el) => getComputedStyle(el).backgroundColor);
+    await expect.poll(colour).toBe('rgb(239, 230, 214)');
+    await page
+      .locator('.chapter[data-id="cozy"] .meta')
+      .evaluate((el) =>
+        window.scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight / 2),
+      );
+    await expect.poll(colour, { timeout: 4000 }).toBe('rgb(228, 233, 217)');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(colour, { timeout: 4000 }).toBe('rgb(239, 230, 214)');
+  });
+
   test('redraws the line after a resize without a long pause', async ({ page }) => {
     await open(page);
     const before = await page.locator('.line path').first().getAttribute('d');

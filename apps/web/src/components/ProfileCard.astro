@@ -33,8 +33,8 @@ const { profile, compact = false } = Astro.props;
     align-items: center;
     gap: 14px;
     padding: 14px 16px;
-    border-radius: 18px;
-    background: #fffdf9;
+    border-radius: 6px;
+    background: var(--sheet);
     color: var(--ink);
     text-decoration: none;
     box-shadow:
@@ -59,9 +59,7 @@ const { profile, compact = false } = Astro.props;
     min-width: 0;
   }
   .kicker {
-    font: 700 11px/1.2 var(--sans);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font: 600 13px/1.2 var(--sans);
     color: #e60023;
   }
   strong {
@@ -73,7 +71,7 @@ const { profile, compact = false } = Astro.props;
   }
   .follow {
     padding: 11px 16px;
-    border-radius: 999px;
+    border-radius: 3px;
     background: #e60023;
     color: #fff;
     font: 700 14px/1 var(--sans);

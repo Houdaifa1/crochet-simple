@@ -31,6 +31,8 @@ export interface StoryProduct {
   readonly photo: ImageMetadata;
   readonly alt: string;
   readonly details: readonly [ImageMetadata, ImageMetadata];
+  // the soft background this product brings as it reaches the middle of the screen
+  readonly tint: string;
 }
 
 export const HERO = {
@@ -45,6 +47,7 @@ export const HERO = {
 export const PRODUCTS: readonly StoryProduct[] = [
   {
     id: 'bag',
+    tint: '#e3e8f3',
     name: 'Blue market bag',
     description: 'A structured tote in cobalt blue, finished with a pair of cherry charms.',
     tags: ['cobalt blue', 'cherry charms'],
@@ -54,6 +57,7 @@ export const PRODUCTS: readonly StoryProduct[] = [
   },
   {
     id: 'daisy',
+    tint: '#f4ecd3',
     name: 'Daisy clip',
     description: 'White petals around a golden centre, with a small olive leaf.',
     tags: ['cream petals', 'golden centre', 'olive leaf'],
@@ -63,6 +67,7 @@ export const PRODUCTS: readonly StoryProduct[] = [
   },
   {
     id: 'cozy',
+    tint: '#e4e9d9',
     name: 'Olive cup cozy',
     description: 'Deep olive ribbing that turns a takeaway cup into something you want to hold.',
     tags: ['olive ribbing', 'takeaway cup'],
@@ -72,6 +77,7 @@ export const PRODUCTS: readonly StoryProduct[] = [
   },
   {
     id: 'pouch',
+    tint: '#ece3d7',
     name: 'AirPods pouch',
     description: 'A compact buttoned pouch with a soft crochet wrist strap.',
     tags: ['brass snaps', 'wrist strap'],
@@ -81,6 +87,7 @@ export const PRODUCTS: readonly StoryProduct[] = [
   },
   {
     id: 'laptop',
+    tint: '#e5e3df',
     name: 'Laptop sleeve',
     description: 'Dense charcoal stitches closed with a simple tan leather tab.',
     tags: ['charcoal stitches', 'leather tab'],
@@ -90,6 +97,7 @@ export const PRODUCTS: readonly StoryProduct[] = [
   },
   {
     id: 'hat',
+    tint: '#f6dfd8',
     name: 'Bucket hat',
     description: 'Open stitches in warm pink and orange, shaped into a bright brim.',
     tags: ['pink and orange', 'open stitches'],
@@ -99,6 +107,7 @@ export const PRODUCTS: readonly StoryProduct[] = [
   },
   {
     id: 'panda',
+    tint: '#f1ece3',
     name: 'Crochet panda',
     description: 'A small black and white companion, shaped one round at a time.',
     tags: ['black and cream', 'amigurumi'],

@@ -44,7 +44,7 @@ async function band(p: Pattern): Promise<Buffer> {
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: '56px 64px 52px',
-        background: '#faf7f1',
+        background: '#efe6d6',
         color: '#2a2925',
         fontFamily: 'Fraunces',
       },
@@ -94,7 +94,7 @@ export const GET: APIRoute = async ({ props }) => {
         .resize(W, H, { fit: 'cover' })
         .jpeg({ quality: 84, mozjpeg: true })
         .toBuffer()
-    : await sharp({ create: { width: W, height: H, channels: 3, background: '#faf7f1' } })
+    : await sharp({ create: { width: W, height: H, channels: 3, background: '#efe6d6' } })
         .composite([
           {
             input: await sharp(source(p.data.cover)).resize(W, PHOTO, { fit: 'cover' }).toBuffer(),

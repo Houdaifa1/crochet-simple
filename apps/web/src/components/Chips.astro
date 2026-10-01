@@ -52,7 +52,7 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
     z-index: 5;
     margin: 22px calc(var(--gutter) * -1) 0;
     padding: 12px 0;
-    background: rgb(250 247 241 / 0.9);
+    background: rgb(239 230 214 / 0.92);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     transition: box-shadow 0.2s;
@@ -62,7 +62,7 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
   }
   .chips {
     display: flex;
-    gap: 8px;
+    gap: 24px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
@@ -76,35 +76,35 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
     flex: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     min-height: 44px;
-    padding: 0 16px 0 12px;
-    border: 1px solid rgb(42 41 37 / 0.12);
-    border-radius: 999px;
-    background: #fffdf9;
-    font: 600 15px/1 var(--sans);
+    padding: 0 0 4px;
+    color: var(--muted);
+    font: 500 15px/1 var(--sans);
     text-decoration: none;
     scroll-snap-align: start;
     transition:
       background-color 0.2s,
       color 0.2s;
   }
+  /* the chosen category sits on a short run of thread */
   .chip[aria-current='page'] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #fff;
+    color: var(--ink);
+    font-weight: 600;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='6'><path d='M0 3 Q 3 0 6 3 T 12 3' fill='none' stroke='%231f4c9c' stroke-width='1.6'/></svg>")
+      left bottom 6px / 12px 6px repeat-x;
   }
   .n {
-    font-weight: 500;
-    color: #6e675c;
-  }
-  .chip[aria-current='page'] .n {
-    color: rgb(255 255 255 / 0.62);
+    position: relative;
+    top: -6px;
+    margin-left: -3px;
+    font: 500 12px/1 var(--sans);
+    color: var(--muted);
   }
   /* uploaded icons are used as a mask, so they take the chip's colour */
   .icon {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     background: currentColor;
     mask: var(--icon) center / contain no-repeat;
   }

@@ -54,8 +54,9 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
   current="home"
   jsonLd={jsonLd}
 >
+  <div class="tint" aria-hidden="true"></div>
   <div class="story">
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero" aria-labelledby="hero-title" data-tint="var(--paper)">
       <div class="hero-text">
         <h1 id="hero-title">
           {words.map((w, i) => (
@@ -106,6 +107,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
       <section
         class:list={['chapter', { flip: i % 2 === 1 }]}
         data-id={p.id}
+        data-tint={p.tint}
         aria-labelledby={`name-${p.id}`}
       >
         <div class="art" aria-hidden="true" />
@@ -152,7 +154,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
       </section>
     ))}
 
-    <section class="ending" aria-labelledby="ending-title">
+    <section class="ending" aria-labelledby="ending-title" data-tint="var(--paper)">
       <div class="knot" aria-hidden="true"></div>
       <p class="eyebrow">{h.endingEyebrow ?? 'Crochet Simple'}</p>
       <h2 id="ending-title">
@@ -174,6 +176,17 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
 </Base>
 
 <script>
+  // each part of the story sets the page colour when it crosses the middle of the screen
+  const tint = document.querySelector<HTMLElement>('.tint')!;
+  const seen = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries)
+        if (e.isIntersecting) tint.style.backgroundColor = (e.target as HTMLElement).dataset.tint!;
+    },
+    { rootMargin: '-50% 0px -50% 0px' },
+  );
+  document.querySelectorAll('[data-tint]').forEach((el) => seen.observe(el));
+
   // the yarn is not needed for the first paint; fetch it once the page has loaded
   const start = () => import('../scripts/story.ts').then((m) => m.startStory());
   if (document.readyState === 'complete') start();
@@ -181,6 +194,22 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
 </script>
 
 <style>
+  /* below the paper grain */
+  .tint {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background: var(--paper);
+    transition: background-color 0.9s var(--ease-out);
+    /* its own layer, so a colour change never repaints the page or the yarn */
+    transform: translateZ(0);
+    contain: strict;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tint {
+      transition: none;
+    }
+  }
   .story {
     position: relative;
     isolation: isolate;
@@ -413,17 +442,19 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 2px 8px;
     margin: 12px 0 0;
     padding: 0;
     list-style: none;
   }
   .tags li {
-    padding: 7px 11px;
-    border-radius: 999px;
-    background: rgb(42 41 37 / 0.06);
-    font: 500 13px/1 var(--sans);
+    font: 500 14px/1.4 var(--sans);
     color: var(--muted);
+  }
+  /* the dot ends a line rather than starting the next one */
+  .tags li:not(:last-child)::after {
+    content: '·';
+    margin-left: 8px;
   }
 
   .ending {
@@ -439,9 +470,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
   }
   .eyebrow {
     margin: 0;
-    font: 600 13px/1.3 var(--sans);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font: 600 15px/1.3 var(--sans);
     color: var(--blue);
   }
   .ending h2 {

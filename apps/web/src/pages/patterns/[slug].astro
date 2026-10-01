@@ -262,7 +262,7 @@ const thumb = await getImage({
   }
   .crumbs span {
     margin: 0 8px;
-    color: #6e675c;
+    color: var(--muted);
   }
   h1 {
     margin: 6px 0 0;
@@ -289,20 +289,21 @@ const thumb = await getImage({
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    min-height: 32px;
-    padding: 0 12px;
-    border-radius: 999px;
-    background: rgb(42 41 37 / 0.06);
-    font: 600 13px/1 var(--sans);
+    min-height: 24px;
+    font: 500 14px/1 var(--sans);
     color: var(--muted);
     text-decoration: none;
   }
+  .tag:not(:last-child)::after {
+    content: '·';
+    margin-left: 3px;
+  }
   .tag.free {
-    background: #ffe3ef;
+    font-weight: 600;
     color: #a1004a;
   }
   .tag.etsy {
-    background: #fde8dc;
+    font-weight: 600;
     color: #9a3a0a;
   }
   .facts {
@@ -320,10 +321,8 @@ const thumb = await getImage({
     background: var(--paper);
   }
   dt {
-    font: 700 11px/1.2 var(--sans);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #6e675c;
+    font: 600 13px/1.2 var(--sans);
+    color: var(--muted);
   }
   dd {
     margin: 6px 0 0;
@@ -331,7 +330,7 @@ const thumb = await getImage({
   }
   .toc {
     display: flex;
-    gap: 8px;
+    gap: 22px;
     overflow-x: auto;
     scrollbar-width: none;
     margin: 36px calc(var(--gutter) * -1) 0;
@@ -342,12 +341,11 @@ const thumb = await getImage({
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    padding: 0 16px;
-    border-radius: 999px;
-    background: #e8eef8;
-    color: var(--blue);
-    font: 600 14px/1 var(--sans);
-    text-decoration: none;
+    color: var(--ink);
+    font: 500 15px/1 var(--sans);
+    text-decoration: underline;
+    text-decoration-color: rgb(42 41 37 / 0.3);
+    text-underline-offset: 6px;
   }
   .body {
     margin: 28px 0 0;
@@ -387,7 +385,7 @@ const thumb = await getImage({
     align-items: center;
     height: 44px;
     padding: 0 20px;
-    border-radius: 999px;
+    border-radius: 3px;
     background: var(--ink);
     color: #fff;
     font: 700 15px/1 var(--sans);

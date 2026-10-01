@@ -9,3 +9,10 @@
 
 /pagefind/*
   Cache-Control: public, max-age=3600
+
+# pages (every address ends in a slash): reused for a minute, so pages loaded ahead open at once
+/
+  Cache-Control: public, max-age=60
+
+/*/
+  Cache-Control: public, max-age=60

@@ -19,7 +19,9 @@ console.log(
 if (process.env['GITHUB_OUTPUT'])
   appendFileSync(
     process.env['GITHUB_OUTPUT'],
-    `site_url=${manifest.siteUrl}\ndomains=${siteDomains(manifest.siteUrl)
+    `published_at=${manifest.publishedAt}\nsite_url=${manifest.siteUrl}\ndomains=${siteDomains(
+      manifest.siteUrl,
+    )
       .map((d) => `--domain ${d}`)
       .join(' ')}\n`,
   );

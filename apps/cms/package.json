@@ -15,7 +15,8 @@
     "backup": "node --experimental-strip-types --env-file=.env scripts/backup.ts",
     "reset-password": "payload run scripts/reset-password.ts",
     "cloudflare-key": "sh scripts/set-cloudflare-key.sh",
-    "pull-content": "node --experimental-strip-types scripts/pull-content.ts"
+    "pull-content": "node --experimental-strip-types scripts/pull-content.ts",
+    "content-current": "node --experimental-strip-types scripts/content-current.ts"
   },
   "dependencies": {
     "@crochet-simple/shared": "workspace:*",

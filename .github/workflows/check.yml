@@ -8,9 +8,10 @@ on:
 permissions:
   contents: read
 
+# runs on main wait their turn instead of being cancelled halfway through a deploy
 concurrency:
   group: check-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -68,7 +69,13 @@ jobs:
       - run: pnpm build
         env:
           SITE_URL: ${{ steps.content.outputs.site_url }}
+      # a publish from the Mac during this run already put newer content online; never overwrite it
+      - id: fresh
+        run: pnpm --filter @crochet-simple/cms content-current
+        env:
+          BUILT_FROM: ${{ steps.content.outputs.published_at }}
       # every address of the site, so none is detached by the deploy
-      - run: pnpm --filter @crochet-simple/web exec wrangler deploy $DOMAINS
+      - if: steps.fresh.outputs.current == 'true'
+        run: pnpm --filter @crochet-simple/web exec wrangler deploy $DOMAINS
         env:
           DOMAINS: ${{ steps.content.outputs.domains }}

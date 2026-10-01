@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import { isFree, type Pattern } from '../lib/content';
 
 interface Props {
@@ -24,7 +25,7 @@ const H = `h${headingLevel}` as 'h2' | 'h3';
       formats={['avif', 'webp']}
       fallbackFormat="jpg"
       widths={[240, 360, 540, 720]}
-      sizes="(min-width: 1100px) 280px, (min-width: 700px) 30vw, 46vw"
+      sizes={sharpCapped('(min-width: 1100px) 280px, (min-width: 700px) 30vw, 46vw')}
       loading={eager ? 'eager' : 'lazy'}
       fetchpriority={priority ? 'high' : undefined}
     />

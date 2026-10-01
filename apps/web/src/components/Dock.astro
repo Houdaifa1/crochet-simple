@@ -7,24 +7,18 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
 ---
 
 <nav class="dock" aria-label="Main">
-  <a
-    class="home"
-    href="/"
-    data-astro-prefetch="viewport"
-    aria-current={at('home')}
-    aria-label="Home"
-  >
+  <a class="home" href="/" data-astro-prefetch="load" aria-current={at('home')} aria-label="Home">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"></path>
     </svg>
   </a>
-  <a href="/patterns/" data-astro-prefetch="viewport" aria-current={at('patterns')}>
+  <a href="/patterns/" data-astro-prefetch="load" aria-current={at('patterns')}>
     Patterns
   </a>
-  <a href="/journal/" data-astro-prefetch="viewport" aria-current={at('journal')}>
+  <a href="/journal/" data-astro-prefetch="load" aria-current={at('journal')}>
     Journal
   </a>
-  <a href="/about/" data-astro-prefetch="viewport" aria-current={at('about')}>
+  <a href="/about/" data-astro-prefetch="load" aria-current={at('about')}>
     About
   </a>
 </nav>

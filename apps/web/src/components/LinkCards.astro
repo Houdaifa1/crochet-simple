@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import type { Blocks } from '../lib/content';
 
 type Cards = Extract<Blocks[number], { type: 'cards' }>['cards'];
@@ -23,7 +24,7 @@ const action = { pinterest: 'View on Pinterest', etsy: 'View on Etsy', link: 'Op
             formats={['avif', 'webp']}
             fallbackFormat="jpg"
             widths={[240, 400, 560]}
-            sizes="(min-width: 760px) 280px, 70vw"
+            sizes={sharpCapped('(min-width: 760px) 280px, 70vw')}
             loading="lazy"
           />
         </div>

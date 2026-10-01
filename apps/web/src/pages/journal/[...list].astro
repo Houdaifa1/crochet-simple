@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../../lib/sizes';
 import AdSlot from '../../components/AdSlot.astro';
 import PageHead from '../../components/PageHead.astro';
 import Pager from '../../components/Pager.astro';
@@ -70,7 +71,7 @@ const name = words.title ?? 'Journal';
             formats={['avif', 'webp']}
             fallbackFormat="jpg"
             widths={[480, 720, 960, 1280]}
-            sizes="(min-width: 1000px) 700px, calc(100vw - 40px)"
+            sizes={sharpCapped('(min-width: 1000px) 700px, calc(100vw - 40px)')}
             loading="eager"
             fetchpriority="high"
           />

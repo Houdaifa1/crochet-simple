@@ -92,13 +92,22 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
         crossorigin="anonymous"
       />
     )}
-    {s.analyticsToken && site && (
-      <script
-        defer
-        src="https://static.cloudflareinsights.com/beacon.min.js"
-        data-cf-beacon={JSON.stringify({ token: s.analyticsToken })}
-      />
-    )}
+    {s.analyticsToken && site && <script
+      is:inline
+      define:vars={{ beacon: JSON.stringify({ token: s.analyticsToken }) }}
+    >
+      // visits are counted once the page has loaded, so counting never slows the page
+      addEventListener(
+        'load',
+        () => {
+          const tag = document.createElement('script');
+          tag.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+          tag.dataset.cfBeacon = beacon;
+          document.head.append(tag);
+        },
+        { once: true },
+      );
+    </script>}
     <slot name="head" />
   </head>
   <body>

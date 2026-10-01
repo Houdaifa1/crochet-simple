@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import AdSlot from './AdSlot.astro';
 import LinkCards from './LinkCards.astro';
 import { headingId, type Blocks } from '../lib/content';
@@ -62,7 +63,7 @@ const external = (href: string) => /^https?:/.test(href);
           formats={['avif', 'webp']}
           fallbackFormat="jpg"
           widths={[400, 560, 720, 1000, 1360]}
-          sizes="(min-width: 760px) 680px, calc(100vw - 40px)"
+          sizes={sharpCapped('(min-width: 760px) 680px, calc(100vw - 40px)')}
         />
         {b.caption && <figcaption>{b.caption}</figcaption>}
       </figure>

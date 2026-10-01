@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import { getEntry } from 'astro:content';
 import Blocks from '../components/Blocks.astro';
 import PageHead from '../components/PageHead.astro';
@@ -41,7 +42,7 @@ const imageAlt = page?.image
         formats={['avif', 'webp']}
         fallbackFormat="jpg"
         widths={[480, 800, 1200, 1600]}
-        sizes="(min-width: 1320px) 1200px, calc(100vw - 40px)"
+        sizes={sharpCapped('(min-width: 1320px) 1200px, calc(100vw - 40px)')}
         loading="eager"
       />
     </figure>

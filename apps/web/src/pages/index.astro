@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import Base from '../layouts/Base.astro';
 import { HERO, PRODUCTS } from '../data/story.ts';
 import { homepage } from '../lib/content';
@@ -41,7 +42,9 @@ const jsonLd = site
       },
     ]
   : [];
-const photoSizes = '(min-width: 1320px) 588px, (min-width: 900px) 45vw, calc(100vw - 72px)';
+const photoSizes = sharpCapped(
+  '(min-width: 1320px) 588px, (min-width: 900px) 45vw, calc(100vw - 72px)',
+);
 const detailSizes = '(min-width: 900px) 170px, 110px';
 ---
 
@@ -87,7 +90,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
           formats={['avif', 'webp']}
           fallbackFormat="jpg"
           widths={[400, 640, 900, 1254]}
-          sizes="(min-width: 900px) 560px, calc(100vw - 48px)"
+          sizes={sharpCapped('(min-width: 900px) 560px, calc(100vw - 48px)')}
           loading="eager"
           fetchpriority="high"
         />

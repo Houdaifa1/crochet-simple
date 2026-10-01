@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import type { ImageMetadata } from 'astro';
 
 interface Props {
@@ -22,7 +23,7 @@ const many = photos.length > 1;
             formats={['avif', 'webp']}
             fallbackFormat="jpg"
             widths={[480, 720, 960, 1280]}
-            sizes="(min-width: 1000px) 700px, calc(100vw - 40px)"
+            sizes={sharpCapped('(min-width: 1000px) 700px, calc(100vw - 40px)')}
             loading={i === 0 ? 'eager' : 'lazy'}
             fetchpriority={i === 0 ? 'high' : undefined}
           />

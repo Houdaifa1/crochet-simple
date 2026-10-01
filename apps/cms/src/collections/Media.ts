@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload';
+import { backGuard } from '../fields/back-guard.ts';
 import { MEDIA_DIR } from '../paths.ts';
 import { IMAGE_TYPES } from '../fields/validators.ts';
 import { fileInUse } from '../hooks/in-use.ts';
@@ -22,6 +23,7 @@ export const Media: CollectionConfig = {
         : null,
   },
   fields: [
+    backGuard,
     {
       name: 'alt',
       type: 'text',

@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload';
+import { backGuard } from '../fields/back-guard.ts';
 
 // the seven products, their drawings and photos are fixed; their words are yours
 const PRODUCTS = [
@@ -55,6 +56,7 @@ export const Homepage: GlobalConfig = {
       'The words on the homepage. The yarn drawing, the photos and the order of the seven products are part of the design and stay fixed.',
   },
   fields: [
+    backGuard,
     {
       type: 'collapsible',
       label: 'Search results',

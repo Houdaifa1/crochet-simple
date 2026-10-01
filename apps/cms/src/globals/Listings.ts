@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload';
+import { backGuard } from '../fields/back-guard.ts';
 
 const heading = (name: string, label: string, eyebrow: string, title: string, intro: string) => ({
   name,
@@ -37,6 +38,7 @@ export const Listings: GlobalConfig = {
     description: 'The headings above the pattern list and the journal list.',
   },
   fields: [
+    backGuard,
     heading(
       'patterns',
       'Patterns page',

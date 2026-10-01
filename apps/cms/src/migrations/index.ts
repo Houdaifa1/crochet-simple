@@ -1,6 +1,7 @@
 import * as migration_20260930_174321_initial from './20260930_174321_initial';
 import * as migration_20260930_190916_settings_indexable from './20260930_190916_settings_indexable';
 import * as migration_20261001_012829_brand_simplified from './20261001_012829_brand_simplified';
+import * as migration_20261001_092000_drafts_autosave from './20261001_092000_drafts_autosave';
 
 export const migrations = [
   {
@@ -16,6 +17,11 @@ export const migrations = [
   {
     up: migration_20261001_012829_brand_simplified.up,
     down: migration_20261001_012829_brand_simplified.down,
-    name: '20261001_012829_brand_simplified'
+    name: '20261001_012829_brand_simplified',
+  },
+  {
+    up: migration_20261001_092000_drafts_autosave.up,
+    down: migration_20261001_092000_drafts_autosave.down,
+    name: '20261001_092000_drafts_autosave'
   },
 ];

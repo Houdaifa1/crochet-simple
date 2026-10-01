@@ -298,7 +298,7 @@ test('editing a published pattern updates its page and keeps its web address', a
   await page.goto(`/admin/collections/patterns/${await find('patterns', 'olive-cup-cozy')}`, {
     waitUntil: 'networkidle',
   });
-  await page.locator('#field-title').fill('Ribbed olive cup cozy');
+  await page.getByRole('textbox', { name: 'Title *' }).fill('Ribbed olive cup cozy');
   await page.locator('#field-summary').fill('Deep olive ribbing that hugs a takeaway cup.');
   await page.waitForTimeout(600);
   await page.getByRole('button', { name: 'Publish changes' }).click();
@@ -520,4 +520,64 @@ test('a problem stops publishing with a plain explanation and leaves the live fi
     'Pattern "Blue market bag" (cover): "01-blue-market-bag.png" is missing from the media folder.',
   );
   expect(readFileSync(resolve(ROOT, 'site/index.html'), 'utf8')).toBe(before);
+});
+
+test('a half-written journal article saves itself as a draft, so Back never loses it', async () => {
+  await page.goto('/admin/collections/articles/create', { waitUntil: 'networkidle' });
+  await page.locator('#field-title').fill('Half written story');
+  await page.locator('#field-summary').fill('Written before pressing Back.');
+  const saved = async () => {
+    const res = await page.request.get(
+      `${ORIGIN}/api/articles?draft=true&depth=0&where[title][equals]=${encodeURIComponent('Half written story')}`,
+      { headers: { origin: ORIGIN } },
+    );
+    return ((await res.json()) as { docs: { summary?: string; _status: string }[] }).docs.map(
+      (d) => [d.summary, d._status],
+    );
+  };
+  // nothing clicked: it saves itself a moment after typing stops
+  await expect
+    .poll(saved, { timeout: 15_000 })
+    .toEqual([['Written before pressing Back.', 'draft']]);
+  await expect(page).toHaveURL(/\/admin\/collections\/articles\/\d+/);
+  await page.goBack();
+  expect(await saved()).toEqual([['Written before pressing Back.', 'draft']]);
+});
+
+test('Back asks before dropping unsaved changes, every time, and not after saving', async () => {
+  const asked: string[] = [];
+  let leave = false;
+  const answer = (d: import('@playwright/test').Dialog) => {
+    // the browser's own "leave site?" when moving on from the previous page is not ours
+    if (d.type() === 'beforeunload') return d.accept();
+    asked.push(d.message());
+    return leave ? d.accept() : d.dismiss();
+  };
+  page.on('dialog', answer);
+  await page.goto('/admin/globals/listings', { waitUntil: 'networkidle' });
+  await page.goto('/admin/globals/homepage', { waitUntil: 'networkidle' });
+  await page.locator('#field-cue').fill('Words not saved yet');
+  await page.waitForTimeout(800);
+  // pressed twice, a moment apart as a person would
+  await page.goBack();
+  await page.waitForTimeout(600);
+  await page.goBack();
+  await page.waitForTimeout(600);
+  await expect(page).toHaveURL(/\/admin\/globals\/homepage$/);
+  await expect(page.locator('#field-cue')).toHaveValue('Words not saved yet');
+  expect(asked).toHaveLength(2);
+  leave = true;
+  await page.goBack();
+  await expect(page).toHaveURL(/\/admin\/globals\/listings$/);
+  expect(asked).toHaveLength(3);
+
+  await page.goto('/admin/globals/homepage', { waitUntil: 'networkidle' });
+  await page.locator('#field-cue').fill('Words that are saved');
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText(/updated successfully/i).first()).toBeVisible();
+  await page.waitForTimeout(800);
+  await page.goBack();
+  await expect(page).not.toHaveURL(/\/admin\/globals\/homepage$/);
+  expect(asked).toHaveLength(3);
+  page.off('dialog', answer);
 });

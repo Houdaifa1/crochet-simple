@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload';
+import { backGuard } from '../fields/back-guard.ts';
 import { slugField } from '../fields/slug.ts';
 import { onlyIcons } from '../fields/validators.ts';
 import { categoryInUse } from '../hooks/in-use.ts';
@@ -15,6 +16,7 @@ export const Categories: CollectionConfig = {
   defaultSort: 'order',
   hooks: { beforeDelete: [categoryInUse] },
   fields: [
+    backGuard,
     { name: 'name', type: 'text', required: true, maxLength: 40 },
     slugField('name'),
     {

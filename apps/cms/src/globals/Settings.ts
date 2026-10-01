@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload';
+import { backGuard } from '../fields/back-guard.ts';
 import { httpsUrl, onlyImages } from '../fields/validators.ts';
 
 export const SOCIAL = ['instagram', 'tiktok', 'youtube', 'facebook', 'x', 'threads'] as const;
@@ -8,6 +9,7 @@ export const Settings: GlobalConfig = {
   label: 'Site settings',
   admin: { group: 'Settings' },
   fields: [
+    backGuard,
     {
       type: 'tabs',
       tabs: [

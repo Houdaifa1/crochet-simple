@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload';
+import { backGuard } from '../fields/back-guard.ts';
 import { bodyField } from '../fields/body.ts';
 import { onlyImages } from '../fields/validators.ts';
 
@@ -7,6 +8,7 @@ export const About: GlobalConfig = {
   label: 'About',
   admin: { group: 'Pages', description: 'Empty fields use the site’s default wording.' },
   fields: [
+    backGuard,
     {
       name: 'intro',
       type: 'textarea',
@@ -33,6 +35,7 @@ const legal = (slug: 'privacy' | 'terms', label: string): GlobalConfig => ({
     description: `Leave the text empty to use the site’s default ${label.toLowerCase()} (written for a US site with AdSense). Anything you write here replaces it.`,
   },
   fields: [
+    backGuard,
     { name: 'title', type: 'text', maxLength: 60 },
     bodyField(`Your own ${label.toLowerCase()}.`),
     {

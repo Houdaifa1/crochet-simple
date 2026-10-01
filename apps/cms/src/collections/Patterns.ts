@@ -14,7 +14,8 @@ export const Patterns: CollectionConfig = {
     listSearchableFields: ['title', 'summary', 'slug'],
   },
   defaultSort: '-published',
-  versions: { drafts: true, maxPerDoc: 30 },
+  // drafts save themselves while you type, so leaving the page never loses work
+  versions: { drafts: { autosave: { interval: 2000 } }, maxPerDoc: 30 },
   fields: [
     { name: 'title', type: 'text', required: true, maxLength: 80 },
     {

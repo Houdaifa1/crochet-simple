@@ -57,10 +57,10 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     <link rel="preload" href={italicUrl} as="font" type="font/woff2" crossorigin />
     {canonical && <link rel="canonical" href={canonical} />}
     {site && (
-      <link rel="alternate" type="application/rss+xml" title="Crochet Simple" href="/rss.xml" />
+      <link rel="alternate" type="application/rss+xml" title="Crochet Simplified" href="/rss.xml" />
     )}
     <meta property="og:type" content={type} />
-    <meta property="og:site_name" content="Crochet Simple" />
+    <meta property="og:site_name" content="Crochet Simplified" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="en_US" />
@@ -68,7 +68,7 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     {shareImage && <meta property="og:image" content={shareImage} />}
     {published && <meta property="article:published_time" content={published.toISOString()} />}
     {modified && <meta property="article:modified_time" content={modified.toISOString()} />}
-    {type === 'article' && <meta property="article:author" content="Crochet Simple" />}
+    {type === 'article' && <meta property="article:author" content="Crochet Simplified" />}
     <meta name="twitter:card" content="summary_large_image" />
     {s.verification.google && (
       <meta name="google-site-verification" content={s.verification.google} />
@@ -101,8 +101,8 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
       Skip to content
     </a>
     <header class="site-header">
-      <a class="wordmark" href="/" aria-label="Crochet Simple, home">
-        Crochet <em>Simple</em>
+      <a class="wordmark" href="/" aria-label="Crochet Simplified, home">
+        Crochet <em>Simplified</em>
       </a>
     </header>
     <Dock current={current} />
@@ -113,7 +113,7 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
       {s.pinterest && <ProfileCard profile={s.pinterest} compact />}
       <SocialLinks links={s.social} />
       <div class="footer-row">
-        <span>© {new Date().getFullYear()} Crochet Simple</span>
+        <span>© {new Date().getFullYear()} Crochet Simplified</span>
         <nav aria-label="Footer">
           <a href="/patterns/">Patterns</a>
           <a href="/journal/">Journal</a>

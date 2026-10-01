@@ -24,7 +24,7 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     importMap: { baseDir: dirname },
-    meta: { titleSuffix: ' · Crochet Simple admin' },
+    meta: { titleSuffix: ' · Crochet Simplified admin' },
     dateFormat: 'MMM d, yyyy',
     components: {
       beforeDashboard: ['/components/PublishPanel#PublishPanel'],
@@ -41,6 +41,8 @@ export default buildConfig({
     client: { url: process.env['DATABASE_URL'] ?? `file:${path.join(CMS_ROOT, 'data/cms.db')}` },
     migrationDir: path.resolve(dirname, 'migrations'),
     prodMigrations: migrations,
+    // the database only changes through migrations, in dev too, so it always matches production
+    push: false,
   }),
   hooks: {
     // production builds drop validation details; restore them so errors show under each field

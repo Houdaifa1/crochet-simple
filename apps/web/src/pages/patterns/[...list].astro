@@ -75,14 +75,14 @@ const h1 = free
     : 'Free patterns'
   : (name ?? words.title ?? 'Patterns');
 const what = `${free ? 'Free ' : ''}${name ? `${name} ` : ''}Crochet Patterns`;
-const title = `${what}${page > 1 ? `, Page ${page}` : ''} | Crochet Simple`;
+const title = `${what}${page > 1 ? `, Page ${page}` : ''} | Crochet Simplified`;
 // the admin's text when it is long enough to describe the page in search results
 const own = category?.data.description;
 const description =
   own && own.length >= 70
     ? own
     : name
-      ? `${free ? 'Free ' : ''}${name} crochet patterns from Crochet Simple, with clear steps, good photos${free ? ' and a printable PDF' : ''}.`
+      ? `${free ? 'Free ' : ''}${name} crochet patterns from Crochet Simplified, with clear steps, good photos${free ? ' and a printable PDF' : ''}.`
       : free
         ? 'Free crochet patterns with clear steps, good photos and a printable PDF you can download right away.'
         : (words.seoDescription ??

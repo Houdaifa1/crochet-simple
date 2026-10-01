@@ -465,7 +465,7 @@ test('About, Privacy and Terms are written from the admin, and empty text brings
   expect((await set('privacy', { title: '', body: null })).ok()).toBe(true);
   await publish();
   expect(built('privacy/index.html')).toContain(
-    'This policy explains what information is collected when you visit Crochet Simple',
+    'This policy explains what information is collected when you visit Crochet Simplified',
   );
   expect(built('privacy/index.html')).not.toContain('We keep no accounts at all.');
 });
@@ -479,7 +479,7 @@ test('site settings reach the website: social links, Pinterest card, ads and sea
     social: [{ platform: 'instagram', url: 'https://www.instagram.com/crochetsimple' }],
     pinterest: {
       url: 'https://www.pinterest.com/hdrahm/',
-      name: 'Crochet Simple',
+      name: 'Crochet Simplified',
       photo: photo.id,
     },
     adsense: { enabled: true, client: 'ca-pub-1234567890123456', inArticle: '1234567890' },

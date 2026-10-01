@@ -342,6 +342,6 @@ test.describe('touch and links', () => {
     await visit(page, '/journal/');
     const card = page.locator('footer a.profile');
     await expect(card).toHaveAttribute('href', 'https://www.pinterest.com/crochetsimple/');
-    await expect(card).toContainText('Crochet Simple');
+    await expect(card).toContainText('Crochet Simplified');
   });
 });

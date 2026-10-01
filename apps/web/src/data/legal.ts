@@ -16,7 +16,7 @@ const list = (...items: string[]): Blocks[number] => ({
 
 export const privacy = (contact?: string): Blocks => [
   p(
-    'This policy explains what information is collected when you visit Crochet Simple, how it is used and the choices you have. It applies to this website only.',
+    'This policy explains what information is collected when you visit Crochet Simplified, how it is used and the choices you have. It applies to this website only.',
   ),
   h('Information we collect'),
   p(
@@ -65,15 +65,15 @@ export const privacy = (contact?: string): Blocks => [
 
 export const terms = (contact?: string): Blocks => [
   p(
-    'By using Crochet Simple you agree to these terms. Please read them before downloading or using a pattern.',
+    'By using Crochet Simplified you agree to these terms. Please read them before downloading or using a pattern.',
   ),
   h('Patterns and copyright'),
   p(
-    'All patterns, photos, drawings and text on this website are owned by Crochet Simple and protected by copyright.',
+    'All patterns, photos, drawings and text on this website are owned by Crochet Simplified and protected by copyright.',
   ),
   list(
     'You may use our patterns, free or paid, to make items for yourself and as gifts.',
-    'You may sell finished items you make by hand from our patterns. A credit to Crochet Simple is appreciated.',
+    'You may sell finished items you make by hand from our patterns. A credit to Crochet Simplified is appreciated.',
     'You may not share, resell or publish the patterns, the PDF files or our photos, in whole or in part, including translations.',
   ),
   h('Purchases on Etsy'),
@@ -86,7 +86,7 @@ export const terms = (contact?: string): Blocks => [
   ),
   h('Limitation of liability'),
   p(
-    'To the extent the law allows, Crochet Simple is not liable for any indirect or consequential loss arising from the use of this website or its patterns.',
+    'To the extent the law allows, Crochet Simplified is not liable for any indirect or consequential loss arising from the use of this website or its patterns.',
   ),
   h('Links'),
   p(

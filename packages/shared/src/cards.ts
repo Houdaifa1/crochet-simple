@@ -13,7 +13,7 @@ export interface Profile {
   readonly image?: string;
 }
 
-const UA = 'Mozilla/5.0 (compatible; CrochetSimpleCards/1.0)';
+const UA = 'Mozilla/5.0 (compatible; CrochetSimplifiedCards/1.0)';
 
 const decode = (s: string): string =>
   s

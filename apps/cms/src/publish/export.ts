@@ -380,7 +380,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
     }
     pinterest = drop({
       url: pinUrl,
-      name: text(pin['name']) ?? fetched.name ?? 'Crochet Simple',
+      name: text(pin['name']) ?? fetched.name ?? 'Crochet Simplified',
       description: text(pin['description']),
       image,
     });

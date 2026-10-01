@@ -69,7 +69,7 @@ async function band(p: Pattern): Promise<Buffer> {
         ]),
         el('div', { display: 'flex', fontSize: 40, gap: 10 }, [
           el('span', {}, 'Crochet'),
-          el('span', { fontStyle: 'italic', color: '#1f4c9c' }, 'Simple'),
+          el('span', { fontStyle: 'italic', color: '#1f4c9c' }, 'Simplified'),
         ]),
       ],
     ) as Parameters<typeof satori>[0],

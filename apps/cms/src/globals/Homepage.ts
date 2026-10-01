@@ -64,7 +64,7 @@ export const Homepage: GlobalConfig = {
           type: 'text',
           required: true,
           maxLength: 70,
-          defaultValue: 'Crochet Simple | Crochet patterns and tutorials',
+          defaultValue: 'Crochet Simplified | Crochet patterns and tutorials',
         },
         {
           name: 'seoDescription',
@@ -131,7 +131,7 @@ export const Homepage: GlobalConfig = {
       type: 'collapsible',
       label: 'End of the page',
       fields: [
-        { name: 'endingEyebrow', type: 'text', required: true, defaultValue: 'Crochet Simple' },
+        { name: 'endingEyebrow', type: 'text', required: true, defaultValue: 'Crochet Simplified' },
         {
           type: 'row',
           fields: [

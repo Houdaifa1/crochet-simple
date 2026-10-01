@@ -72,8 +72,12 @@ const jsonLd = site
         image: [absolute(og.src, site), pinUrl],
         datePublished: isoDate(d.published),
         dateModified: isoDate(modified),
-        author: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
-        publisher: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
+        author: { '@type': 'Organization', name: 'Crochet Simplified', url: absolute('/', site) },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Crochet Simplified',
+          url: absolute('/', site),
+        },
         mainEntityOfPage: pageUrl,
         ...(pdf ? { isAccessibleForFree: true } : {}),
       },
@@ -108,7 +112,7 @@ const thumb = await getImage({
 ---
 
 <Base
-  title={`${d.title} ${pdf ? 'Free ' : ''}Crochet Pattern | Crochet Simple`}
+  title={`${d.title} ${pdf ? 'Free ' : ''}Crochet Pattern | Crochet Simplified`}
   description={d.summary}
   current="patterns"
   image={og.src}

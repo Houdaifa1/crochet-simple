@@ -18,7 +18,7 @@ export const Settings: GlobalConfig = {
               name: 'siteUrl',
               type: 'text',
               label: 'Website address',
-              validate: httpsUrl(undefined, 'your domain, like https://crochetsimple.com'),
+              validate: httpsUrl(undefined, 'your domain, like https://crochetsimplified.com'),
               admin: {
                 description:
                   'Your domain once you have one. Turns on Google and Pinterest features (canonical links, sitemap, Save buttons, Rich Pins).',

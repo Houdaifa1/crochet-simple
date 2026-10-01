@@ -23,8 +23,8 @@ export const GET: APIRoute = async ({ site }) => {
     })),
   ].sort((x, y) => y.pubDate.getTime() - x.pubDate.getTime());
   return rss({
-    title: 'Crochet Simple',
-    description: 'New crochet patterns and journal stories from Crochet Simple.',
+    title: 'Crochet Simplified',
+    description: 'New crochet patterns and journal stories from Crochet Simplified.',
     site: site!,
     items: items.slice(0, 50),
   });

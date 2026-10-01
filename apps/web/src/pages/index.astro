@@ -24,7 +24,7 @@ const jsonLd = site
       {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'Crochet Simple',
+        name: 'Crochet Simplified',
         url: site.href,
         potentialAction: {
           '@type': 'SearchAction',
@@ -35,7 +35,7 @@ const jsonLd = site
       {
         '@context': 'https://schema.org',
         '@type': 'Organization',
-        name: 'Crochet Simple',
+        name: 'Crochet Simplified',
         url: site.href,
         logo: new URL('/apple-touch-icon.png', site).href,
       },
@@ -46,7 +46,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
 ---
 
 <Base
-  title={h.seoTitle ?? 'Crochet Simple | Crochet patterns and tutorials'}
+  title={h.seoTitle ?? 'Crochet Simplified | Crochet patterns and tutorials'}
   description={
     h.seoDescription ??
     'Follow one thread as it becomes seven crochet designs, then find clear crochet patterns, tutorials and notes from the studio.'
@@ -156,7 +156,7 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
 
     <section class="ending" aria-labelledby="ending-title" data-tint="var(--paper)">
       <div class="knot" aria-hidden="true"></div>
-      <p class="eyebrow">{h.endingEyebrow ?? 'Crochet Simple'}</p>
+      <p class="eyebrow">{h.endingEyebrow ?? 'Crochet Simplified'}</p>
       <h2 id="ending-title">
         {h.endingTitle ?? 'One thread.'} <em>{h.endingAccent ?? 'Endless things to make.'}</em>
       </h2>

@@ -52,8 +52,12 @@ const jsonLd = site
         image: [ogUrl],
         datePublished: isoDate(d.published),
         dateModified: isoDate(modified),
-        author: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
-        publisher: { '@type': 'Organization', name: 'Crochet Simple', url: absolute('/', site) },
+        author: { '@type': 'Organization', name: 'Crochet Simplified', url: absolute('/', site) },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Crochet Simplified',
+          url: absolute('/', site),
+        },
         mainEntityOfPage: pageUrl,
       },
       {
@@ -76,7 +80,7 @@ const thumb = await getImage({
 ---
 
 <Base
-  title={`${d.title} | Crochet Simple`}
+  title={`${d.title} | Crochet Simplified`}
   description={d.summary}
   current="journal"
   image={og.src}

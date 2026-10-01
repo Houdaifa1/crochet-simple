@@ -133,7 +133,7 @@ export function startPublish(payload: Payload): PublishState {
         });
         log(`Content copy saved (${saved.uploaded} of ${saved.files} files were new or changed)`);
         log(`Putting the website online at ${siteUrl}`);
-        await deploySite({ webRoot: WEB_ROOT, domain: new URL(siteUrl).hostname, log });
+        await deploySite({ webRoot: WEB_ROOT, siteUrl, log });
         live = siteUrl;
         log('Website is online');
       } else {

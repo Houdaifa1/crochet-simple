@@ -1,5 +1,6 @@
 import { appendFileSync } from 'node:fs';
 import path from 'node:path';
+import { siteDomains } from '../src/publish/build.ts';
 import { pullContent } from '../src/publish/store.ts';
 
 // used by the GitHub deploy: fetch the last published content into apps/web/.content
@@ -18,5 +19,7 @@ console.log(
 if (process.env['GITHUB_OUTPUT'])
   appendFileSync(
     process.env['GITHUB_OUTPUT'],
-    `site_url=${manifest.siteUrl}\ndomain=${new URL(manifest.siteUrl).hostname}\n`,
+    `site_url=${manifest.siteUrl}\ndomains=${siteDomains(manifest.siteUrl)
+      .map((d) => `--domain ${d}`)
+      .join(' ')}\n`,
   );

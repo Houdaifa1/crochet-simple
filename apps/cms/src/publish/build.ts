@@ -72,14 +72,24 @@ export async function buildSite(o: BuildOptions): Promise<void> {
 
 export interface DeployOptions {
   webRoot: string;
-  domain: string;
+  siteUrl: string;
   log: (line: string) => void;
 }
 
-// uploads apps/web/dist to Cloudflare and points the domain at it (key and account from .env)
+// every address the site answers on; a bare domain also gets its www (forwarded by a Cloudflare rule)
+export function siteDomains(siteUrl: string): string[] {
+  const host = new URL(siteUrl).hostname;
+  return host.split('.').length === 2 ? [host, `www.${host}`] : [host];
+}
+
+// uploads apps/web/dist to Cloudflare and points the domains at it; a domain left out is detached
 export async function deploySite(o: DeployOptions): Promise<void> {
   await node(
-    [path.join(o.webRoot, 'node_modules/wrangler/bin/wrangler.js'), 'deploy', '--domain', o.domain],
+    [
+      path.join(o.webRoot, 'node_modules/wrangler/bin/wrangler.js'),
+      'deploy',
+      ...siteDomains(o.siteUrl).flatMap((d) => ['--domain', d]),
+    ],
     o.webRoot,
     { ...process.env, WRANGLER_SEND_METRICS: 'false', CI: '1' },
     o.log,

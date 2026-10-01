@@ -14,6 +14,7 @@ import {
 import { backup } from './backup.ts';
 import { buildSite, deploySite } from './build.ts';
 import { PublishError, exportContent } from './export.ts';
+import { pushContent } from './store.ts';
 
 export type Step = 'backup' | 'export' | 'build' | 'deploy';
 export interface PublishState {
@@ -119,10 +120,18 @@ export function startPublish(payload: Payload): PublishState {
       let live: string | undefined;
       if (
         process.env['CLOUDFLARE_API_TOKEN'] &&
+        process.env['CLOUDFLARE_ACCOUNT_ID'] &&
         siteUrl &&
         SITE_OUT === path.join(WEB_ROOT, 'dist')
       ) {
         state.step = 'deploy';
+        // GitHub rebuilds from this copy after a code change, so it goes up before the site does
+        log('Saving a copy of the content to Cloudflare');
+        const saved = await pushContent(CONTENT_DIR, siteUrl, {
+          accountId: process.env['CLOUDFLARE_ACCOUNT_ID'],
+          token: process.env['CLOUDFLARE_API_TOKEN'],
+        });
+        log(`Content copy saved (${saved.uploaded} of ${saved.files} files were new or changed)`);
         log(`Putting the website online at ${siteUrl}`);
         await deploySite({ webRoot: WEB_ROOT, domain: new URL(siteUrl).hostname, log });
         live = siteUrl;

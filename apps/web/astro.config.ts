@@ -40,7 +40,7 @@ export default defineConfig({
   trailingSlash: 'always',
   integrations: site ? [sitemap({ filter: (page) => !page.includes('/search/') })] : [],
   build: { format: 'directory', inlineStylesheets: 'always' },
-  prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   devToolbar: { enabled: false },
   server: { host: '127.0.0.1' },
   vite: { plugins: [compactDrawings()] },

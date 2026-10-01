@@ -126,6 +126,7 @@ h3 {
   padding: 11px var(--gutter);
 }
 .wordmark {
+  view-transition-name: wordmark;
   display: inline-block;
   padding: 11px 0;
   font: 600 23px/1 var(--serif);
@@ -138,7 +139,16 @@ h3 {
   color: var(--blue);
 }
 
+/* pages cross-fade while the header and menu stay where they are */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+}
 .dock {
+  view-transition-name: dock;
   position: fixed;
   z-index: 10;
   left: 50%;
@@ -154,6 +164,9 @@ h3 {
     0 2px 8px rgb(31 76 156 / 0.18);
   transform: translateX(-50%);
   animation: dock-in 0.7s var(--ease-out) 0.5s backwards;
+}
+.dock-seen .dock {
+  animation: none;
 }
 @keyframes dock-in {
   from {
@@ -461,6 +474,9 @@ html.js .rise:not(.in) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
   .dock {
     animation: none;
   }

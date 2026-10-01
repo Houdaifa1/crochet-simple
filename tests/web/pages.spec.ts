@@ -313,6 +313,37 @@ test.describe('ads', () => {
 test.describe('touch and links', () => {
   test.use(SIZES.phone);
 
+  test('the menu stays in place from page to page, with no slide-in after the first page', async ({
+    page,
+  }) => {
+    await visit(page, '/about/');
+    await page.locator('.dock a[href="/patterns/"]').click();
+    await page.waitForURL('**/patterns/');
+    const dock = await page.locator('.dock').evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        animation: getComputedStyle(el).animationName,
+        onScreen: r.top >= 0 && r.bottom <= innerHeight,
+      };
+    });
+    expect(dock).toEqual({ animation: 'none', onScreen: true });
+  });
+
+  test('the menu pages are loaded ahead, so a tap opens them at once', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'WebKit loads ahead without link tags');
+    await visit(page, '/patterns/');
+    await expect
+      .poll(() =>
+        page
+          .locator('link[rel="prefetch"]')
+          .evaluateAll((ls) => ls.map((l) => new URL((l as HTMLLinkElement).href).pathname)),
+      )
+      .toEqual(expect.arrayContaining(['/', '/journal/', '/about/']));
+  });
+
   test('controls are at least 44 px tall on phones', async ({ page }) => {
     for (const path of ['/patterns/', '/patterns/blue-market-bag/', '/journal/', '/about/']) {
       await visit(page, path);

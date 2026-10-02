@@ -84,6 +84,10 @@ test.describe('search engines and Pinterest', () => {
       ).toBeGreaterThan(40);
       expect(await page.locator('link[rel=canonical]').getAttribute('href')).toBe(SITE + path);
       expect(title).not.toMatch(/[—–]/);
+      // every page shows a picture when shared on Pinterest, Facebook or in messages
+      expect(await page.locator('meta[property="og:image"]').getAttribute('content')).toMatch(
+        new RegExp(`^${SITE}/_astro/.+\\.(jpg|png|webp)$`),
+      );
     }
   });
 

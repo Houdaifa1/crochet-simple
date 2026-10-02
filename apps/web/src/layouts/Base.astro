@@ -1,4 +1,5 @@
 ---
+import { getImage } from 'astro:assets';
 import '../styles/global.css';
 import Dock from '../components/Dock.astro';
 import ProfileCard from '../components/ProfileCard.astro';
@@ -6,6 +7,7 @@ import SocialLinks from '../components/SocialLinks.astro';
 import fontUrl from '../assets/fonts/fraunces.woff2?url';
 import italicUrl from '../assets/fonts/fraunces-italic.woff2?url';
 import { absolute, settings } from '../lib/content';
+import heroPhoto from '../assets/story/00-yarn-hero.png';
 
 interface Props {
   title: string;
@@ -35,7 +37,11 @@ const {
 const site = Astro.site;
 const s = await settings();
 const canonical = absolute(Astro.url.pathname, site);
-const shareImage = image ? absolute(image, site) : undefined;
+// pages without a photo of their own share the yarn photo, cut to the size social sites expect
+const fallback = image
+  ? undefined
+  : await getImage({ src: heroPhoto, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const shareImage = absolute(image ?? fallback!.src, site);
 const adClient = s.adsense.enabled && ads ? s.adsense.client : undefined;
 const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---

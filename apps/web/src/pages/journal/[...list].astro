@@ -35,6 +35,22 @@ const [first, ...rest] = page === 1 ? items : [undefined, ...items];
 const minutes = (a: Article) => readingMinutes(a.data.body, a.data.summary);
 const words = await listing('journal');
 const name = words.title ?? 'Journal';
+const site = Astro.site;
+const jsonLd =
+  site && page === 1
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Blog',
+          name: 'Crochet Simplified Journal',
+          url: new URL('/journal/', site).href,
+          description:
+            words.seoDescription ??
+            'Crochet tutorials, yarn notes and the stories behind each design.',
+          publisher: { '@type': 'Organization', name: 'Crochet Simplified', url: site.href },
+        },
+      ]
+    : [];
 ---
 
 <Base
@@ -44,6 +60,7 @@ const name = words.title ?? 'Journal';
   }
   current="journal"
   ads
+  jsonLd={jsonLd}
 >
   <div class="wrap">
     <PageHead

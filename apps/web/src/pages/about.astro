@@ -15,6 +15,24 @@ const s = await settings();
 const all = await patterns();
 const hasFree = all.some(isFree);
 const image = page?.image ?? heroPhoto;
+const site = Astro.site;
+const jsonLd = site
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'AboutPage',
+        url: new URL('/about/', site).href,
+        mainEntity: {
+          '@type': 'Organization',
+          name: 'Crochet Simplified',
+          url: site.href,
+          logo: new URL('/apple-touch-icon.png', site).href,
+          ...(s.contactEmail ? { email: s.contactEmail } : {}),
+          sameAs: [s.pinterest?.url, s.etsyShopUrl, ...s.social.map((x) => x.url)].filter(Boolean),
+        },
+      },
+    ]
+  : [];
 const imageAlt = page?.image
   ? (page.imageAlt ?? '')
   : 'Indigo, sage and clay cotton yarn on linen with a crochet hook';
@@ -25,6 +43,7 @@ const imageAlt = page?.image
   description="Crochet Simplified shares crochet patterns and tutorials with clear steps, good photos and printable PDFs."
   current="about"
   image={undefined}
+  jsonLd={jsonLd}
 >
   <div class="wrap">
     <PageHead eyebrow="About" title="Crochet Simplified" />

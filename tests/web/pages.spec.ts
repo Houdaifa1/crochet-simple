@@ -419,6 +419,19 @@ test.describe('touch and links', () => {
       .toEqual(expect.arrayContaining(['/', '/journal/', '/about/']));
   });
 
+  test('the Journal link is in the menu and the footer on every page', async ({ page }) => {
+    for (const path of PAGES) {
+      await visit(page, path);
+      await expect(page.locator('.dock a[href="/journal/"]'), path).toBeVisible();
+      await expect(page.locator('.dock a[href="/journal/"]'), path).toHaveText('Journal');
+      await expect(page.locator('footer a[href="/journal/"]'), path).toHaveText('Journal');
+    }
+    await visit(page, '/');
+    await expect(page.locator('.ending .actions a.quiet')).toHaveAttribute('href', '/journal/');
+    await visit(page, '/about/');
+    await expect(page.locator('main a[href="/journal/"]')).toHaveText('Read the journal');
+  });
+
   test('controls are at least 44 px tall on phones', async ({ page }) => {
     for (const path of ['/patterns/', '/patterns/blue-market-bag/', '/journal/', '/about/']) {
       await visit(page, path);

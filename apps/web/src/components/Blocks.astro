@@ -81,12 +81,14 @@ const external = (href: string) => /^https?:/.test(href);
     {b.type === 'rounds' && (
       <>
         {b.title && <h3>{b.title}</h3>}
-        <ol class="rounds">
+        <ol class:list={['rounds', { long: b.items.some((r) => r.label.length > 12) }]}>
           {b.items.map((r) => (
             <li>
               <b>{r.label}</b>
-              {r.text}
-              {r.count && <span class="count"> ({r.count})</span>}
+              <span>
+                {r.text}
+                {r.count && <span class="count"> ({r.count})</span>}
+              </span>
             </li>
           ))}
         </ol>

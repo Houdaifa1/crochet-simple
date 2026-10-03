@@ -299,6 +299,35 @@ test.describe('patterns', () => {
     await expect(page.locator('.thumbs button').nth(2)).toHaveAttribute('aria-current', 'true');
   });
 
+  test('the photos move on by themselves and stop when the visitor takes over', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/blue-market-bag/');
+    const count = page.locator('.count b');
+    await page.locator('.gallery').scrollIntoViewIfNeeded();
+    await expect(count).toHaveText('2', { timeout: 7000 });
+    await page.getByRole('button', { name: 'Pause the photos' }).click();
+    await expect(page.getByRole('button', { name: 'Play the photos' })).toBeVisible();
+    await page.waitForTimeout(4500);
+    await expect(count).toHaveText('2');
+  });
+
+  test('step names never run into their instructions, on any screen', async ({ page }) => {
+    for (const width of [360, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await visit(page, '/patterns/blue-market-bag/');
+      const overlaps = await page.locator('.rounds li').evaluateAll(
+        (items) =>
+          items.filter((li) => {
+            const a = li.querySelector('b')!.getBoundingClientRect();
+            const b = li.querySelector(':scope > span')!.getBoundingClientRect();
+            return a.right > b.left + 1 && a.bottom > b.top + 1 && b.bottom > a.top + 1;
+          }).length,
+      );
+      expect(overlaps, `at ${width}px`).toBe(0);
+    }
+  });
+
   test('search finds patterns and stories', async ({ page }) => {
     await visit(page, '/search/');
     await page.locator('#q').fill('panda');

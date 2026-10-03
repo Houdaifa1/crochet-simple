@@ -31,9 +31,17 @@ const many = photos.length > 1;
       ))}
     </div>
     {many && (
-      <span class="count" aria-hidden="true">
-        <b>1</b> / {photos.length}
-      </span>
+      <>
+        <span class="count" aria-hidden="true">
+          <b>1</b> / {photos.length}
+        </span>
+        <button class="play" type="button" aria-label="Pause the photos" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path class="i-pause" d="M8 6v12M16 6v12" />
+            <path class="i-play" d="M8 5.5v13l11-6.5z" />
+          </svg>
+        </button>
+      </>
     )}
     {saveHref && (
       <a class="save" href={saveHref} rel="noopener" target="_blank">
@@ -88,6 +96,44 @@ const many = photos.length > 1;
         track.scrollTo({ left: k * track.clientWidth, behavior: 'smooth' }),
       ),
     );
+
+    // the photos move on by themselves until the visitor takes over, while the gallery is on screen
+    const play = g.querySelector<HTMLButtonElement>('.play')!;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    let paused = false;
+    let seen = false;
+    let timer = 0;
+    const tick = () => {
+      const next = (shown + 1) % thumbs.length;
+      track.scrollTo({ left: next * track.clientWidth, behavior: 'smooth' });
+    };
+    const sync = () => {
+      clearInterval(timer);
+      if (!paused && seen && document.visibilityState === 'visible')
+        timer = window.setInterval(tick, 4000);
+      play.setAttribute('aria-label', paused ? 'Play the photos' : 'Pause the photos');
+      play.classList.toggle('paused', paused);
+    };
+    const stop = () => {
+      paused = true;
+      sync();
+    };
+    play.hidden = false;
+    play.addEventListener('click', () => {
+      paused = !paused;
+      sync();
+    });
+    for (const type of ['pointerdown', 'wheel', 'keydown', 'touchstart'])
+      track.addEventListener(type, stop, { passive: true });
+    thumbs.forEach((t) => t.addEventListener('click', stop));
+    new IntersectionObserver(
+      ([e]) => {
+        seen = Boolean(e?.isIntersecting);
+        sync();
+      },
+      { threshold: 0.6 },
+    ).observe(track);
+    document.addEventListener('visibilitychange', sync);
   }
 </script>
 
@@ -131,6 +177,42 @@ const many = photos.length > 1;
     background: rgb(42 41 37 / 0.72);
     color: #fff;
     font: 600 12px/1 var(--sans);
+  }
+  .play {
+    position: absolute;
+    right: calc(var(--gutter) + 60px);
+    bottom: 2px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 2px;
+    background: rgb(42 41 37 / 0.72);
+    color: #fff;
+    cursor: pointer;
+  }
+  .play[hidden] {
+    display: none;
+  }
+  .play svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .play .i-play,
+  .play.paused .i-pause {
+    display: none;
+  }
+  .play.paused .i-play {
+    display: inline;
+    fill: currentColor;
+    stroke: none;
   }
   .save {
     position: absolute;

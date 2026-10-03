@@ -113,6 +113,21 @@
       ]
     },
     {
+      "type": "rounds",
+      "title": "Finishing steps",
+      "items": [
+        {
+          "label": "Join the handles",
+          "text": "Test fixture text. Sew each handle end to the inside of the bag, two rounds below the top edge."
+        },
+        {
+          "label": "Add the cherries",
+          "text": "Test fixture text. Stitch the cherry stems together and sew them to the base of one handle.",
+          "count": "2 cherries"
+        }
+      ]
+    },
+    {
       "type": "image",
       "image": "../../../../apps/web/src/assets/details/01a-bag-stitches.png",
       "alt": "Rows of cobalt single crochet",

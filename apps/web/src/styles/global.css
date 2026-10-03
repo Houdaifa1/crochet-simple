@@ -435,20 +435,32 @@ html.js .rise:not(.in) {
   background: var(--sheet);
 }
 .prose .rounds li {
-  position: relative;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: baseline;
   margin: 0;
-  padding: 14px 0 14px 70px;
+  padding: 14px 0;
   border-bottom: 1px solid rgb(42 41 37 / 0.12);
 }
 .prose .rounds li:last-child {
   border-bottom: 0;
 }
 .prose .rounds b {
-  position: absolute;
-  left: 0;
-  top: 14px;
-  font: 700 14px/1.9 var(--sans);
+  font: 700 14px/1.35 var(--sans);
   color: var(--blue);
+  overflow-wrap: anywhere;
+}
+/* named steps ("Join the handles") sit above their text on phones, beside it on wider screens */
+.prose .rounds.long li {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 4px;
+}
+@media (min-width: 700px) {
+  .prose .rounds.long li {
+    grid-template-columns: 10.5em minmax(0, 1fr);
+    column-gap: 20px;
+  }
 }
 .prose .rounds .count {
   color: var(--muted);

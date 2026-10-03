@@ -1,7 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
 import { sharpCapped } from '../lib/sizes';
-import { isFree, type Pattern } from '../lib/content';
+import { isFree, SKILL, type Pattern } from '../lib/content';
 
 interface Props {
   pattern: Pattern;
@@ -33,7 +33,10 @@ const H = `h${headingLevel}` as 'h2' | 'h3';
     {!free && d.etsyUrl && <span class="badge etsy">On Etsy</span>}
   </div>
   <H class="title">{d.title}</H>
-  <p class="meta">{category}</p>
+  <p class="meta">
+    {category}
+    {d.details.skill && ` · ${SKILL[d.details.skill]}`}
+  </p>
 </a>
 
 <style>

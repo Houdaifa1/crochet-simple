@@ -25,5 +25,21 @@
     }
   ],
   "published": "2026-09-05",
-  "etsyUrl": "https://www.etsy.com/listing/9999913/airpods-pouch"
+  "etsyUrl": "https://www.etsy.com/listing/9999913/airpods-pouch",
+  "etsyCard": {
+    "kind": "etsy",
+    "url": "https://www.etsy.com/listing/9999913/airpods-pouch",
+    "title": "Test fixture Etsy listing: AirPods pouch pattern",
+    "description": "Test fixture listing description.",
+    "image": "../../../../apps/web/src/assets/story/04-airpods-pouch.png",
+    "siteName": "TestFixtureShop",
+    "price": {
+      "amount": 4.5,
+      "currency": "USD"
+    },
+    "rating": {
+      "value": 4.9,
+      "count": 120
+    }
+  }
 }

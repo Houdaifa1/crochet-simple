@@ -11,16 +11,9 @@ const text = z.string().trim().min(1);
 const url = z.url({ protocol: /^https$/ });
 const href = z.union([url, z.string().regex(/^\/[^/]/, 'must be https:// or a path on this site')]);
 
-function blocks({ image }: SchemaContext) {
-  const inline = z.array(
-    z.object({
-      text: z.string(),
-      bold: z.boolean().optional(),
-      italic: z.boolean().optional(),
-      href: href.optional(),
-    }),
-  );
-  const card = z.object({
+// a link shown as a card: what the admin fetched from Pinterest, Etsy or the page itself
+const cardOf = (image: SchemaContext['image']) =>
+  z.object({
     kind: z.enum(['pinterest', 'etsy', 'link']),
     url,
     title: text,
@@ -32,6 +25,17 @@ function blocks({ image }: SchemaContext) {
       .object({ value: z.number().min(0).max(5), count: z.number().int().positive() })
       .optional(),
   });
+
+function blocks({ image }: SchemaContext) {
+  const inline = z.array(
+    z.object({
+      text: z.string(),
+      bold: z.boolean().optional(),
+      italic: z.boolean().optional(),
+      href: href.optional(),
+    }),
+  );
+  const card = cardOf(image);
   return z
     .array(
       z.discriminatedUnion('type', [
@@ -86,6 +90,8 @@ const patterns = defineCollection({
       pinImage: ctx.image().optional(),
       details: z
         .object({
+          skill: z.enum(['beginner', 'easy', 'intermediate', 'experienced']).optional(),
+          time: z.string().optional(),
           hook: z.string().optional(),
           yarn: z.string().optional(),
           size: z.string().optional(),
@@ -98,6 +104,18 @@ const patterns = defineCollection({
         })
         .optional(),
       etsyUrl: url.optional(),
+      etsyCard: cardOf(ctx.image).optional(),
+      video: z
+        .object({
+          id: z.string().regex(/^[\w-]{11}$/),
+          url,
+          title: text,
+          description: z.string().optional(),
+          thumbnail: ctx.image(),
+          uploadDate: z.string().min(10),
+          duration: z.string().optional(),
+        })
+        .optional(),
       body: blocks(ctx),
       published: z.coerce.date(),
       updated: z.coerce.date().optional(),

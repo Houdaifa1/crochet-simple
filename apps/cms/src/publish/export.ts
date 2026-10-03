@@ -3,7 +3,14 @@ import { copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promis
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { Payload } from 'payload';
-import { cardKind, resolveLinkCard, resolveProfile, type LinkCard } from '@crochet-simple/shared';
+import {
+  cardKind,
+  resolveLinkCard,
+  resolveProfile,
+  resolveVideo,
+  type LinkCard,
+  type Video,
+} from '@crochet-simple/shared';
 import { toBlocks, type OutBlock, type Resolvers } from './lexical.ts';
 
 export class PublishError extends Error {}
@@ -165,6 +172,27 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
     return out;
   };
 
+  // a pattern's YouTube tutorial, with its thumbnail kept on this site
+  const videoOut = async (url: string, where: string) => {
+    const key = `video:${url}`;
+    let v = cache[key] as unknown as (Video & { image?: string }) | undefined;
+    try {
+      const fresh = await resolveVideo(url, o.fetch ? { fetch: o.fetch } : {});
+      const image = await saveImage(fresh.thumbnail).catch(() => undefined);
+      v = { ...fresh, ...(image ? { image } : {}) };
+      (cache as Record<string, unknown>)[key] = v;
+    } catch (e) {
+      warn(
+        `${where}: ${url} could not be read (${(e as Error).message})${v ? '; the last saved details are used' : '; the video is left out'}.`,
+      );
+    }
+    if (!v?.image || !existsSync(path.join(cardDir, v.image))) return undefined;
+    await mkdir(path.join(work, 'media/cards'), { recursive: true });
+    await copyFile(path.join(cardDir, v.image), path.join(work, 'media/cards', v.image));
+    const { image, thumbnail: _remote, ...rest } = v;
+    return { ...rest, thumbnail: `../media/cards/${image}` };
+  };
+
   const slugs = new Map<string, string>();
   const resolvers = (where: string): Resolvers => ({
     image: async (value) => {
@@ -231,6 +259,8 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
           ? rel(file(p['pinImage'], `${where} (Pinterest image)`, 'photo'), 1)
           : undefined,
         details: drop({
+          skill: text(details['skill']),
+          time: text(details['time']),
           hook: text(details['hook']),
           yarn: text(details['yarn']),
           size: text(details['size']),
@@ -239,6 +269,11 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
           ? drop({ file: rel(pdf, 1), pages: p['pdfPages'] ? Number(p['pdfPages']) : undefined })
           : undefined,
         etsyUrl: pdf ? undefined : text(p['etsyUrl']),
+        etsyCard:
+          !pdf && text(p['etsyUrl'])
+            ? (await cardsOut([String(p['etsyUrl'])], `${where} (Etsy link)`))[0]
+            : undefined,
+        video: text(p['video']) ? await videoOut(String(p['video']), where) : undefined,
         body: await body(p, where),
         published: day(p['published']),
         updated: day(p['updated']),

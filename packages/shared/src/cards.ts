@@ -72,13 +72,26 @@ const clean = <T extends object>(o: T): Defined<T> =>
 async function page(
   url: string,
   f: typeof fetch,
-): Promise<{ url: string; meta: Record<string, string> }> {
+): Promise<{ url: string; meta: Record<string, string>; html: string }> {
   const res = await f(url, {
     headers: { 'user-agent': UA, accept: 'text/html' },
     redirect: 'follow',
   });
   if (!res.ok) throw new Error(`${url} answered ${res.status}`);
-  return { url: res.url || url, meta: readMeta(await res.text()) };
+  const html = await res.text();
+  return { url: res.url || url, meta: readMeta(html), html };
+}
+
+// Pinterest keeps the real profile photo in the page's own data for that username
+export function pinterestAvatar(html: string, username: string): string | undefined {
+  const key = html.search(
+    new RegExp(`\\\\?"username\\\\?",\\\\?"${username.replace(/[^\w.-]/g, '')}\\\\?"`),
+  );
+  if (key < 0) return undefined;
+  const found = /"image_xlarge_url":"(https:(?:\\\/|\/){2}i\.pinimg\.com[^"]+)"/.exec(
+    html.slice(key, key + 4000),
+  )?.[1];
+  return found?.replace(/\\\//g, '/').replace(/\\u002f/gi, '/');
 }
 
 function fromMeta(kind: CardKind, url: string, meta: Record<string, string>): LinkCard {
@@ -183,13 +196,67 @@ export async function resolveProfile(url: string, options: ResolveOptions = {}):
   if (!name) throw new Error(`${url} has no profile name`);
   // Pinterest's own filler text and logo are not the owner's; leave them out
   const description = tidy(p.meta['og:description']);
-  const image = p.meta['og:image'];
+  const og = p.meta['og:image'];
+  const generic = !og || /default_open_graph|\/images\/(?:user\/)?default/i.test(og);
+  const username = new URL(p.url).pathname.split('/').filter(Boolean)[0] ?? '';
   return clean({
     url: p.url,
     name,
     description:
       description && !/has discovered on Pinterest/i.test(description) ? description : undefined,
-    image:
-      image && !/default_open_graph|\/images\/(?:user\/)?default/i.test(image) ? image : undefined,
+    image: generic ? pinterestAvatar(p.html, username) : og,
   });
+}
+
+export interface Video {
+  readonly id: string;
+  readonly url: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly thumbnail: string;
+  readonly uploadDate: string;
+  readonly duration?: string;
+}
+
+export function youtubeId(url: string): string | undefined {
+  const u = new URL(url);
+  const host = u.hostname.replace(/^(www|m)\./, '');
+  const id =
+    host === 'youtu.be'
+      ? u.pathname.slice(1)
+      : host === 'youtube.com'
+        ? (u.searchParams.get('v') ?? /^\/(?:shorts|embed|live)\/([^/]+)/.exec(u.pathname)?.[1])
+        : undefined;
+  return id && /^[\w-]{11}$/.test(id) ? id : undefined;
+}
+
+// what Google needs for a video result: title, thumbnail and upload date, all from YouTube itself
+export async function resolveVideo(url: string, options: ResolveOptions = {}): Promise<Video> {
+  const f = options.fetch ?? fetch;
+  const id = youtubeId(url);
+  if (!id) throw new Error(`${url} is not a YouTube video link`);
+  const watch = `https://www.youtube.com/watch?v=${id}`;
+  const res = await f(
+    `https://www.youtube.com/oembed?url=${encodeURIComponent(watch)}&format=json`,
+    {
+      headers: { 'user-agent': UA },
+    },
+  );
+  if (!res.ok) throw new Error(`YouTube answered ${res.status}; is the video public?`);
+  const o = (await res.json()) as Record<string, unknown>;
+  const p = await page(watch, f);
+  const prop = (name: string) =>
+    new RegExp(`<meta itemprop="${name}" content="([^"]*)"`).exec(p.html)?.[1];
+  const uploadDate = prop('uploadDate') ?? prop('datePublished');
+  const title = o['title'] ? decode(String(o['title'])) : p.meta['og:title'];
+  if (!title || !uploadDate) throw new Error(`${url} has no title or upload date`);
+  return clean({
+    id,
+    url: watch,
+    title,
+    description: p.meta['og:description'],
+    thumbnail: String(o['thumbnail_url'] ?? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`),
+    uploadDate,
+    duration: prop('duration'),
+  }) as Video;
 }

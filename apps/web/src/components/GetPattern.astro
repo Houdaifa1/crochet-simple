@@ -1,14 +1,18 @@
 ---
-import { fileSize, type PdfInfo } from '../lib/content';
+import LinkCards from './LinkCards.astro';
+import { fileSize, type Pattern, type PdfInfo } from '../lib/content';
 
 interface Props {
   slug: string;
   pdf: PdfInfo | null;
   etsyUrl?: string | undefined;
+  etsyCard?: Pattern['data']['etsyCard'];
   jump?: boolean;
   variant?: 'card' | 'end';
 }
-const { slug, pdf, etsyUrl, jump = false, variant = 'card' } = Astro.props;
+const { slug, pdf, etsyUrl, etsyCard, jump = false, variant = 'card' } = Astro.props;
+// at the end of a paid pattern, the Etsy listing itself is shown: photo, price and shop rating
+const listing = !pdf && variant === 'end' ? etsyCard : undefined;
 const facts = pdf
   ? ['PDF', pdf.pages && `${pdf.pages} ${pdf.pages === 1 ? 'page' : 'pages'}`, fileSize(pdf.bytes)]
   : [];
@@ -26,7 +30,11 @@ const facts = pdf
         </p>
       </>
     )}
-    {pdf ? (
+    {listing ? (
+      <div class="listing">
+        <LinkCards cards={[listing]} />
+      </div>
+    ) : pdf ? (
       <a class="btn" href={`/downloads/${slug}.pdf`} download>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" />
@@ -104,6 +112,16 @@ const facts = pdf
     margin: 0 auto 20px;
     max-width: 32ch;
     color: rgb(251 247 240 / 0.78);
+  }
+  /* the Etsy card keeps its own dark text inside the dark box */
+  .listing {
+    max-width: 520px;
+    margin: 0 auto;
+    color: var(--ink);
+    text-align: left;
+  }
+  .listing :global(.cards) {
+    margin: 0;
   }
   .end .btn:not(.etsy) {
     background: #fbf7f0;

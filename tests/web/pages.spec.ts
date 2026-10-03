@@ -95,9 +95,18 @@ test.describe('search engines and Pinterest', () => {
     await visit(page, '/patterns/blue-market-bag/');
     const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
     const types = ld.map((t) => JSON.parse(t)['@type']);
-    expect(types).toEqual(['Article', 'BreadcrumbList']);
+    expect(types).toEqual(['Article', 'VideoObject', 'BreadcrumbList']);
     const article = JSON.parse(ld[0]!);
     expect(article.image[1]).toBe(`${SITE}/pins/blue-market-bag.jpg`);
+    expect(article.educationalLevel).toBe('Easy');
+    const video = JSON.parse(ld[1]!);
+    expect(video).toMatchObject({
+      name: 'Test fixture video: blue market bag',
+      uploadDate: '2026-09-01T10:00:00Z',
+      duration: 'PT8M36S',
+      embedUrl: 'https://www.youtube.com/embed/aAxGTnVNJiE',
+    });
+    expect(video.thumbnailUrl[0]).toMatch(/^https:\/\/example\.com\/_astro\/.+\.jpg$/);
     expect(article.dateModified).toBe('2026-09-29');
     expect(await page.locator('meta[property="og:type"]').getAttribute('content')).toBe('article');
     expect(await page.locator('meta[property="og:image"]').getAttribute('content')).toMatch(
@@ -110,6 +119,33 @@ test.describe('search engines and Pinterest', () => {
     const save = await page.locator('a.save').getAttribute('href');
     expect(save).toContain('pinterest.com/pin/create/button/');
     expect(decodeURIComponent(save!)).toContain(`${SITE}/pins/blue-market-bag.jpg`);
+  });
+
+  test('a pattern shows its skill level, time and video, and YouTube loads only on play', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/blue-market-bag/');
+    await expect(page.locator('.tags')).toContainText('Easy');
+    await expect(page.locator('dl.facts')).toContainText('About 6 hours');
+    const frame = page.locator('.video .frame');
+    await expect(frame.locator('iframe')).toHaveCount(0);
+    await frame.getByRole('button', { name: /Play the video/ }).click();
+    await expect(frame.locator('iframe')).toHaveAttribute(
+      'src',
+      'https://www.youtube-nocookie.com/embed/aAxGTnVNJiE?autoplay=1&rel=0',
+    );
+  });
+
+  test('a paid pattern ends with its Etsy listing as a full card', async ({ page }) => {
+    await visit(page, '/patterns/airpods-pouch/');
+    const card = page.locator('.get.end .link-card');
+    await expect(card).toHaveAttribute(
+      'href',
+      'https://www.etsy.com/listing/9999913/airpods-pouch',
+    );
+    await expect(card).toContainText('Test fixture Etsy listing: AirPods pouch pattern');
+    await expect(card).toContainText('$4.50');
+    await expect(card.locator('.title')).toHaveCSS('color', 'rgb(42, 41, 37)');
   });
 
   test('the homepage declares the site, and the search page stays out of the index', async ({
@@ -200,9 +236,15 @@ test.describe('patterns', () => {
 
   test('details show only what was filled in', async ({ page }) => {
     await visit(page, '/patterns/olive-cup-cozy/');
-    await expect(page.locator('.facts dt')).toHaveText(['Yarn']);
+    await expect(page.locator('dl.facts dt')).toHaveText(['Yarn']);
     await visit(page, '/patterns/blue-market-bag/');
-    await expect(page.locator('.facts dt')).toHaveText(['Hook', 'Yarn', 'Finished size']);
+    await expect(page.locator('dl.facts dt')).toHaveText([
+      'Skill level',
+      'Time to make',
+      'Hook',
+      'Yarn',
+      'Finished size',
+    ]);
   });
 
   test('the free PDF downloads from a clean address', async ({ page, request }) => {

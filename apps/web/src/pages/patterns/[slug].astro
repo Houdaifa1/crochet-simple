@@ -4,6 +4,7 @@ import Blocks from '../../components/Blocks.astro';
 import Gallery from '../../components/Gallery.astro';
 import GetPattern from '../../components/GetPattern.astro';
 import PatternCard from '../../components/PatternCard.astro';
+import VideoTutorial from '../../components/VideoTutorial.astro';
 import Base from '../../layouts/Base.astro';
 import {
   absolute,
@@ -14,6 +15,7 @@ import {
   pdfInfo,
   related,
   sections,
+  SKILL,
   type Pattern,
 } from '../../lib/content';
 
@@ -48,7 +50,10 @@ const saveHref =
     ? `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(pageUrl)}&media=${encodeURIComponent(pinUrl)}&description=${encodeURIComponent(`${d.title}: ${d.summary}`)}`
     : undefined;
 const photos = [{ image: d.cover, alt: d.coverAlt }, ...d.gallery];
+const skill = d.details.skill ? SKILL[d.details.skill] : undefined;
 const facts = [
+  ['Skill level', skill],
+  ['Time to make', d.details.time],
   ['Hook', d.details.hook],
   ['Yarn', d.details.yarn],
   ['Finished size', d.details.size],
@@ -62,6 +67,9 @@ for (const p of more)
   if (!names.has(p.data.category.id))
     names.set(p.data.category.id, (await categoryOf(p)).data.name);
 const modified = d.updated ?? d.published;
+const videoThumb = d.video
+  ? await getImage({ src: d.video.thumbnail, width: 1280, format: 'jpg', quality: 82 })
+  : undefined;
 const jsonLd = site
   ? [
       {
@@ -79,8 +87,24 @@ const jsonLd = site
           url: absolute('/', site),
         },
         mainEntityOfPage: pageUrl,
+        ...(skill ? { educationalLevel: skill } : {}),
         ...(pdf ? { isAccessibleForFree: true } : {}),
       },
+      ...(d.video && videoThumb
+        ? [
+            {
+              '@context': 'https://schema.org',
+              '@type': 'VideoObject',
+              name: d.video.title,
+              description: d.video.description ?? d.summary,
+              thumbnailUrl: [absolute(videoThumb.src, site)],
+              uploadDate: d.video.uploadDate,
+              ...(d.video.duration ? { duration: d.video.duration } : {}),
+              embedUrl: `https://www.youtube.com/embed/${d.video.id}`,
+              url: d.video.url,
+            },
+          ]
+        : []),
       {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -139,6 +163,7 @@ const thumb = await getImage({
           <div class="tags" data-pagefind-ignore>
             {pdf && <span class="tag free">Free PDF</span>}
             {!pdf && d.etsyUrl && <span class="tag etsy">On Etsy</span>}
+            {skill && <span class="tag">{skill}</span>}
             <span class="tag">{category.data.name}</span>
             <span class="tag">
               {d.updated ? 'Updated' : 'Published'}
@@ -151,7 +176,10 @@ const thumb = await getImage({
       <div class="side" data-pagefind-ignore>
         <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} jump={d.body.length > 0} />
         {facts.length > 0 && (
-          <dl class="facts" style={`--n:${facts.length}`}>
+          <dl
+            class:list={['facts', { pairs: facts.length > 3 }]}
+            style={`--n:${facts.length > 3 ? 2 : facts.length}`}
+          >
             {facts.map(([k, v]) => (
               <div>
                 <dt>{k}</dt>
@@ -162,6 +190,8 @@ const thumb = await getImage({
         )}
       </div>
     </div>
+
+    {d.video && <VideoTutorial video={d.video} />}
 
     {toc.length > 1 && (
       <nav class="toc" aria-label="On this page" data-pagefind-ignore>
@@ -176,7 +206,13 @@ const thumb = await getImage({
       </article>
     )}
 
-    <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} variant="end" />
+    <GetPattern
+      slug={pattern.id}
+      pdf={pdf}
+      etsyUrl={d.etsyUrl}
+      etsyCard={d.etsyCard}
+      variant="end"
+    />
     {saveHref && (
       <div class="share" data-pagefind-ignore>
         <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
@@ -323,6 +359,10 @@ const thumb = await getImage({
   .facts div {
     padding: 14px 14px;
     background: var(--paper);
+  }
+  /* in rows of two, a last fact on its own takes the full width */
+  .facts.pairs div:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
   dt {
     font: 600 13px/1.2 var(--sans);

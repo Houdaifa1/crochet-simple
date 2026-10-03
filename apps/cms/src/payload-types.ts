@@ -145,7 +145,7 @@ export interface Pattern {
   id: number;
   title: string;
   /**
-   * One or two sentences under the title. Also shown in Google and Pinterest.
+   * One or two sentences under the title, also shown in Google and Pinterest. Say what it is and who it is for, with the words people search (easy, beginner, free, the item). Google shows about 155 characters.
    */
   summary: string;
   category: number | Category;
@@ -163,6 +163,10 @@ export interface Pattern {
       }[]
     | null;
   /**
+   * A YouTube video of this pattern. Its title, thumbnail and date are fetched when you publish, and Google can show the pattern in video results.
+   */
+  video?: string | null;
+  /**
    * A tall 2:3 image made for Pinterest. Leave empty and the site makes one from the cover and title.
    */
   pinImage?: (number | null) | Media;
@@ -173,6 +177,14 @@ export interface Pattern {
   pdfPages?: number | null;
   etsyUrl?: string | null;
   details?: {
+    /**
+     * Many people search for "beginner" or "easy" patterns. Shown on the pattern and its card.
+     */
+    skill?: ('beginner' | 'easy' | 'intermediate' | 'experienced') | null;
+    /**
+     * e.g. About 2 hours
+     */
+    time?: string | null;
     /**
      * e.g. 4.0 mm (G)
      */
@@ -443,6 +455,7 @@ export interface PatternsSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  video?: T;
   pinImage?: T;
   pdf?: T;
   pdfPages?: T;
@@ -450,6 +463,8 @@ export interface PatternsSelect<T extends boolean = true> {
   details?:
     | T
     | {
+        skill?: T;
+        time?: T;
         hook?: T;
         yarn?: T;
         size?: T;

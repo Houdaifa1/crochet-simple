@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { cardKind, readMeta, resolveLinkCard, resolveProfile } from '../src/cards.ts';
+import {
+  cardKind,
+  readMeta,
+  resolveLinkCard,
+  resolveProfile,
+  resolveVideo,
+  youtubeId,
+} from '../src/cards.ts';
 
 type Route = (url: string, init?: RequestInit) => Response | undefined;
 const fake = (route: Route): typeof fetch =>
@@ -159,6 +166,24 @@ describe('link cards', () => {
     expect(p).toEqual({ url: 'https://www.pinterest.com/hdrahm/', name: 'hdrahm' });
   });
 
+  it('takes the profile photo from Pinterest page data when the preview image is generic', async () => {
+    const data =
+      '<script>{"resources":{"UserResource":{"[[\\"field_set_key\\",\\"unauth_profile\\"],[\\"username\\",\\"crochet_simplified\\"]]":{"data":{"image_xlarge_url":"https://i.pinimg.com/280x280_RS/a7/75/40/me.jpg"}}}},' +
+      '"other":{"[[\\"username\\",\\"someone\\"]]":{"data":{"image_xlarge_url":"https://i.pinimg.com/280x280_RS/xx/them.jpg"}}}}</script>';
+    const page = (path: string) =>
+      new Response(
+        `<html><head><meta property="og:title" content="Crochet Simplified (${path}) - Profile | Pinterest"><meta property="og:image" content="https://s.pinimg.com/images/default_open_graph_1200.png"></head><body>${data}</body></html>`,
+      );
+    const mine = await resolveProfile('https://www.pinterest.com/crochet_simplified/', {
+      fetch: fake(() => page('crochet_simplified')),
+    });
+    expect(mine.image).toBe('https://i.pinimg.com/280x280_RS/a7/75/40/me.jpg');
+    const stranger = await resolveProfile('https://www.pinterest.com/nobody/', {
+      fetch: fake(() => page('nobody')),
+    });
+    expect(stranger.image).toBeUndefined();
+  });
+
   it('reads a Pinterest profile', async () => {
     const p = await resolveProfile('https://www.pinterest.com/crochetsimple/', {
       fetch: fake(() =>
@@ -173,5 +198,48 @@ describe('link cards', () => {
       name: 'Crochet Simple',
       image: 'https://i/p.jpg',
     });
+  });
+});
+
+describe('video', () => {
+  it('reads the YouTube id from every link shape', () => {
+    for (const u of [
+      'https://www.youtube.com/watch?v=aAxGTnVNJiE&t=30s',
+      'https://youtu.be/aAxGTnVNJiE',
+      'https://m.youtube.com/watch?v=aAxGTnVNJiE',
+      'https://www.youtube.com/shorts/aAxGTnVNJiE',
+    ])
+      expect(youtubeId(u)).toBe('aAxGTnVNJiE');
+    expect(youtubeId('https://www.youtube.com/@simplydaisy15')).toBeUndefined();
+  });
+
+  it('builds the video details Google needs from YouTube', async () => {
+    const v = await resolveVideo('https://youtu.be/aAxGTnVNJiE', {
+      fetch: fake((url) =>
+        url.includes('/oembed')
+          ? Response.json({
+              title: 'Granny square &amp; you',
+              thumbnail_url: 'https://i.ytimg.com/vi/aAxGTnVNJiE/hqdefault.jpg',
+            })
+          : new Response(
+              '<meta property="og:description" content="Step by step."><meta itemprop="duration" content="PT8M36S"><meta itemprop="uploadDate" content="2015-03-16T14:01:17-07:00">',
+            ),
+      ),
+    });
+    expect(v).toEqual({
+      id: 'aAxGTnVNJiE',
+      url: 'https://www.youtube.com/watch?v=aAxGTnVNJiE',
+      title: 'Granny square & you',
+      description: 'Step by step.',
+      thumbnail: 'https://i.ytimg.com/vi/aAxGTnVNJiE/hqdefault.jpg',
+      uploadDate: '2015-03-16T14:01:17-07:00',
+      duration: 'PT8M36S',
+    });
+  });
+
+  it('refuses a private or missing video instead of inventing details', async () => {
+    await expect(
+      resolveVideo('https://youtu.be/aAxGTnVNJiE', { fetch: fake(() => undefined) }),
+    ).rejects.toThrow(/public/);
   });
 });

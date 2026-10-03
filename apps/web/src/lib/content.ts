@@ -6,6 +6,13 @@ export type Pattern = CollectionEntry<'patterns'>;
 export type Article = CollectionEntry<'articles'>;
 export type Category = CollectionEntry<'categories'>;
 export type Blocks = Pattern['data']['body'];
+
+export const SKILL = {
+  beginner: 'Beginner',
+  easy: 'Easy',
+  intermediate: 'Intermediate',
+  experienced: 'Experienced',
+} as const;
 export type Settings = CollectionEntry<'settings'>['data'];
 
 export const PAGE_SIZE = Number(process.env.PAGE_SIZE ?? 24);

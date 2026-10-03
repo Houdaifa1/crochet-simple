@@ -24,7 +24,8 @@ export const Patterns: CollectionConfig = {
       required: true,
       maxLength: 220,
       admin: {
-        description: 'One or two sentences under the title. Also shown in Google and Pinterest.',
+        description:
+          'One or two sentences under the title, also shown in Google and Pinterest. Say what it is and who it is for, with the words people search (easy, beginner, free, the item). Google shows about 155 characters.',
       },
     },
     { name: 'category', type: 'relationship', relationTo: 'categories', required: true },
@@ -58,6 +59,19 @@ export const Patterns: CollectionConfig = {
                   filterOptions: onlyImages,
                 },
               ],
+            },
+            {
+              name: 'video',
+              type: 'text',
+              label: 'Video tutorial (optional)',
+              validate: httpsUrl(
+                /(^|\.)(youtube\.com|youtu\.be)$/,
+                'a YouTube link starting with https://',
+              ),
+              admin: {
+                description:
+                  'A YouTube video of this pattern. Its title, thumbnail and date are fetched when you publish, and Google can show the pattern in video results.',
+              },
             },
             {
               name: 'pinImage',
@@ -115,6 +129,28 @@ export const Patterns: CollectionConfig = {
               type: 'group',
               label: false,
               fields: [
+                {
+                  name: 'skill',
+                  type: 'select',
+                  label: 'Skill level',
+                  options: [
+                    { label: 'Beginner', value: 'beginner' },
+                    { label: 'Easy', value: 'easy' },
+                    { label: 'Intermediate', value: 'intermediate' },
+                    { label: 'Experienced', value: 'experienced' },
+                  ],
+                  admin: {
+                    description:
+                      'Many people search for "beginner" or "easy" patterns. Shown on the pattern and its card.',
+                  },
+                },
+                {
+                  name: 'time',
+                  type: 'text',
+                  label: 'Time to make',
+                  maxLength: 30,
+                  admin: { description: 'e.g. About 2 hours' },
+                },
                 {
                   name: 'hook',
                   type: 'text',

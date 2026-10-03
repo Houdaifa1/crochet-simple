@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import '../styles/global.css';
 import Dock from '../components/Dock.astro';
+import Mark from '../components/Mark.astro';
 import ProfileCard from '../components/ProfileCard.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 import fontUrl from '../assets/fonts/fraunces.woff2?url';
@@ -57,8 +58,10 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
       <meta name="robots" content={s.indexable ? 'noindex, follow' : 'noindex, nofollow'} />
     )}
     <meta name="theme-color" content="#efe6d6" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={italicUrl} as="font" type="font/woff2" crossorigin />
     {canonical && <link rel="canonical" href={canonical} />}
@@ -122,7 +125,10 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     </a>
     <header class="site-header">
       <a class="wordmark" href="/" aria-label="Crochet Simplified, home">
-        Crochet <em>Simplified</em>
+        <Mark />
+        <span>
+          Crochet <em>Simplified</em>
+        </span>
       </a>
     </header>
     <Dock current={current} />

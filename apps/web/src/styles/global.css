@@ -127,11 +127,16 @@ h3 {
 }
 .wordmark {
   view-transition-name: wordmark;
-  display: inline-block;
-  padding: 11px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
   font: 600 23px/1 var(--serif);
   letter-spacing: -0.02em;
   text-decoration: none;
+}
+.wordmark .mark {
+  flex: none;
 }
 .wordmark em {
   font-style: italic;

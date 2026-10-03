@@ -1,8 +1,9 @@
 ---
 interface Props {
+  hasJournal?: boolean;
   current: 'home' | 'patterns' | 'journal' | 'about' | 'none';
 }
-const { current } = Astro.props;
+const { current, hasJournal = true } = Astro.props;
 const at = (name: Props['current']) => (name === current ? 'page' : undefined);
 ---
 
@@ -15,9 +16,11 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
   <a href="/patterns/" aria-current={at('patterns')}>
     Patterns
   </a>
-  <a href="/journal/" aria-current={at('journal')}>
-    Journal
-  </a>
+  {hasJournal && (
+    <a href="/journal/" aria-current={at('journal')}>
+      Journal
+    </a>
+  )}
   <a href="/about/" aria-current={at('about')}>
     About
   </a>

@@ -3,10 +3,11 @@ import { Picture } from 'astro:assets';
 import { sharpCapped } from '../lib/sizes';
 import Base from '../layouts/Base.astro';
 import { HERO, PRODUCTS } from '../data/story.ts';
-import { homepage } from '../lib/content';
+import { articles, homepage } from '../lib/content';
 
 // the admin's words, with the original wording wherever a field is empty
 const h = await homepage();
+const hasJournal = (await articles()).length > 0;
 const words = (h.headline ?? 'Every piece begins with').split(/\s+/).filter(Boolean);
 const accent = (h.headlineAccent ?? 'one thread.').split(/\s+/).filter(Boolean);
 const products = PRODUCTS.map((p, i) => {
@@ -170,8 +171,8 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
         <a class="button" href="/patterns/">
           {h.primaryButton ?? 'Browse patterns'}
         </a>
-        <a class="button quiet" href="/journal/">
-          {h.secondaryButton ?? 'Read the journal'}
+        <a class="button quiet" href={hasJournal ? '/journal/' : '/about/'}>
+          {hasJournal ? (h.secondaryButton ?? 'Read the journal') : 'Our story'}
         </a>
       </div>
     </section>

@@ -8,6 +8,7 @@ import SocialLinks from '../components/SocialLinks.astro';
 import fontUrl from '../assets/fonts/fraunces.woff2?url';
 import italicUrl from '../assets/fonts/fraunces-italic.woff2?url';
 import { absolute, settings } from '../lib/content';
+import { shareTitle } from '../lib/seo';
 import heroPhoto from '../assets/story/00-yarn-hero.png';
 
 interface Props {
@@ -70,7 +71,7 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     )}
     <meta property="og:type" content={type} />
     <meta property="og:site_name" content="Crochet Simplified" />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={shareTitle(title)} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="en_US" />
     {canonical && <meta property="og:url" content={canonical} />}

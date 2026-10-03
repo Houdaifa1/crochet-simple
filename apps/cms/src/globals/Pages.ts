@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload';
 import { backGuard } from '../fields/back-guard.ts';
 import { bodyField } from '../fields/body.ts';
+import { seoFields } from '../fields/seo.ts';
 import { onlyImages } from '../fields/validators.ts';
 
 export const About: GlobalConfig = {
@@ -15,6 +16,12 @@ export const About: GlobalConfig = {
       maxLength: 160,
       label: 'Big statement',
       admin: { description: 'The large sentence under the title.' },
+    },
+    {
+      type: 'collapsible',
+      label: 'Google',
+      admin: { initCollapsed: true },
+      fields: seoFields('the default description'),
     },
     {
       name: 'image',

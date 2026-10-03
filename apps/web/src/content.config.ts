@@ -8,6 +8,11 @@ const dir = process.env.CONTENT_DIR!;
 const from = (folder: string, pattern = '*.json') => glob({ base: `${dir}/${folder}`, pattern });
 
 const text = z.string().trim().min(1);
+// what Google shows: the title (the site name is added when it fits) and the line under it
+const seo = {
+  seoTitle: text.max(70).optional(),
+  seoDescription: text.max(160).optional(),
+};
 const url = z.url({ protocol: /^https$/ });
 const href = z.union([url, z.string().regex(/^\/[^/]/, 'must be https:// or a path on this site')]);
 
@@ -74,6 +79,7 @@ const categories = defineCollection({
       description: z.string().optional(),
       icon: image().optional(),
       order: z.number().int().default(0),
+      ...seo,
     }),
 });
 
@@ -83,6 +89,7 @@ const patterns = defineCollection({
     z.object({
       title: text,
       summary: text.max(220),
+      ...seo,
       category: reference('categories'),
       cover: ctx.image(),
       coverAlt: text,
@@ -129,6 +136,7 @@ const articles = defineCollection({
     z.object({
       title: text,
       summary: text.max(220),
+      ...seo,
       topic: z.string().optional(),
       cover: ctx.image(),
       coverAlt: text,
@@ -144,6 +152,7 @@ const pages = defineCollection({
   schema: (ctx) =>
     z.object({
       title: text,
+      ...seo,
       intro: z.string().optional(),
       image: ctx.image().optional(),
       imageAlt: z.string().optional(),
@@ -228,7 +237,7 @@ const heading = z
     eyebrow: z.string().optional(),
     title: z.string().optional(),
     intro: z.string().optional(),
-    seoDescription: z.string().optional(),
+    ...seo,
   })
   .default({});
 

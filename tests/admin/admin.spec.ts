@@ -137,6 +137,9 @@ test('a pattern is written by hand in the editor: text, bold, heading and rounds
   await page.getByRole('button', { name: 'Choose from existing' }).first().click();
   await page.getByText('03-olive-cup-cozy.png').first().click();
   await expect(page.getByText('03-olive-cup-cozy.png').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Google' }).click();
+  await expect(page.getByText('How this pattern appears in Google search results.')).toBeVisible();
+  await page.locator('#field-seoTitle').fill('Olive Cup Cozy Crochet Pattern');
 
   await page.getByRole('button', { name: 'Write-up' }).click();
   await page.locator('[contenteditable="true"]').first().click();
@@ -190,7 +193,14 @@ test('publishing builds the site with published content only, and makes a backup
     'Blue bag pattern PDF',
   );
   const icon = await upload('tests/fixtures/content/categories/icons/bags.svg', 'Bag icon');
-  expect((await api('patch', `/categories/${category}`, { icon: icon.id })).ok()).toBe(true);
+  expect(
+    (
+      await api('patch', `/categories/${category}`, {
+        icon: icon.id,
+        seoTitle: 'Crochet Patterns for the Kitchen',
+      })
+    ).ok(),
+  ).toBe(true);
   const text = (t: string) => ({
     type: 'text',
     text: t,
@@ -250,6 +260,8 @@ test('publishing builds the site with published content only, and makes a backup
   const made = await api('post', '/patterns?draft=false', {
     title: 'Blue market bag',
     summary: 'A structured tote in cobalt blue.',
+    seoTitle: 'Free Crochet Market Bag Pattern',
+    seoDescription: 'A free cobalt tote pattern with written rounds and a printable PDF.',
     category,
     cover: cover.id,
     pdf: pdf.id,
@@ -276,9 +288,13 @@ test('publishing builds the site with published content only, and makes a backup
   expect(cozy).toContain('<h2 id="pattern">Pattern</h2>');
   expect(cozy).toContain('Ch 18, dc in 4th ch from hook and across.');
   expect(cozy).toContain('16 sts');
+  expect(cozy).toContain('<title>Olive Cup Cozy Crochet Pattern | Crochet Simplified</title>');
   const page1 = readFileSync(resolve(ROOT, 'site/patterns/blue-market-bag/index.html'), 'utf8');
   expect(page1).toContain('Ch 41, sc across.');
   expect(page1).toContain('4.0 mm (G)');
+  // the Google title and description written in the admin reach the page
+  expect(page1).toContain('<title>Free Crochet Market Bag Pattern | Crochet Simplified</title>');
+  expect(page1).toContain('A free cobalt tote pattern with written rounds and a printable PDF.');
   expect(existsSync(resolve(ROOT, 'site/downloads/blue-market-bag.pdf'))).toBe(true);
   expect(existsSync(resolve(ROOT, 'site/patterns/secret-draft-pattern'))).toBe(false);
   expect(readFileSync(resolve(ROOT, 'site/index.html'), 'utf8')).toContain(
@@ -287,6 +303,9 @@ test('publishing builds the site with published content only, and makes a backup
   expect(
     readFileSync(resolve(ROOT, 'site/patterns/category/home-and-kitchen/index.html'), 'utf8'),
   ).toContain('Home &amp; Kitchen');
+  expect(
+    readFileSync(resolve(ROOT, 'site/patterns/category/home-and-kitchen/index.html'), 'utf8'),
+  ).toContain('<title>Crochet Patterns for the Kitchen | Crochet Simplified</title>');
   const backups = readdirSync(resolve(ROOT, 'backups'));
   expect(backups.some((b) => b.endsWith('publish'))).toBe(true);
   expect(existsSync(resolve(ROOT, 'backups', backups.at(-1)!, 'cms.db'))).toBe(true);

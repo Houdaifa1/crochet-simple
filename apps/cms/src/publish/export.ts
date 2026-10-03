@@ -229,6 +229,8 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       drop({
         name: c['name'],
         description: text(c['description']),
+        seoTitle: text(c['seoTitle']),
+        seoDescription: text(c['seoDescription']),
         icon: c['icon'] ? rel(file(c['icon'], where, 'icon'), 1) : undefined,
         order: Number(c['order'] ?? 0),
       }),
@@ -248,6 +250,8 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       drop({
         title: p['title'],
         summary: text(p['summary']),
+        seoTitle: text(p['seoTitle']),
+        seoDescription: text(p['seoDescription']),
         category,
         cover: rel(cover, 1),
         coverAlt: text(cover.alt),
@@ -291,6 +295,8 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       drop({
         title: a['title'],
         summary: text(a['summary']),
+        seoTitle: text(a['seoTitle']),
+        seoDescription: text(a['seoDescription']),
         topic: text(a['topic']),
         cover: rel(cover, 1),
         coverAlt: text(cover.alt),
@@ -309,11 +315,19 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
   >;
   const aboutBody = await body(about, 'About');
   const aboutImage = about['image'] ? file(about['image'], 'About (photo)', 'photo') : undefined;
-  if (text(about['intro']) || aboutBody.length || aboutImage) {
+  if (
+    text(about['intro']) ||
+    text(about['seoTitle']) ||
+    text(about['seoDescription']) ||
+    aboutBody.length ||
+    aboutImage
+  ) {
     await write(
       'pages/about.json',
       drop({
         title: 'About',
+        seoTitle: text(about['seoTitle']),
+        seoDescription: text(about['seoDescription']),
         intro: text(about['intro']),
         image: aboutImage ? rel(aboutImage, 1) : undefined,
         imageAlt: aboutImage ? text(aboutImage.alt) : undefined,
@@ -375,6 +389,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       eyebrow: text(g?.['eyebrow']),
       title: text(g?.['title']),
       intro: text(g?.['intro']),
+      seoTitle: text(g?.['seoTitle']),
       seoDescription: text(g?.['seoDescription']),
     });
   await write('listings.json', {

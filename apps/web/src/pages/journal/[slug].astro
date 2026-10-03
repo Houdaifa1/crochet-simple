@@ -2,6 +2,7 @@
 import { Picture, getImage } from 'astro:assets';
 import Blocks from '../../components/Blocks.astro';
 import Base from '../../layouts/Base.astro';
+import { withBrand } from '../../lib/seo';
 import {
   absolute,
   articles,
@@ -80,8 +81,8 @@ const thumb = await getImage({
 ---
 
 <Base
-  title={`${d.title} | Crochet Simplified`}
-  description={d.summary}
+  title={withBrand(d.seoTitle ?? d.title)}
+  description={d.seoDescription ?? d.summary}
   current="journal"
   image={og.src}
   type="article"

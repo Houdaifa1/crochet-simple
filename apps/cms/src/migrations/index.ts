@@ -3,6 +3,7 @@ import * as migration_20260930_190916_settings_indexable from './20260930_190916
 import * as migration_20261001_012829_brand_simplified from './20261001_012829_brand_simplified';
 import * as migration_20261001_092000_drafts_autosave from './20261001_092000_drafts_autosave';
 import * as migration_20261003_125616_pattern_seo_fields from './20261003_125616_pattern_seo_fields';
+import * as migration_20261003_230132_seo_titles from './20261003_230132_seo_titles';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20261003_125616_pattern_seo_fields.up,
     down: migration_20261003_125616_pattern_seo_fields.down,
-    name: '20261003_125616_pattern_seo_fields'
+    name: '20261003_125616_pattern_seo_fields',
+  },
+  {
+    up: migration_20261003_230132_seo_titles.up,
+    down: migration_20261003_230132_seo_titles.down,
+    name: '20261003_230132_seo_titles'
   },
 ];

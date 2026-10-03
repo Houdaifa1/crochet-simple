@@ -9,11 +9,13 @@ import SocialLinks from '../components/SocialLinks.astro';
 import Base from '../layouts/Base.astro';
 import heroPhoto from '../assets/story/00-yarn-hero.png';
 import { isFree, patterns, settings } from '../lib/content';
+import { needsFreePage, withBrand } from '../lib/seo';
 
 const page = (await getEntry('pages', 'about'))?.data;
 const s = await settings();
 const all = await patterns();
 const hasFree = all.some(isFree);
+const freeHref = needsFreePage(all.map(isFree)) ? '/patterns/free/' : '/patterns/';
 const image = page?.image ?? heroPhoto;
 const site = Astro.site;
 const jsonLd = site
@@ -39,8 +41,11 @@ const imageAlt = page?.image
 ---
 
 <Base
-  title="About | Crochet Simplified"
-  description="Crochet Simplified shares crochet patterns and tutorials with clear steps, good photos and printable PDFs."
+  title={withBrand(page?.seoTitle ?? 'About')}
+  description={
+    page?.seoDescription ??
+    'Crochet Simplified shares crochet patterns and tutorials with clear steps, good photos and printable PDFs.'
+  }
   current="about"
   image={undefined}
   jsonLd={jsonLd}
@@ -82,7 +87,7 @@ const imageAlt = page?.image
           </svg>
           <h2>Free patterns</h2>
           <p>Download the PDF, print it and start. No account needed.</p>
-          <a class="link" href="/patterns/free/">
+          <a class="link" href={freeHref}>
             Browse free patterns
           </a>
         </div>

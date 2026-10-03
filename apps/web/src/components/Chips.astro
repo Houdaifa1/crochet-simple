@@ -6,9 +6,13 @@ interface Props {
   total: number;
   current: string | null;
   free: boolean;
+  // categories that have a "free only" page of their own
+  freePages: string[];
 }
-const { items, total, current, free } = Astro.props;
+const { items, total, current, free, freePages } = Astro.props;
 const suffix = free ? 'free/' : '';
+const href = (id: string) =>
+  `/patterns/category/${id}/${free && freePages.includes(id) ? 'free/' : ''}`;
 const at = (id: string | null) => (id === current ? 'page' : undefined);
 ---
 
@@ -18,11 +22,7 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
       <span class="icon all" aria-hidden="true"></span>All <span class="n">{total}</span>
     </a>
     {items.map(({ category, count }) => (
-      <a
-        class="chip"
-        href={`/patterns/category/${category.id}/${suffix}`}
-        aria-current={at(category.id)}
-      >
+      <a class="chip" href={href(category.id)} aria-current={at(category.id)}>
         {category.data.icon && (
           <span class="icon" aria-hidden="true" style={`--icon:url(${category.data.icon.src})`} />
         )}

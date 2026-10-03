@@ -1,5 +1,6 @@
 import type { GlobalConfig } from 'payload';
 import { backGuard } from '../fields/back-guard.ts';
+import { seoFields } from '../fields/seo.ts';
 
 const heading = (name: string, label: string, eyebrow: string, title: string, intro: string) => ({
   name,
@@ -21,12 +22,7 @@ const heading = (name: string, label: string, eyebrow: string, title: string, in
       maxLength: 200,
       defaultValue: intro,
     },
-    {
-      name: 'seoDescription',
-      type: 'textarea' as const,
-      maxLength: 160,
-      admin: { description: 'For Google. Leave empty to use the intro.' },
-    },
+    ...seoFields('the intro'),
   ],
 });
 

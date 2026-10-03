@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -119,6 +121,59 @@ test.describe('search engines and Pinterest', () => {
     const save = await page.locator('a.save').getAttribute('href');
     expect(save).toContain('pinterest.com/pin/create/button/');
     expect(decodeURIComponent(save!)).toContain(`${SITE}/pins/blue-market-bag.jpg`);
+  });
+
+  test('Google titles and descriptions from the admin are used, and shared without the site name', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/blue-market-bag/');
+    await expect(page).toHaveTitle('Free Crochet Market Bag Pattern (PDF) | Crochet Simplified');
+    expect(await page.locator('meta[name=description]').getAttribute('content')).toBe(
+      'Crochet a sturdy cobalt market bag with this free pattern: written rounds, photos and a printable PDF.',
+    );
+    expect(await page.locator('meta[property="og:title"]').getAttribute('content')).toBe(
+      'Free Crochet Market Bag Pattern (PDF)',
+    );
+    await visit(page, '/patterns/category/bags/');
+    await expect(page).toHaveTitle(
+      'Free Crochet Bag Patterns: Totes and Market Bags | Crochet Simplified',
+    );
+    // without an admin title a category is named once, with free first when every pattern is free
+    await visit(page, '/patterns/category/hats/');
+    await expect(page).toHaveTitle('Free Hats Crochet Patterns | Crochet Simplified');
+    await visit(page, '/patterns/daisy-clip/');
+    await expect(page).toHaveTitle('Daisy clip | Free Crochet Pattern | Crochet Simplified');
+  });
+
+  test('a free only page exists only where it shows something different', async ({
+    page,
+    request,
+  }) => {
+    // the full list mixes free and paid patterns, so its free page is real and has its switch
+    await visit(page, '/patterns/');
+    await expect(page.locator('a.toggle')).toHaveAttribute('href', '/patterns/free/');
+    await visit(page, '/patterns/free/');
+    expect(await page.locator('link[rel=canonical]').getAttribute('href')).toBe(
+      `${SITE}/patterns/free/`,
+    );
+    // every bag pattern is free: no copy of its page, no switch, and the chip leads to the real page
+    await expect(page.locator('.chips a', { hasText: 'Bags' })).toHaveAttribute(
+      'href',
+      '/patterns/category/bags/',
+    );
+    expect((await request.get('/patterns/category/bags/free/')).status()).toBe(404);
+    await visit(page, '/patterns/category/bags/');
+    await expect(page.locator('a.toggle')).toHaveCount(0);
+    const sitemap = await (await request.get('/sitemap-0.xml')).text();
+    expect(sitemap).toContain(`${SITE}/patterns/free/`);
+    expect(sitemap).not.toContain('/category/bags/free/');
+    // old free addresses that are no longer built move to the full list for good
+    const redirects = readFileSync(
+      resolve(import.meta.dirname, '../../apps/web/dist-test/_redirects'),
+      'utf8',
+    );
+    expect(redirects).toContain('/patterns/category/bags/free/ /patterns/category/bags/ 301\n');
+    expect(redirects).not.toContain('/patterns/free/ ');
   });
 
   test('a pattern shows its skill level, time and video, and YouTube loads only on play', async ({

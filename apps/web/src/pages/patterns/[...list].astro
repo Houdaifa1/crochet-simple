@@ -5,6 +5,7 @@ import PageHead from '../../components/PageHead.astro';
 import Pager from '../../components/Pager.astro';
 import PatternCard from '../../components/PatternCard.astro';
 import Base from '../../layouts/Base.astro';
+import { freeHeading, listTitle, needsFreePage } from '../../lib/seo';
 import {
   PAGE_SIZE,
   absolute,
@@ -25,10 +26,13 @@ export async function getStaticPaths() {
     ...cats.map((c) => ({ category: c.category, list: c.patterns })),
   ];
   const names = new Map(cats.map((c) => [c.category.id, c.category.data.name]));
+  const hasFreePage = (list: Pattern[]) => needsFreePage(list.map(isFree));
+  // categories whose "free only" page exists, for the chips on the free pages
+  const freePages = cats.filter((c) => hasFreePage(c.patterns)).map((c) => c.category.id);
   return scopes.flatMap(({ category, list }) =>
     [false, true].flatMap((free) => {
       const shown = free ? list.filter(isFree) : list;
-      if (free && shown.length === 0) return [];
+      if (free && !hasFreePage(list)) return [];
       const base = `/patterns/${category ? `category/${category.id}/` : ''}${free ? 'free/' : ''}`;
       const chips = cats
         .map((c) => ({
@@ -36,7 +40,8 @@ export async function getStaticPaths() {
           count: (free ? c.patterns.filter(isFree) : c.patterns).length,
         }))
         .filter((c) => c.count > 0);
-      const freeHere = list.some(isFree);
+      const freeHere = hasFreePage(list);
+      const allFree = list.every(isFree);
       const pages = pageCount(shown.length);
       return Array.from({ length: pages }, (_, i) => {
         const n = i + 1;
@@ -50,6 +55,8 @@ export async function getStaticPaths() {
             category,
             free,
             freeHere,
+            allFree,
+            freePages,
             base,
             page: n,
             pages,
@@ -66,27 +73,44 @@ export async function getStaticPaths() {
   );
 }
 
-const { category, free, freeHere, base, page, pages, total, items, chips, chipTotal } = Astro.props;
+const {
+  category,
+  free,
+  freeHere,
+  allFree,
+  freePages,
+  base,
+  page,
+  pages,
+  total,
+  items,
+  chips,
+  chipTotal,
+} = Astro.props;
 const name = category?.data.name;
 const words = await listing('patterns');
-const h1 = free
-  ? name
-    ? `Free ${name.toLowerCase()} patterns`
-    : 'Free patterns'
-  : (name ?? words.title ?? 'Patterns');
-const what = `${free ? 'Free ' : ''}${name ? `${name} ` : ''}Crochet Patterns`;
-const title = `${what}${page > 1 ? `, Page ${page}` : ''} | Crochet Simplified`;
+const h1 = free ? freeHeading(name) : (name ?? words.title ?? 'Patterns');
+const title = listTitle({
+  name,
+  seoTitle: category ? category.data.seoTitle : words.seoTitle,
+  allFree,
+  freeOnly: free,
+  page,
+});
 // the admin's text when it is long enough to describe the page in search results
 const own = category?.data.description;
+const seoDescription = free
+  ? undefined
+  : (category?.data.seoDescription ?? (category ? undefined : words.seoDescription));
 const description =
-  own && own.length >= 70
+  seoDescription ??
+  (own && own.length >= 70
     ? own
     : name
       ? `${free ? 'Free ' : ''}${name} crochet patterns from Crochet Simplified, with clear steps, good photos${free ? ' and a printable PDF' : ''}.`
       : free
         ? 'Free crochet patterns with clear steps, good photos and a printable PDF you can download right away.'
-        : (words.seoDescription ??
-          'Crochet patterns with clear steps and good photos: bags, accessories, home pieces, hats and more.');
+        : 'Crochet patterns with clear steps and good photos: bags, accessories, home pieces, hats and more.');
 const intro = free
   ? 'Download the PDF, print it and start. No account needed.'
   : (category?.data.description ??
@@ -148,7 +172,13 @@ const jsonLd = site
     ) : (
       <>
         {chips.length > 1 && (
-          <Chips items={chips} total={chipTotal} current={category?.id ?? null} free={free} />
+          <Chips
+            items={chips}
+            total={chipTotal}
+            current={category?.id ?? null}
+            free={free}
+            freePages={freePages}
+          />
         )}
         <div class="bar">
           <p class="count">

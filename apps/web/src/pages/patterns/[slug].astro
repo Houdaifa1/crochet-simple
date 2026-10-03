@@ -6,6 +6,7 @@ import GetPattern from '../../components/GetPattern.astro';
 import PatternCard from '../../components/PatternCard.astro';
 import VideoTutorial from '../../components/VideoTutorial.astro';
 import Base from '../../layouts/Base.astro';
+import { patternTitle } from '../../lib/seo';
 import {
   absolute,
   categoryOf,
@@ -136,8 +137,8 @@ const thumb = await getImage({
 ---
 
 <Base
-  title={`${d.title} | ${pdf ? 'Free crochet PDF' : 'Crochet pattern'} | Crochet Simplified`}
-  description={d.summary}
+  title={patternTitle({ title: d.title, seoTitle: d.seoTitle, free: Boolean(pdf) })}
+  description={d.seoDescription ?? d.summary}
   current="patterns"
   image={og.src}
   type="article"

@@ -217,6 +217,14 @@ export interface Pattern {
     [k: string]: unknown;
   } | null;
   /**
+   * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+   */
+  seoTitle?: string | null;
+  /**
+   * The two lines under the title in Google, about 150 characters. Leave empty to use the summary.
+   */
+  seoDescription?: string | null;
+  /**
    * Filled in from the title. Changing it later breaks old links, so set it once.
    */
   slug?: string | null;
@@ -247,6 +255,14 @@ export interface Category {
    * One or two sentences. Shown on the category page and in Google results (70+ characters works best).
    */
   description?: string | null;
+  /**
+   * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+   */
+  seoTitle?: string | null;
+  /**
+   * The two lines under the title in Google, about 150 characters. Leave empty to use the description.
+   */
+  seoDescription?: string | null;
   /**
    * A simple one-colour line icon, SVG (best) or PNG with a transparent background. It takes the chip colour automatically.
    */
@@ -293,6 +309,14 @@ export interface Article {
    * One or two sentences under the title, in the journal list and in Google.
    */
   summary: string;
+  /**
+   * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+   */
+  seoTitle?: string | null;
+  /**
+   * The two lines under the title in Google, about 150 characters. Leave empty to use the summary.
+   */
+  seoDescription?: string | null;
   /**
    * Optional small label, like Tutorials or Yarn notes.
    */
@@ -470,6 +494,8 @@ export interface PatternsSelect<T extends boolean = true> {
         size?: T;
       };
   body?: T;
+  seoTitle?: T;
+  seoDescription?: T;
   slug?: T;
   published?: T;
   updated?: T;
@@ -486,6 +512,8 @@ export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   description?: T;
+  seoTitle?: T;
+  seoDescription?: T;
   icon?: T;
   order?: T;
   updatedAt?: T;
@@ -498,6 +526,8 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ArticlesSelect<T extends boolean = true> {
   title?: T;
   summary?: T;
+  seoTitle?: T;
+  seoDescription?: T;
   topic?: T;
   cover?: T;
   body?: T;
@@ -644,7 +674,11 @@ export interface Listing {
     title: string;
     intro: string;
     /**
-     * For Google. Leave empty to use the intro.
+     * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+     */
+    seoTitle?: string | null;
+    /**
+     * The two lines under the title in Google, about 150 characters. Leave empty to use the intro.
      */
     seoDescription?: string | null;
   };
@@ -653,7 +687,11 @@ export interface Listing {
     title: string;
     intro: string;
     /**
-     * For Google. Leave empty to use the intro.
+     * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+     */
+    seoTitle?: string | null;
+    /**
+     * The two lines under the title in Google, about 150 characters. Leave empty to use the intro.
      */
     seoDescription?: string | null;
   };
@@ -672,6 +710,14 @@ export interface About {
    * The large sentence under the title.
    */
   intro?: string | null;
+  /**
+   * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+   */
+  seoTitle?: string | null;
+  /**
+   * The two lines under the title in Google, about 150 characters. Leave empty to use the default description.
+   */
+  seoDescription?: string | null;
   /**
    * Leave empty to use the yarn photo.
    */
@@ -880,6 +926,7 @@ export interface ListingsSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         intro?: T;
+        seoTitle?: T;
         seoDescription?: T;
       };
   journal?:
@@ -888,6 +935,7 @@ export interface ListingsSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         intro?: T;
+        seoTitle?: T;
         seoDescription?: T;
       };
   updatedAt?: T;
@@ -900,6 +948,8 @@ export interface ListingsSelect<T extends boolean = true> {
  */
 export interface AboutSelect<T extends boolean = true> {
   intro?: T;
+  seoTitle?: T;
+  seoDescription?: T;
   image?: T;
   body?: T;
   updatedAt?: T;

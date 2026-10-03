@@ -5,6 +5,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import PageHead from '../../components/PageHead.astro';
 import Pager from '../../components/Pager.astro';
 import Base from '../../layouts/Base.astro';
+import { withBrand } from '../../lib/seo';
 import {
   PAGE_SIZE,
   articles,
@@ -54,12 +55,13 @@ const jsonLd =
 ---
 
 <Base
-  title={`${name}${page > 1 ? `, Page ${page}` : ''} | Crochet Simplified`}
+  title={withBrand(`${words.seoTitle ?? name}${page > 1 ? `, Page ${page}` : ''}`)}
   description={
     words.seoDescription ?? 'Crochet tutorials, yarn notes and the stories behind each design.'
   }
   current="journal"
   ads
+  noindex={items.length === 0}
   jsonLd={jsonLd}
 >
   <div class="wrap">

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { backGuard } from '../fields/back-guard.ts';
+import { seoFields } from '../fields/seo.ts';
 import { slugField } from '../fields/slug.ts';
 import { onlyIcons } from '../fields/validators.ts';
 import { categoryInUse } from '../hooks/in-use.ts';
@@ -27,6 +28,12 @@ export const Categories: CollectionConfig = {
         description:
           'One or two sentences. Shown on the category page and in Google results (70+ characters works best).',
       },
+    },
+    {
+      type: 'collapsible',
+      label: 'Google',
+      admin: { initCollapsed: true },
+      fields: seoFields('the description'),
     },
     {
       name: 'icon',

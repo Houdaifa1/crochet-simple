@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { bodyField } from '../fields/body.ts';
+import { seoFields } from '../fields/seo.ts';
 import { slugField } from '../fields/slug.ts';
 import { httpsUrl, onlyImages, onlyPdf } from '../fields/validators.ts';
 
@@ -181,6 +182,11 @@ export const Patterns: CollectionConfig = {
               'Materials, abbreviations, rounds, photos and tips. Use Heading 2 for sections; a section called "Pattern" is where "Jump to pattern" lands.',
             ),
           ],
+        },
+        {
+          label: 'Google',
+          description: 'How this pattern appears in Google search results.',
+          fields: seoFields('the summary'),
         },
       ],
     },

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { bodyField } from '../fields/body.ts';
+import { seoFields } from '../fields/seo.ts';
 import { slugField } from '../fields/slug.ts';
 import { onlyImages } from '../fields/validators.ts';
 
@@ -24,6 +25,12 @@ export const Articles: CollectionConfig = {
       admin: {
         description: 'One or two sentences under the title, in the journal list and in Google.',
       },
+    },
+    {
+      type: 'collapsible',
+      label: 'Google',
+      admin: { initCollapsed: true },
+      fields: seoFields('the summary'),
     },
     {
       name: 'topic',

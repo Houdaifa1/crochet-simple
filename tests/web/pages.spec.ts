@@ -191,9 +191,54 @@ test.describe('search engines and Pinterest', () => {
     );
   });
 
+  test('a pattern has its own big heading, and step photos in a row sit side by side, whole', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/blue-market-bag/');
+    await expect(page.locator('h1')).toHaveText('Blue Market Bag Crochet Pattern');
+    const article = JSON.parse(
+      (await page.locator('script[type="application/ld+json"]').first().textContent())!,
+    );
+    expect(article.headline).toBe('Blue Market Bag Crochet Pattern');
+    const pair = page.locator('.prose .photos.pair');
+    await pair.scrollIntoViewIfNeeded();
+    await expect(pair.locator('figure')).toHaveCount(2);
+    await expect(pair.locator('figcaption').first()).toHaveText(
+      'Sew the cherries to the left handle.',
+    );
+    await expect
+      .poll(() =>
+        pair
+          .locator('img')
+          .evaluateAll((imgs) =>
+            imgs.every(
+              (i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0,
+            ),
+          ),
+      )
+      .toBe(true);
+    const shown = await pair.locator('img').evaluateAll((imgs) =>
+      imgs.map((i) => {
+        const r = i.getBoundingClientRect();
+        const img = i as HTMLImageElement;
+        return {
+          top: Math.round(r.top),
+          ratio: r.width / r.height,
+          own: img.naturalWidth / img.naturalHeight,
+        };
+      }),
+    );
+    expect(shown[0]!.top).toBe(shown[1]!.top);
+    for (const p of shown) expect(Math.abs(p.ratio - p.own)).toBeLessThan(0.02);
+    // a photo on its own keeps the full width, and cards keep the short title
+    await expect(page.locator('.prose > figure')).toHaveCount(1);
+    await visit(page, '/patterns/category/bags/');
+    await expect(page.locator('.grid')).toContainText('Blue market bag');
+  });
+
   test('a paid pattern ends with its Etsy listing as a full card', async ({ page }) => {
     await visit(page, '/patterns/airpods-pouch/');
-    const card = page.locator('.get.end .link-card');
+    const card = page.locator('.get .link-card');
     await expect(card).toHaveAttribute(
       'href',
       'https://www.etsy.com/listing/9999913/airpods-pouch',
@@ -279,7 +324,6 @@ test.describe('patterns', () => {
       '.thumbs',
       '.count',
       '.ad',
-      '.pill',
       '.tag.free',
       '.tag.etsy',
     ]) {
@@ -312,8 +356,8 @@ test.describe('patterns', () => {
 
   test('Etsy patterns send people to Etsy in a new tab', async ({ page }) => {
     await visit(page, '/patterns/airpods-pouch/');
-    const cta = page.locator('[data-get] a.btn').first();
-    await expect(cta).toContainText('Get the pattern on Etsy');
+    await expect(page.locator('[data-get] h2')).toHaveText('Get the pattern');
+    const cta = page.locator('[data-get] a').first();
     expect(await cta.getAttribute('target')).toBe('_blank');
     expect(await cta.getAttribute('href')).toMatch(/^https:\/\/www\.etsy\.com\/listing\//);
   });
@@ -330,21 +374,61 @@ test.describe('patterns', () => {
     );
   });
 
-  test('a small download button follows the reader between the two download cards', async ({
+  test('the download sits once, at the end of the pattern, and nothing floats over the text', async ({
     page,
   }) => {
     await visit(page, '/patterns/blue-market-bag/');
-    const pill = page.locator('.pill');
-    await expect(pill).not.toHaveClass(/on/);
-    await page.evaluate(() =>
-      window.scrollTo(
-        0,
-        document.querySelector('#abbreviations')!.getBoundingClientRect().top + scrollY - 200,
+    await expect(page.locator('[data-get]')).toHaveCount(1);
+    await expect(page.locator('[data-get] h2')).toHaveText('Download the free PDF');
+    const afterThePattern = await page.evaluate(() =>
+      Boolean(
+        document
+          .querySelector('article.body')!
+          .compareDocumentPosition(document.querySelector('[data-get]')!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
       ),
     );
-    await expect(pill).toHaveClass(/on/);
-    await page.locator('.get.end').scrollIntoViewIfNeeded();
-    await expect(pill).not.toHaveClass(/on/);
+    expect(afterThePattern).toBe(true);
+    await expect(page.locator('.toc a').last()).toHaveAttribute('href', '#download');
+    await page.evaluate(() => scrollTo(0, document.body.scrollHeight / 2));
+    const floating = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('body *')]
+        .filter(
+          (el) =>
+            getComputedStyle(el).position === 'fixed' &&
+            el.getBoundingClientRect().height > 1 &&
+            !el.closest('.dock'),
+        )
+        .map((el) => el.className),
+    );
+    expect(floating).toEqual([]);
+  });
+
+  test('on a wide screen the details and contents stay beside the pattern, centered', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await visit(page, '/patterns/blue-market-bag/');
+    const side = page.locator('aside.side');
+    const body = (await page.locator('article.body').boundingBox())!;
+    expect((await side.boundingBox())!.x).toBeGreaterThan(body.x + body.width);
+    await page.evaluate(() => document.querySelector('#finishing')!.scrollIntoView());
+    const box = (await side.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeLessThan(100);
+    const main = (await page.locator('.layout .main').boundingBox())!;
+    expect(Math.abs(main.x - (1280 - box.x - box.width))).toBeLessThan(40);
+  });
+
+  test('on a phone no detail is cut off', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await visit(page, '/patterns/blue-market-bag/');
+    const cut = await page
+      .locator('dl.facts dd')
+      .evaluateAll((dds) =>
+        dds.filter((d) => d.scrollWidth > d.clientWidth + 1).map((d) => d.textContent),
+      );
+    expect(cut).toEqual([]);
   });
 
   test('the gallery thumbnails switch photos', async ({ page }) => {
@@ -354,17 +438,14 @@ test.describe('patterns', () => {
     await expect(page.locator('.thumbs button').nth(2)).toHaveAttribute('aria-current', 'true');
   });
 
-  test('the photos move on by themselves and stop when the visitor takes over', async ({
-    page,
-  }) => {
+  test('the photos never move by themselves', async ({ page }) => {
     await visit(page, '/patterns/blue-market-bag/');
-    const count = page.locator('.count b');
     await page.locator('.gallery').scrollIntoViewIfNeeded();
-    await expect(count).toHaveText('2', { timeout: 7000 });
-    await page.getByRole('button', { name: 'Pause the photos' }).click();
-    await expect(page.getByRole('button', { name: 'Play the photos' })).toBeVisible();
-    await page.waitForTimeout(4500);
-    await expect(count).toHaveText('2');
+    await page.waitForTimeout(6000);
+    await expect(page.locator('.count b')).toHaveText('1');
+    expect(await page.locator('.gallery .track').evaluate((t) => t.scrollLeft)).toBe(0);
+    await expect(page.locator('.gallery button', { hasText: /pause|play/i })).toHaveCount(0);
+    await expect(page.locator('.gallery .play')).toHaveCount(0);
   });
 
   test('step names never run into their instructions, on any screen', async ({ page }) => {
@@ -380,6 +461,18 @@ test.describe('patterns', () => {
           }).length,
       );
       expect(overlaps, `at ${width}px`).toBe(0);
+      // a short step name like "Round 12" stays on one line
+      const wrapped = await page
+        .locator('.rounds:not(.long) li b')
+        .evaluateAll((labels) =>
+          labels
+            .filter(
+              (b) =>
+                b.getBoundingClientRect().height > parseFloat(getComputedStyle(b).lineHeight) * 1.5,
+            )
+            .map((b) => b.textContent),
+        );
+      expect(wrapped, `at ${width}px`).toEqual([]);
     }
   });
 

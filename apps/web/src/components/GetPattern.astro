@@ -7,29 +7,23 @@ interface Props {
   pdf: PdfInfo | null;
   etsyUrl?: string | undefined;
   etsyCard?: Pattern['data']['etsyCard'];
-  jump?: boolean;
-  variant?: 'card' | 'end';
 }
-const { slug, pdf, etsyUrl, etsyCard, jump = false, variant = 'card' } = Astro.props;
-// at the end of a paid pattern, the Etsy listing itself is shown: photo, price and shop rating
-const listing = !pdf && variant === 'end' ? etsyCard : undefined;
+const { slug, pdf, etsyUrl, etsyCard } = Astro.props;
+// a paid pattern shows the Etsy listing itself: photo, price and shop rating
+const listing = pdf ? undefined : etsyCard;
 const facts = pdf
   ? ['PDF', pdf.pages && `${pdf.pages} ${pdf.pages === 1 ? 'page' : 'pages'}`, fileSize(pdf.bytes)]
   : [];
 ---
 
 {(pdf || etsyUrl) && (
-  <div class:list={['get', variant]} data-get>
-    {variant === 'end' && (
-      <>
-        <h2>Make your own</h2>
-        <p class="lead">
-          {pdf
-            ? 'The complete PDF, ready to save or print.'
-            : 'The full pattern is available on Etsy.'}
-        </p>
-      </>
-    )}
+  <section class="get" id="download" aria-labelledby="download-title" data-get>
+    <h2 id="download-title">{pdf ? 'Download the free PDF' : 'Get the pattern'}</h2>
+    <p class="lead">
+      {pdf
+        ? 'The whole pattern with all the photos, ready to save on your phone or print.'
+        : 'The full pattern is available on Etsy.'}
+    </p>
     {listing ? (
       <div class="listing">
         <LinkCards cards={[listing]} />
@@ -50,68 +44,40 @@ const facts = pdf
         <span class="visually-hidden"> (opens in a new tab)</span>
       </a>
     )}
-    {variant === 'card' && (
-      <div class="fine">
-        <span>{pdf ? facts.filter(Boolean).join(' · ') : 'Opens Etsy in a new tab'}</span>
-        {jump && (
-          <a href="#pattern" class="jump">
-            Jump to pattern
-          </a>
-        )}
-      </div>
-    )}
-  </div>
+    {pdf && <p class="fine">{facts.filter(Boolean).join(' · ')}</p>}
+  </section>
 )}
 
 <style>
-  .get.card {
-    margin: 22px 0 0;
-    padding: 18px;
-    border-radius: 6px;
-    background: var(--sheet);
-    box-shadow:
-      0 1px 0 rgb(42 41 37 / 0.1),
-      0 18px 40px -28px rgb(42 41 37 / 0.45);
-  }
-  .card .btn {
-    width: 100%;
-  }
-  .etsy {
-    background: #f1641e;
-  }
-  .fine {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 4px 12px;
-    margin: 8px 2px 0;
-    font-size: 14px;
-    color: var(--muted);
-  }
-  .jump {
-    display: inline-block;
-    padding: 12px 0;
-    font-weight: 600;
-    color: var(--ink);
-    text-underline-offset: 4px;
-  }
-  .get.end {
+  .get {
     margin: 56px 0 0;
     padding: 30px 22px;
     border-radius: 6px;
     background: var(--ink);
     color: #fbf7f0;
     text-align: center;
+    scroll-margin-top: 90px;
   }
-  .end h2 {
+  h2 {
     margin: 0 0 8px;
     font-size: 32px;
   }
   .lead {
     margin: 0 auto 20px;
-    max-width: 32ch;
+    max-width: 34ch;
     color: rgb(251 247 240 / 0.78);
+  }
+  .btn:not(.etsy) {
+    background: #fbf7f0;
+    color: var(--ink);
+  }
+  .etsy {
+    background: #f1641e;
+  }
+  .fine {
+    margin: 12px 0 0;
+    font-size: 14px;
+    color: rgb(251 247 240 / 0.72);
   }
   /* the Etsy card keeps its own dark text inside the dark box */
   .listing {
@@ -122,9 +88,5 @@ const facts = pdf
   }
   .listing :global(.cards) {
     margin: 0;
-  }
-  .end .btn:not(.etsy) {
-    background: #fbf7f0;
-    color: var(--ink);
   }
 </style>

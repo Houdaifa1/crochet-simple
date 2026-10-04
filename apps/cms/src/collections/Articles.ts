@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { bodyField } from '../fields/body.ts';
-import { seoFields } from '../fields/seo.ts';
+import { headingField, seoFields } from '../fields/seo.ts';
 import { slugField } from '../fields/slug.ts';
 import { onlyImages } from '../fields/validators.ts';
 
@@ -30,7 +30,7 @@ export const Articles: CollectionConfig = {
       type: 'collapsible',
       label: 'Google',
       admin: { initCollapsed: true },
-      fields: seoFields('the summary'),
+      fields: [headingField, ...seoFields('the summary')],
     },
     {
       name: 'topic',

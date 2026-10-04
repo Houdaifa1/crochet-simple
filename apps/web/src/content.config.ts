@@ -88,6 +88,7 @@ const patterns = defineCollection({
   schema: (ctx) =>
     z.object({
       title: text,
+      heading: text.max(90).optional(),
       summary: text.max(220),
       ...seo,
       category: reference('categories'),
@@ -135,6 +136,7 @@ const articles = defineCollection({
   schema: (ctx) =>
     z.object({
       title: text,
+      heading: text.max(90).optional(),
       summary: text.max(220),
       ...seo,
       topic: z.string().optional(),

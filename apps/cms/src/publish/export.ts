@@ -12,6 +12,7 @@ import {
   type Video,
 } from '@crochet-simple/shared';
 import { toBlocks, type OutBlock, type Resolvers } from './lexical.ts';
+import { copyPhoto } from './unframe.ts';
 
 export class PublishError extends Error {}
 
@@ -32,6 +33,8 @@ export interface ExportOptions {
   mediaDir: string;
   dataDir: string;
   contentDir: string;
+  // the latest version of every pattern and article, drafts included: for a preview on this Mac only
+  drafts?: boolean;
   fetch?: typeof fetch;
   log: (line: string) => void;
 }
@@ -208,13 +211,26 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
   const write = (rel: string, data: unknown) =>
     writeFile(path.join(work, rel), `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 
-  const published = { _status: { equals: 'published' } };
-  const patterns = (
-    await payload.find({ collection: 'patterns', where: published, pagination: false, depth: 0 })
-  ).docs as unknown as Record<string, unknown>[];
-  const articles = (
-    await payload.find({ collection: 'articles', where: published, pagination: false, depth: 0 })
-  ).docs as unknown as Record<string, unknown>[];
+  const which = o.drafts ? { draft: true } : { where: { _status: { equals: 'published' } } };
+  // a preview leaves out drafts that are not filled in enough to make a page yet
+  const ready = (kind: string, docs: Record<string, unknown>[]) =>
+    docs.filter((d) => {
+      const ok =
+        Boolean(text(d['title']) && text(d['slug']) && d['cover']) &&
+        (kind === 'Article' || Boolean(d['category']));
+      if (!ok)
+        warn(
+          `${kind} draft "${text(d['title']) ?? 'without a title'}" is not finished and was left out of the preview.`,
+        );
+      return ok;
+    });
+  const found = async (collection: 'patterns' | 'articles', kind: string) => {
+    const docs = (await payload.find({ collection, ...which, pagination: false, depth: 0 }))
+      .docs as unknown as Record<string, unknown>[];
+    return o.drafts ? ready(kind, docs) : docs;
+  };
+  const patterns = await found('patterns', 'Pattern');
+  const articles = await found('articles', 'Article');
   const categories = (await payload.find({ collection: 'categories', pagination: false, depth: 0 }))
     .docs as unknown as Record<string, unknown>[];
   for (const p of patterns) slugs.set(`patterns:${p['id']}`, `/patterns/${p['slug']}/`);
@@ -249,6 +265,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       `patterns/${p['slug']}.json`,
       drop({
         title: p['title'],
+        heading: text(p['heading']),
         summary: text(p['summary']),
         seoTitle: text(p['seoTitle']),
         seoDescription: text(p['seoDescription']),
@@ -294,6 +311,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       `articles/${a['slug']}.json`,
       drop({
         title: a['title'],
+        heading: text(a['heading']),
         summary: text(a['summary']),
         seoTitle: text(a['seoTitle']),
         seoDescription: text(a['seoDescription']),
@@ -464,8 +482,11 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
     }),
   );
 
+  let unframed = 0;
   for (const name of used)
-    await copyFile(path.join(o.mediaDir, name), path.join(work, 'media', name));
+    if (await copyPhoto(path.join(o.mediaDir, name), path.join(work, 'media', name))) unframed++;
+  if (unframed)
+    o.log(`Trimmed the cream frame from ${unframed} cover photos (originals unchanged)`);
   await writeFile(cachePath, JSON.stringify(cache, null, 2));
 
   // swap in the new folder only once it is complete

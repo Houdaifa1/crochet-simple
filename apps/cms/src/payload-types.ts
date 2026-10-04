@@ -217,6 +217,10 @@ export interface Pattern {
     [k: string]: unknown;
   } | null;
   /**
+   * The big heading on the page, for example "Baby Bat Crochet Pattern". Leave empty to use the title. Cards and menus keep the short title.
+   */
+  heading?: string | null;
+  /**
    * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
    */
   seoTitle?: string | null;
@@ -309,6 +313,10 @@ export interface Article {
    * One or two sentences under the title, in the journal list and in Google.
    */
   summary: string;
+  /**
+   * The big heading on the page, for example "Baby Bat Crochet Pattern". Leave empty to use the title. Cards and menus keep the short title.
+   */
+  heading?: string | null;
   /**
    * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
    */
@@ -494,6 +502,7 @@ export interface PatternsSelect<T extends boolean = true> {
         size?: T;
       };
   body?: T;
+  heading?: T;
   seoTitle?: T;
   seoDescription?: T;
   slug?: T;
@@ -526,6 +535,7 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ArticlesSelect<T extends boolean = true> {
   title?: T;
   summary?: T;
+  heading?: T;
   seoTitle?: T;
   seoDescription?: T;
   topic?: T;

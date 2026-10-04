@@ -380,11 +380,35 @@ html.js .rise:not(.in) {
   width: 100%;
   border-radius: 12px;
 }
+/* a photo on its own is never stretched past what its pixels can show sharply */
+.prose > figure img {
+  max-width: min(100%, var(--w, 100%));
+}
 .prose figcaption {
   margin-top: 10px;
   font-size: 14px;
   line-height: 1.5;
   color: var(--muted);
+}
+/* step photos side by side: whole photos, never cropped */
+.prose .photos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px 12px;
+  margin: 1.6em 0;
+}
+.prose .photos figure {
+  margin: 0;
+}
+.prose .photos figcaption {
+  margin-top: 6px;
+  font-size: 13px;
+}
+@media (min-width: 760px) {
+  .prose .photos:not(.pair) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 .prose blockquote {
   margin: 1.8em 0;
@@ -436,7 +460,7 @@ html.js .rise:not(.in) {
 }
 .prose .rounds li {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-columns: 72px minmax(0, 1fr);
   column-gap: 12px;
   align-items: baseline;
   margin: 0;

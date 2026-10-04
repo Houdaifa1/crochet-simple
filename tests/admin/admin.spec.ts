@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -311,6 +312,51 @@ test('publishing builds the site with published content only, and makes a backup
   expect(existsSync(resolve(ROOT, 'backups', backups.at(-1)!, 'cms.db'))).toBe(true);
   // the Etsy key and other private settings never reach the website
   expect(readFileSync(resolve(ROOT, 'content/settings.json'), 'utf8')).not.toContain('etsyApiKey');
+});
+
+test('a preview shows drafts on this Mac and never publishes them', async () => {
+  const bag = await find('patterns', 'blue-market-bag');
+  const draft = await api('patch', `/patterns/${bag}?draft=true`, {
+    summary: 'Words that only the preview shows.',
+    heading: 'Blue Market Bag Crochet Pattern',
+  });
+  expect(draft.ok(), await draft.text()).toBe(true);
+  // the same command the owner runs, building only, against this test admin's database
+  execFileSync(
+    process.execPath,
+    [resolve(REPO, 'apps/cms/node_modules/payload/bin.js'), 'run', 'scripts/preview.ts'],
+    {
+      cwd: resolve(REPO, 'apps/cms'),
+      env: {
+        ...process.env,
+        DATABASE_URL: `file:${resolve(ROOT, 'data/cms.db')}`,
+        DATA_DIR: resolve(ROOT, 'data'),
+        MEDIA_DIR: resolve(ROOT, 'media'),
+        PAYLOAD_SECRET: 'test-only-secret',
+        PREVIEW_BUILD_ONLY: '1',
+      },
+      timeout: 240_000,
+      stdio: 'pipe',
+    },
+  );
+  const preview = (p: string) => resolve(ROOT, 'data/preview/site', p);
+  const bagPreview = readFileSync(preview('patterns/blue-market-bag/index.html'), 'utf8');
+  expect(bagPreview).toContain('Words that only the preview shows.');
+  expect(bagPreview).toMatch(/<h1[^>]*>Blue Market Bag Crochet Pattern<\/h1>/);
+  expect(existsSync(preview('patterns/secret-draft-pattern/index.html'))).toBe(true);
+  // the published site and its content are untouched
+  const live = readFileSync(resolve(ROOT, 'site/patterns/blue-market-bag/index.html'), 'utf8');
+  expect(live).not.toContain('Words that only the preview shows.');
+  expect(
+    readFileSync(resolve(ROOT, 'content/patterns/blue-market-bag.json'), 'utf8'),
+  ).not.toContain('Words that only the preview shows.');
+  // back to the published words, so the tests after this one start from the same place
+  const restored = await api('patch', `/patterns/${bag}?draft=false`, {
+    summary: 'A structured tote in cobalt blue.',
+    heading: '',
+    _status: 'published',
+  });
+  expect(restored.ok(), await restored.text()).toBe(true);
 });
 
 test('editing a published pattern updates its page and keeps its web address', async () => {

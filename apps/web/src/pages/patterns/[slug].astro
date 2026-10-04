@@ -76,7 +76,7 @@ const jsonLd = site
       {
         '@context': 'https://schema.org',
         '@type': 'Article',
-        headline: d.title,
+        headline: d.heading ?? d.title,
         description: d.summary,
         image: [absolute(og.src, site), pinUrl],
         datePublished: isoDate(d.published),
@@ -156,12 +156,12 @@ const thumb = await getImage({
       <span aria-hidden="true">/</span>
       <a href={`/patterns/category/${category.id}/`}>{category.data.name}</a>
     </nav>
-    <div class="top">
-      <div>
-        <header class="p-head">
-          <h1>{d.title}</h1>
-          <p class="lede">{d.summary}</p>
-          <div class="tags" data-pagefind-ignore>
+    <div class="layout">
+      <header class="p-head">
+        <h1>{d.heading ?? d.title}</h1>
+        <p class="lede">{d.summary}</p>
+        <div class="tags" data-pagefind-ignore>
+          <div class="tags-in">
             {pdf && <span class="tag free">Free PDF</span>}
             {!pdf && d.etsyUrl && <span class="tag etsy">On Etsy</span>}
             {skill && <span class="tag">{skill}</span>}
@@ -171,59 +171,54 @@ const thumb = await getImage({
               <time datetime={isoDate(modified)}>{formatDate(modified)}</time>
             </span>
           </div>
-        </header>
+        </div>
+      </header>
+      <div class="media">
         <Gallery photos={photos} saveHref={saveHref} />
       </div>
-      <div class="side" data-pagefind-ignore>
-        <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} jump={d.body.length > 0} />
-        {facts.length > 0 && (
-          <dl
-            class:list={['facts', { pairs: facts.length > 3 }]}
-            style={`--n:${facts.length > 3 ? 2 : facts.length}`}
-          >
-            {facts.map(([k, v]) => (
-              <div>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </div>
-            ))}
-          </dl>
+      {(facts.length > 0 || toc.length > 1) && (
+        <aside class="side" aria-label="Pattern details" data-pagefind-ignore>
+          {facts.length > 0 && (
+            <dl class="facts">
+              {facts.map(([k, v]) => (
+                <div>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {toc.length > 1 && (
+            <nav class="toc" aria-label="On this page">
+              <p class="toc-title">On this page</p>
+              {toc.map((t) => (
+                <a href={`#${t.id}`}>{t.text}</a>
+              ))}
+              {(pdf || d.etsyUrl) && <a href="#download">{pdf ? 'Free PDF' : 'Get the pattern'}</a>}
+            </nav>
+          )}
+        </aside>
+      )}
+      <div class="main">
+        {d.video && <VideoTutorial video={d.video} />}
+        {d.body.length > 0 && (
+          <article class="prose body" id={patternHeading ? 'write-up' : 'pattern'}>
+            <Blocks blocks={d.body} adAfter={adAfter} ads={d.ads} />
+          </article>
+        )}
+        <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} etsyCard={d.etsyCard} />
+        {saveHref && (
+          <div class="share" data-pagefind-ignore>
+            <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
+              Save to Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+            <button class="btn ghost" type="button" data-copy={pageUrl}>
+              Copy link
+            </button>
+          </div>
         )}
       </div>
     </div>
-
-    {d.video && <VideoTutorial video={d.video} />}
-
-    {toc.length > 1 && (
-      <nav class="toc" aria-label="On this page" data-pagefind-ignore>
-        {toc.map((t) => (
-          <a href={`#${t.id}`}>{t.text}</a>
-        ))}
-      </nav>
-    )}
-    {d.body.length > 0 && (
-      <article class="prose body" id={patternHeading ? 'write-up' : 'pattern'}>
-        <Blocks blocks={d.body} adAfter={adAfter} ads={d.ads} />
-      </article>
-    )}
-
-    <GetPattern
-      slug={pattern.id}
-      pdf={pdf}
-      etsyUrl={d.etsyUrl}
-      etsyCard={d.etsyCard}
-      variant="end"
-    />
-    {saveHref && (
-      <div class="share" data-pagefind-ignore>
-        <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
-          Save to Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
-        </a>
-        <button class="btn ghost" type="button" data-copy={pageUrl}>
-          Copy link
-        </button>
-      </div>
-    )}
   </div>
 
   {more.length > 0 && (
@@ -236,42 +231,9 @@ const thumb = await getImage({
       </div>
     </section>
   )}
-
-  {(pdf || d.etsyUrl) && (
-    <a
-      class="pill"
-      href={pdf ? `/downloads/${pattern.id}.pdf` : d.etsyUrl}
-      download={pdf ? '' : undefined}
-      aria-hidden="true"
-      tabindex="-1"
-    >
-      {pdf ? 'Free PDF' : 'Get it on Etsy'}
-    </a>
-  )}
 </Base>
 
 <script>
-  const pill = document.querySelector<HTMLElement>('.pill');
-  const cards = [...document.querySelectorAll<HTMLElement>('[data-get]')];
-  if (pill && cards.length) {
-    const seen = new Set<Element>();
-    let passedTop = false;
-    new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) seen.add(e.target);
-        else seen.delete(e.target);
-        if (e.target === cards[0]) passedTop = !e.isIntersecting && e.boundingClientRect.top < 0;
-      }
-      pill.classList.toggle('on', passedTop && seen.size === 0);
-    }).observe(cards[0]!);
-    cards.slice(1).forEach((c) =>
-      new IntersectionObserver(([e]) => {
-        if (e!.isIntersecting) seen.add(c);
-        else seen.delete(c);
-        pill.classList.toggle('on', passedTop && seen.size === 0);
-      }).observe(c),
-    );
-  }
   for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
     b.addEventListener('click', async () => {
       await navigator.clipboard.writeText(b.dataset.copy!);
@@ -320,24 +282,31 @@ const thumb = await getImage({
     color: var(--muted);
     text-wrap: pretty;
   }
+  /* each tag carries its dot in front; the dot that starts a line is hidden past the left edge */
   .tags {
+    margin: 18px 0 0;
+    overflow: hidden;
+  }
+  .tags-in {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 18px 0 0;
+    row-gap: 8px;
+    margin-left: -16px;
   }
   .tag {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 0 5px;
     min-height: 24px;
     font: 500 14px/1 var(--sans);
     color: var(--muted);
     text-decoration: none;
   }
-  .tag:not(:last-child)::after {
+  .tag::before {
     content: '·';
-    margin-left: 3px;
+    flex: none;
+    width: 16px;
+    text-align: center;
   }
   .tag.free {
     font-weight: 600;
@@ -347,9 +316,13 @@ const thumb = await getImage({
     font-weight: 600;
     color: #9a3a0a;
   }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
   .facts {
     display: grid;
-    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1px;
     margin: 18px 0 0;
     overflow: hidden;
@@ -362,7 +335,7 @@ const thumb = await getImage({
     background: var(--paper);
   }
   /* in rows of two, a last fact on its own takes the full width */
-  .facts.pairs div:last-child:nth-child(odd) {
+  .facts div:last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
   dt {
@@ -378,8 +351,11 @@ const thumb = await getImage({
     gap: 22px;
     overflow-x: auto;
     scrollbar-width: none;
-    margin: 36px calc(var(--gutter) * -1) 0;
+    margin: 28px calc(var(--gutter) * -1) 0;
     padding: 0 var(--gutter);
+  }
+  .toc-title {
+    display: none;
   }
   .toc a {
     flex: none;
@@ -421,54 +397,64 @@ const thumb = await getImage({
   .row > :global(*) {
     scroll-snap-align: start;
   }
-  .pill {
-    position: fixed;
-    z-index: 9;
-    left: 50%;
-    bottom: calc(78px + env(safe-area-inset-bottom));
-    display: inline-flex;
-    align-items: center;
-    height: 44px;
-    padding: 0 20px;
-    border-radius: 3px;
-    background: var(--ink);
-    color: #fff;
-    font: 700 15px/1 var(--sans);
-    text-decoration: none;
-    box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.5);
-    transform: translate(-50%, 16px);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      opacity 0.3s,
-      transform 0.4s var(--ease-out);
-  }
-  .pill:global(.on) {
-    opacity: 1;
-    transform: translate(-50%, 0);
-    pointer-events: auto;
-  }
   @media (min-width: 1000px) {
-    .top {
-      display: grid;
-      grid-template-columns: 7fr 5fr;
-      gap: 56px;
+    /* a reading column with the details and the contents beside it, staying in view */
+    .layout {
+      grid-template-columns: minmax(0, 760px) 300px;
+      grid-template-areas:
+        'head side'
+        'media side'
+        'main side';
+      justify-content: center;
       align-items: start;
+      column-gap: 64px;
+    }
+    .p-head {
+      grid-area: head;
+    }
+    .media {
+      grid-area: media;
+    }
+    .main {
+      grid-area: main;
+      min-width: 0;
     }
     .side {
+      grid-area: side;
       position: sticky;
       top: 24px;
-      padding-top: 190px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      padding: 8px 2px 24px;
+      scrollbar-width: thin;
     }
-    .body,
-    .toc {
-      max-width: 680px;
+    .facts {
+      grid-template-columns: minmax(0, 1fr);
+      margin: 0;
     }
     .toc {
-      margin-left: 0;
-      margin-right: 0;
+      flex-direction: column;
+      gap: 0;
+      overflow: visible;
+      margin: 28px 0 0;
       padding: 0;
-      flex-wrap: wrap;
+    }
+    .toc-title {
+      display: block;
+      margin: 0 0 4px;
+      font: 600 13px/1.2 var(--sans);
+      color: var(--muted);
+    }
+    .toc a {
+      min-height: 40px;
+      text-decoration: none;
+      border-bottom: 1px solid rgb(42 41 37 / 0.1);
+    }
+    .toc a:hover {
+      color: var(--blue);
+    }
+    .body {
+      max-width: 680px;
     }
     .row {
       grid-auto-flow: row;
@@ -476,9 +462,6 @@ const thumb = await getImage({
       overflow: visible;
       margin: 0;
       padding: 0;
-    }
-    .pill {
-      display: none;
     }
   }
 </style>

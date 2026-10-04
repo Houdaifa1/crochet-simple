@@ -4,6 +4,7 @@ import * as migration_20261001_012829_brand_simplified from './20261001_012829_b
 import * as migration_20261001_092000_drafts_autosave from './20261001_092000_drafts_autosave';
 import * as migration_20261003_125616_pattern_seo_fields from './20261003_125616_pattern_seo_fields';
 import * as migration_20261003_230132_seo_titles from './20261003_230132_seo_titles';
+import * as migration_20261003_235740_page_heading from './20261003_235740_page_heading';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20261003_230132_seo_titles.up,
     down: migration_20261003_230132_seo_titles.down,
-    name: '20261003_230132_seo_titles'
+    name: '20261003_230132_seo_titles',
+  },
+  {
+    up: migration_20261003_235740_page_heading.up,
+    down: migration_20261003_235740_page_heading.down,
+    name: '20261003_235740_page_heading'
   },
 ];

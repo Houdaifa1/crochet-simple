@@ -48,7 +48,7 @@ const jsonLd = site
       {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
-        headline: d.title,
+        headline: d.heading ?? d.title,
         description: d.summary,
         image: [ogUrl],
         datePublished: isoDate(d.published),
@@ -100,7 +100,7 @@ const thumb = await getImage({
         <a href="/journal/">Journal</a>
       </nav>
       {d.topic && <p class="kicker">{d.topic}</p>}
-      <h1>{d.title}</h1>
+      <h1>{d.heading ?? d.title}</h1>
       <p class="lede">{d.summary}</p>
       <p class="byline" data-pagefind-ignore>
         <time datetime={isoDate(d.published)}>{formatDate(d.published)}</time>

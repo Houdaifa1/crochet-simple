@@ -1,5 +1,6 @@
 {
   "title": "Blue market bag",
+  "heading": "Blue Market Bag Crochet Pattern",
   "summary": "A structured tote in cobalt blue, finished with a pair of cherry charms.",
   "seoTitle": "Free Crochet Market Bag Pattern (PDF)",
   "seoDescription": "Crochet a sturdy cobalt market bag with this free pattern: written rounds, photos and a printable PDF.",
@@ -111,6 +112,11 @@
           "label": "Rnd 3",
           "text": "Sc around, placing a marker at each side.",
           "count": "86 sts"
+        },
+        {
+          "label": "Round 12",
+          "text": "Sc in each stitch around.",
+          "count": "80 sts"
         }
       ]
     },
@@ -156,6 +162,18 @@
           "text": "Weave in all ends, sew the cherries to the left handle and lightly steam the bag into shape."
         }
       ]
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/details/01b-bag-cherries.png",
+      "alt": "Two crochet cherry charms on the handle",
+      "caption": "Sew the cherries to the left handle."
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/details/01a-bag-stitches.png",
+      "alt": "Finished rows of cobalt single crochet",
+      "caption": "Steam the rows lightly."
     },
     {
       "type": "cards",

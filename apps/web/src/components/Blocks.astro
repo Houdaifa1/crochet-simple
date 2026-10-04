@@ -13,105 +13,153 @@ interface Props {
 }
 const { blocks, adAfter, ads = false } = Astro.props;
 const external = (href: string) => /^https?:/.test(href);
+type Block = Blocks[number];
+type Photo = Extract<Block, { type: 'image' }>;
+// two or more photos in a row sit side by side, like the step photos of a printed pattern
+const items: ({ b: Block; i: number } | { photos: Photo[]; i: number })[] = [];
+blocks.forEach((b, i) => {
+  const last = items.at(-1);
+  if (b.type === 'image' && last && 'photos' in last && last.i === i - 1) {
+    last.photos.push(b);
+    last.i = i;
+  } else if (b.type === 'image' && blocks[i + 1]?.type === 'image') items.push({ photos: [b], i });
+  else items.push({ b, i });
+});
+// the in-article ad follows the first item that reaches its place
+const adItem = adAfter === undefined ? -1 : items.findIndex((it) => it.i + 1 >= adAfter);
 ---
 
-{blocks.map((b, i) => (
+{items.map((item, n) => (
   <>
-    {b.type === 'paragraph' && (
-      <p>
-        {b.content.map((t) => {
-          const inner = t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text;
-          return t.href ? (
-            <a href={t.href} rel={external(t.href) ? 'noopener' : undefined}>
-              {inner}
-            </a>
-          ) : (
-            inner
-          );
-        })}
-      </p>
-    )}
-    {b.type === 'heading' && b.level === 2 && <h2 id={headingId(b.text)}>{b.text}</h2>}
-    {b.type === 'heading' && b.level === 3 && <h3 id={headingId(b.text)}>{b.text}</h3>}
-    {b.type === 'list' &&
-      (b.ordered ? (
-        <ol>
-          {b.items.map((item) => (
-            <li>
-              {item.map((t) =>
-                t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+    {'photos' in item && (
+      <div
+        class:list={['photos', { pair: item.photos.length % 2 === 0 && item.photos.length < 6 }]}
+      >
+        {item.photos.map((p) => (
+          <figure>
+            <Picture
+              src={p.image}
+              alt={p.alt}
+              formats={['avif', 'webp']}
+              fallbackFormat="jpg"
+              widths={[240, 360, 480, 720]}
+              sizes={sharpCapped(
+                item.photos.length % 2 === 0 && item.photos.length < 6
+                  ? '(min-width: 760px) 334px, calc(50vw - 26px)'
+                  : '(min-width: 760px) 219px, calc(50vw - 26px)',
               )}
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <ul>
-          {b.items.map((item) => (
-            <li>
-              {item.map((t) =>
-                t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
-              )}
-            </li>
-          ))}
-        </ul>
-      ))}
-    {b.type === 'image' && (
-      <figure>
-        <Picture
-          src={b.image}
-          alt={b.alt}
-          formats={['avif', 'webp']}
-          fallbackFormat="jpg"
-          widths={[400, 560, 720, 1000, 1360]}
-          sizes={sharpCapped('(min-width: 760px) 680px, calc(100vw - 40px)')}
-        />
-        {b.caption && <figcaption>{b.caption}</figcaption>}
-      </figure>
-    )}
-    {b.type === 'tip' && (
-      <div class="tip">
-        <strong>{b.title ?? 'Tip'}</strong>
-        <p>
-          {b.content.map((t) =>
-            t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
-          )}
-        </p>
+            />
+            {p.caption && <figcaption>{p.caption}</figcaption>}
+          </figure>
+        ))}
       </div>
     )}
-    {b.type === 'rounds' && (
-      <>
-        {b.title && <h3>{b.title}</h3>}
-        <ol class:list={['rounds', { long: b.items.some((r) => r.label.length > 12) }]}>
-          {b.items.map((r) => (
-            <li>
-              <b>{r.label}</b>
-              <span>
-                {r.text}
-                {r.count && <span class="count"> ({r.count})</span>}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </>
-    )}
-    {b.type === 'table' && (
-      <table class="terms">
-        <tbody>
-          {b.rows.map(([k, v]) => (
-            <tr>
-              <th scope="row">{k}</th>
-              <td>{v}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-    {b.type === 'quote' && (
-      <blockquote>
-        <p>{b.text}</p>
-      </blockquote>
-    )}
-    {b.type === 'cards' && <LinkCards cards={b.cards} />}
-    {adAfter !== undefined && i + 1 === adAfter && <AdSlot kind="inArticle" allowed={ads} />}
+    {'b' in item &&
+      ((b: Block) => (
+        <>
+          {b.type === 'paragraph' && (
+            <p>
+              {b.content.map((t) => {
+                const inner = t.bold ? (
+                  <strong>{t.text}</strong>
+                ) : t.italic ? (
+                  <em>{t.text}</em>
+                ) : (
+                  t.text
+                );
+                return t.href ? (
+                  <a href={t.href} rel={external(t.href) ? 'noopener' : undefined}>
+                    {inner}
+                  </a>
+                ) : (
+                  inner
+                );
+              })}
+            </p>
+          )}
+          {b.type === 'heading' && b.level === 2 && <h2 id={headingId(b.text)}>{b.text}</h2>}
+          {b.type === 'heading' && b.level === 3 && <h3 id={headingId(b.text)}>{b.text}</h3>}
+          {b.type === 'list' &&
+            (b.ordered ? (
+              <ol>
+                {b.items.map((item) => (
+                  <li>
+                    {item.map((t) =>
+                      t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+                    )}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <ul>
+                {b.items.map((item) => (
+                  <li>
+                    {item.map((t) =>
+                      t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ))}
+          {b.type === 'image' && (
+            <figure style={`--w:${Math.round(b.image.width / 1.5)}px`}>
+              <Picture
+                src={b.image}
+                alt={b.alt}
+                formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+                widths={[400, 560, 720, 1000, 1360]}
+                sizes={sharpCapped('(min-width: 760px) 680px, calc(100vw - 40px)')}
+              />
+              {b.caption && <figcaption>{b.caption}</figcaption>}
+            </figure>
+          )}
+          {b.type === 'tip' && (
+            <div class="tip">
+              <strong>{b.title ?? 'Tip'}</strong>
+              <p>
+                {b.content.map((t) =>
+                  t.bold ? <strong>{t.text}</strong> : t.italic ? <em>{t.text}</em> : t.text,
+                )}
+              </p>
+            </div>
+          )}
+          {b.type === 'rounds' && (
+            <>
+              {b.title && <h3>{b.title}</h3>}
+              <ol class:list={['rounds', { long: b.items.some((r) => r.label.length > 8) }]}>
+                {b.items.map((r) => (
+                  <li>
+                    <b>{r.label}</b>
+                    <span>
+                      {r.text}
+                      {r.count && <span class="count"> ({r.count})</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+          {b.type === 'table' && (
+            <table class="terms">
+              <tbody>
+                {b.rows.map(([k, v]) => (
+                  <tr>
+                    <th scope="row">{k}</th>
+                    <td>{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {b.type === 'quote' && (
+            <blockquote>
+              <p>{b.text}</p>
+            </blockquote>
+          )}
+          {b.type === 'cards' && <LinkCards cards={b.cards} />}
+        </>
+      ))(item.b)}
+    {n === adItem && <AdSlot kind="inArticle" allowed={ads} />}
   </>
 ))}

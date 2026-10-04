@@ -181,7 +181,7 @@ const jsonLd = site
           />
         )}
         <div class="bar">
-          <p class="count">
+          <p class="count" aria-live="polite">
             {total} {total === 1 ? 'pattern' : 'patterns'}
             {pages > 1 && ` · page ${page} of ${pages}`}
           </p>
@@ -204,6 +204,10 @@ const jsonLd = site
             </>
           ))}
         </div>
+        <section class="more" hidden aria-labelledby="more-title">
+          <h2 id="more-title">More results</h2>
+          <ol class="results" />
+        </section>
         <Pager base={base} current={page} total={pages} />
       </>
     )}
@@ -222,6 +226,79 @@ const jsonLd = site
     (el as HTMLElement).style.transitionDelay = `${(i % 4) * 60}ms`;
     io.observe(el);
   });
+</script>
+
+<script>
+  import { hitHtml, loadSearch, resultWords, search } from '../../lib/search';
+
+  // results appear while typing: matching cards stay, best match first; matches on other pages are listed below
+  const form = document.querySelector<HTMLFormElement>('form.search');
+  const input = document.querySelector<HTMLInputElement>('#q');
+  const grid = document.querySelector<HTMLElement>('.grid');
+  const count = document.querySelector<HTMLElement>('.count');
+  const more = document.querySelector<HTMLElement>('.more');
+  if (form && input && grid && count && more) {
+    const list = more.querySelector('ol')!;
+    const pager = document.querySelector<HTMLElement>('.pager');
+    const original = [...grid.children];
+    const cards = new Map(
+      [...grid.querySelectorAll<HTMLAnchorElement>('a.card')].map((c) => [
+        c.getAttribute('href'),
+        c,
+      ]),
+    );
+    const allText = count.textContent;
+    let current = '';
+
+    const restore = () => {
+      grid.classList.remove('searching');
+      original.forEach((el) => grid.append(el));
+      cards.forEach((c) => (c.hidden = false));
+      count.textContent = allText;
+      more.hidden = true;
+      if (pager) pager.hidden = false;
+    };
+
+    const run = async (raw: string) => {
+      const q = raw.trim();
+      current = q;
+      history.replaceState(null, '', q ? `?q=${encodeURIComponent(q)}` : location.pathname);
+      if (!q) return restore();
+      const hits = await search(q);
+      if (!hits || q !== current) return;
+      const here = hits.filter((h) => cards.has(h.url));
+      const elsewhere = hits.filter((h) => !cards.has(h.url));
+      grid.classList.add('searching');
+      cards.forEach((c) => (c.hidden = true));
+      for (const h of here) {
+        const c = cards.get(h.url)!;
+        c.hidden = false;
+        c.classList.add('in');
+        grid.append(c);
+      }
+      count.textContent = here.length
+        ? `${resultWords(here.length, 'pattern', 'patterns')} for “${q}”`
+        : elsewhere.length
+          ? `No patterns here for “${q}”, see more results below.`
+          : `Nothing found for “${q}”. Try a shorter word, like bag or hat.`;
+      list.innerHTML = elsewhere.map(hitHtml).join('');
+      more.hidden = elsewhere.length === 0;
+      if (pager) pager.hidden = true;
+    };
+
+    input.addEventListener('input', () => run(input.value));
+    input.addEventListener('focus', () => void loadSearch(), { once: true });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      run(input.value);
+      input.blur();
+    });
+    const start = new URLSearchParams(location.search).get('q');
+    if (start) {
+      input.value = start;
+      run(start);
+    }
+  }
 </script>
 
 <style>
@@ -304,6 +381,16 @@ const jsonLd = site
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 26px 14px;
+  }
+  .grid.searching .feed-ad {
+    display: none;
+  }
+  .more {
+    margin: 40px 0 0;
+  }
+  .more h2 {
+    margin: 0 0 4px;
+    font: 400 26px/1.2 var(--serif);
   }
   .feed-ad {
     grid-column: 1 / -1;

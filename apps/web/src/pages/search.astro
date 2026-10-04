@@ -34,57 +34,36 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <script>
-  type Result = {
-    url: string;
-    excerpt: string;
-    meta: { title?: string; image?: string };
-    filters: { type?: string[] };
-  };
-  type Pagefind = {
-    options(o: object): Promise<void>;
-    debouncedSearch(q: string): Promise<{ results: { data(): Promise<Result> }[] } | null>;
-  };
+  import { hitHtml, loadSearch, resultWords, search } from '../lib/search';
+
   const input = document.querySelector<HTMLInputElement>('#q')!;
   const status = document.querySelector<HTMLElement>('.status')!;
   const list = document.querySelector<HTMLOListElement>('.results')!;
-  let engine: Promise<Pagefind> | null = null;
-  // the index is built with the site; load it only when someone searches
-  const load = () =>
-    (engine ??= import(/* @vite-ignore */ `${location.origin}/pagefind/pagefind.js`).then(
-      async (m: Pagefind) => {
-        await m.options({ excerptLength: 18 });
-        return m;
-      },
-    ));
-  const escape = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+  let current = '';
 
   async function run(q: string) {
     const query = q.trim();
+    current = query;
     history.replaceState(null, '', query ? `?q=${encodeURIComponent(query)}` : location.pathname);
     if (!query) {
       list.replaceChildren();
       status.textContent = '';
       return;
     }
-    const found = await (await load()).debouncedSearch(query);
-    if (!found) return;
-    const results = await Promise.all(found.results.slice(0, 30).map((r) => r.data()));
+    const results = await search(query);
+    if (!results || query !== current) return;
     status.textContent = results.length
-      ? `${results.length} ${results.length === 1 ? 'result' : 'results'} for “${query}”`
+      ? `${resultWords(results.length, 'result', 'results')} for “${query}”`
       : `Nothing found for “${query}”. Try a shorter word, like bag or hat.`;
-    list.innerHTML = results
-      .map(
-        (r) =>
-          `<li><a href="${escape(r.url)}">${r.meta.image ? `<img src="${escape(r.meta.image)}" alt="" width="80" height="100" loading="lazy">` : '<span class="ph"></span>'}<span><span class="kind">${escape(r.filters.type?.[0] ?? '')}</span><strong>${escape(r.meta.title ?? '')}</strong><span class="ex">${r.excerpt}</span></span></a></li>`,
-      )
-      .join('');
+    list.innerHTML = results.map(hitHtml).join('');
   }
 
   input.addEventListener('input', () => run(input.value));
-  input.addEventListener('focus', () => void load(), { once: true });
+  input.addEventListener('focus', () => void loadSearch(), { once: true });
   document.querySelector('form')!.addEventListener('submit', (e) => {
     e.preventDefault();
     run(input.value);
+    input.blur();
   });
   const start = new URLSearchParams(location.search).get('q');
   if (start) {
@@ -127,45 +106,5 @@ import Base from '../layouts/Base.astro';
     min-height: 1.5em;
     margin: 20px 0 8px;
     color: var(--muted);
-  }
-  .results {
-    max-width: 760px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .results :global(a) {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 16px;
-    padding: 16px 0;
-    border-bottom: 1px solid rgb(42 41 37 / 0.12);
-    text-decoration: none;
-  }
-  .results :global(img),
-  .results :global(.ph) {
-    width: 80px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 10px;
-    background: #e6dccd;
-  }
-  .results :global(.kind) {
-    display: block;
-    font: 600 13px/1.2 var(--sans);
-    color: var(--blue);
-  }
-  .results :global(strong) {
-    display: block;
-    margin: 4px 0;
-    font: 400 21px/1.2 var(--serif);
-  }
-  .results :global(.ex) {
-    font-size: 15px;
-    color: var(--muted);
-  }
-  .results :global(mark) {
-    background: #ffe3ef;
-    color: inherit;
   }
 </style>

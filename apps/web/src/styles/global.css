@@ -51,6 +51,9 @@
 *::after {
   box-sizing: border-box;
 }
+[hidden] {
+  display: none !important;
+}
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -579,4 +582,45 @@ html.js .rise:not(.in) {
     opacity: 1;
     transform: none;
   }
+}
+/* search results, on the search page and under the pattern list */
+.results {
+  max-width: 760px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.results a {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgb(42 41 37 / 0.12);
+  text-decoration: none;
+}
+.results img,
+.results .ph {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #e6dccd;
+}
+.results .kind {
+  display: block;
+  font: 600 13px/1.2 var(--sans);
+  color: var(--blue);
+}
+.results strong {
+  display: block;
+  margin: 4px 0;
+  font: 400 21px/1.2 var(--serif);
+}
+.results .ex {
+  font-size: 15px;
+  color: var(--muted);
+}
+.results mark {
+  background: #ffe3ef;
+  color: inherit;
 }

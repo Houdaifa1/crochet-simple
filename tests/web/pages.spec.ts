@@ -512,6 +512,37 @@ test.describe('patterns', () => {
     await page.locator('#q').fill('zzzz');
     await expect(page.locator('.status')).toContainText('Nothing found');
   });
+
+  test('the pattern list narrows while typing, without pressing Enter', async ({ page }) => {
+    await visit(page, '/patterns/');
+    const cards = page.locator('.grid a.card:visible');
+    const all = await cards.count();
+    const input = page.locator('#q');
+    await input.click();
+    await input.pressSequentially('ba');
+    await expect(page.locator('.count')).toHaveText('1 pattern for “ba”');
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first()).toHaveAttribute('href', '/patterns/blue-market-bag/');
+    await expect(page.locator('.pager')).toBeHidden();
+    expect(new URL(page.url()).searchParams.get('q')).toBe('ba');
+    // a pattern on the next page is listed below the cards
+    await input.fill('panda');
+    await expect(page.locator('.more')).toBeVisible();
+    await expect(page.locator('.more li a').first()).toHaveAttribute(
+      'href',
+      '/patterns/crochet-panda/',
+    );
+    await input.fill('zzzz');
+    await expect(page.locator('.count')).toContainText('Nothing found');
+    await expect(cards).toHaveCount(0);
+    // clearing the box brings the whole list back
+    await input.fill('');
+    await expect(cards).toHaveCount(all);
+    await expect(page.locator('.more')).toBeHidden();
+    // a shared link opens with the search already done
+    await visit(page, '/patterns/?q=cozy');
+    await expect(page.locator('.count')).toHaveText('1 pattern for “cozy”');
+  });
 });
 
 test.describe('ads', () => {

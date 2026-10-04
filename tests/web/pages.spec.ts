@@ -266,7 +266,7 @@ test.describe('search engines and Pinterest', () => {
     await expect(card.locator('.title')).toHaveCSS('color', 'rgb(42, 41, 37)');
   });
 
-  test('the homepage declares the site, and the search page stays out of the index', async ({
+  test('the homepage declares the site, open pages allow big previews, search stays out', async ({
     page,
   }) => {
     await visit(page, '/');
@@ -274,6 +274,14 @@ test.describe('search engines and Pinterest', () => {
       (t) => JSON.parse(t)['@type'],
     );
     expect(types).toEqual(['WebSite', 'Organization']);
+    // open pages allow large photo previews in search results
+    expect(await page.locator('meta[name=robots]').getAttribute('content')).toBe(
+      'max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+    );
+    await visit(page, '/patterns/blue-market-bag/');
+    expect(await page.locator('meta[name=robots]').getAttribute('content')).toContain(
+      'max-image-preview:large',
+    );
     await visit(page, '/search/');
     expect(await page.locator('meta[name=robots]').getAttribute('content')).toBe('noindex, follow');
   });

@@ -55,9 +55,17 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {(noindex || !s.indexable) && (
-      <meta name="robots" content={s.indexable ? 'noindex, follow' : 'noindex, nofollow'} />
-    )}
+    {/* open pages let search engines show large photo previews and full snippets */}
+    <meta
+      name="robots"
+      content={
+        noindex || !s.indexable
+          ? s.indexable
+            ? 'noindex, follow'
+            : 'noindex, nofollow'
+          : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+      }
+    />
     <meta name="theme-color" content="#efe6d6" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

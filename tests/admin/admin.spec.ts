@@ -557,7 +557,8 @@ test('site settings reach the website: social links, Pinterest card, ads and sea
   const home = built('index.html');
   expect(home).toContain('https://www.instagram.com/crochetsimple');
   expect(home).toContain('https://www.pinterest.com/hdrahm/');
-  expect(home).not.toContain('name="robots"');
+  expect(home).toContain('max-image-preview:large');
+  expect(home).not.toContain('noindex');
   const bag = built('patterns/blue-market-bag/index.html');
   expect(bag).toContain('ca-pub-1234567890123456');
   expect(bag).toContain('adsbygoogle');

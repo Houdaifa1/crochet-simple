@@ -543,6 +543,20 @@ test.describe('patterns', () => {
     await visit(page, '/patterns/?q=cozy');
     await expect(page.locator('.count')).toHaveText('1 pattern for “cozy”');
   });
+
+  test('search says so when it cannot load, and works again once it can', async ({ page }) => {
+    await page.route('**/pagefind/**', (r) => r.abort());
+    await visit(page, '/patterns/');
+    const input = page.locator('#q');
+    await input.click();
+    await input.pressSequentially('bag');
+    await expect(page.locator('.count')).toHaveText(
+      'Search could not load. Check your connection and type again.',
+    );
+    await page.unroute('**/pagefind/**');
+    await input.pressSequentially('s');
+    await expect(page.locator('.count')).toHaveText('1 pattern for “bags”');
+  });
 });
 
 test.describe('ads', () => {

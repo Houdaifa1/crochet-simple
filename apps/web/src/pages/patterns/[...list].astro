@@ -229,7 +229,15 @@ const jsonLd = site
 </script>
 
 <script>
-  import { hitHtml, loadSearch, resultWords, search } from '../../lib/search';
+  import {
+    SEARCH_FAILED,
+    hitHtml,
+    loadSearch,
+    resultWords,
+    search,
+    searchReady,
+    warmSearch,
+  } from '../../lib/search';
 
   // results appear while typing: matching cards stay, best match first; matches on other pages are listed below
   const form = document.querySelector<HTMLFormElement>('form.search');
@@ -264,7 +272,14 @@ const jsonLd = site
       current = q;
       history.replaceState(null, '', q ? `?q=${encodeURIComponent(q)}` : location.pathname);
       if (!q) return restore();
-      const hits = await search(q);
+      if (!searchReady()) count.textContent = 'Searching…';
+      let hits;
+      try {
+        hits = await search(q);
+      } catch {
+        if (q === current) count.textContent = SEARCH_FAILED;
+        return;
+      }
       if (!hits || q !== current) return;
       const here = hits.filter((h) => cards.has(h.url));
       const elsewhere = hits.filter((h) => !cards.has(h.url));
@@ -287,7 +302,8 @@ const jsonLd = site
     };
 
     input.addEventListener('input', () => run(input.value));
-    input.addEventListener('focus', () => void loadSearch(), { once: true });
+    input.addEventListener('focus', () => void loadSearch().catch(() => undefined), { once: true });
+    warmSearch();
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       run(input.value);

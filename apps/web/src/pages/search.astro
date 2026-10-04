@@ -34,7 +34,14 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <script>
-  import { hitHtml, loadSearch, resultWords, search } from '../lib/search';
+  import {
+    SEARCH_FAILED,
+    hitHtml,
+    loadSearch,
+    resultWords,
+    search,
+    searchReady,
+  } from '../lib/search';
 
   const input = document.querySelector<HTMLInputElement>('#q')!;
   const status = document.querySelector<HTMLElement>('.status')!;
@@ -50,7 +57,14 @@ import Base from '../layouts/Base.astro';
       status.textContent = '';
       return;
     }
-    const results = await search(query);
+    if (!searchReady()) status.textContent = 'Searching…';
+    let results;
+    try {
+      results = await search(query);
+    } catch {
+      if (query === current) status.textContent = SEARCH_FAILED;
+      return;
+    }
     if (!results || query !== current) return;
     status.textContent = results.length
       ? `${resultWords(results.length, 'result', 'results')} for “${query}”`
@@ -59,7 +73,7 @@ import Base from '../layouts/Base.astro';
   }
 
   input.addEventListener('input', () => run(input.value));
-  input.addEventListener('focus', () => void loadSearch(), { once: true });
+  input.addEventListener('focus', () => void loadSearch().catch(() => undefined), { once: true });
   document.querySelector('form')!.addEventListener('submit', (e) => {
     e.preventDefault();
     run(input.value);

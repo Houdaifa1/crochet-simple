@@ -510,7 +510,7 @@ html.js .rise:not(.in) {
 }
 .prose .rounds li {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 76px minmax(0, 1fr);
   column-gap: 12px;
   align-items: baseline;
   margin: 0;
@@ -524,6 +524,10 @@ html.js .rise:not(.in) {
   font: 700 14px/1.35 var(--sans);
   color: var(--blue);
   overflow-wrap: anywhere;
+}
+/* short names like "Round 12" stay on one line, even with a wide system font */
+.prose .rounds:not(.long) b {
+  white-space: nowrap;
 }
 /* named steps ("Join the handles") sit above their text on phones, beside it on wider screens */
 .prose .rounds.long li {

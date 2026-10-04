@@ -173,6 +173,41 @@ describe('write-up conversion', () => {
     ]);
   });
 
+  it('turns a size chart into a table, fitting short rows and leaving out empty charts', async () => {
+    const { blocks, warnings } = await run(
+      doc(
+        {
+          type: 'block',
+          fields: {
+            blockType: 'sizeChart',
+            title: 'Sizes',
+            columns: 'Age | Foot | Chain',
+            rows: [
+              { cells: 'Newborn | 8 cm | 18' },
+              { cells: '0 to 3 months | 9 cm' },
+              { cells: ' | ' },
+            ],
+          },
+        },
+        { type: 'block', fields: { blockType: 'sizeChart', columns: 'Only one', rows: [] } },
+      ),
+    );
+    expect(blocks).toEqual([
+      {
+        type: 'chart',
+        title: 'Sizes',
+        head: ['Age', 'Foot', 'Chain'],
+        rows: [
+          ['Newborn', '8 cm', '18'],
+          ['0 to 3 months', '9 cm', ''],
+        ],
+      },
+    ]);
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toMatch(/does not have 3 values/);
+    expect(warnings[1]).toMatch(/at least two column headings/);
+  });
+
   it('leaves out files that are not photos, with a note', async () => {
     const { blocks, warnings } = await run(doc({ type: 'upload', relationTo: 'media', value: 8 }));
     expect(blocks).toEqual([]);

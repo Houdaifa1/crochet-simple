@@ -64,6 +64,12 @@ function blocks({ image }: SchemaContext) {
           items: z.array(z.object({ label: text, text, count: z.string().optional() })).min(1),
         }),
         z.object({ type: z.literal('table'), rows: z.array(z.tuple([text, text])).min(1) }),
+        z.object({
+          type: z.literal('chart'),
+          title: z.string().optional(),
+          head: z.array(text).min(2),
+          rows: z.array(z.array(z.string())).min(1),
+        }),
         z.object({ type: z.literal('quote'), text }),
         z.object({ type: z.literal('cards'), cards: z.array(card).min(1) }),
       ]),

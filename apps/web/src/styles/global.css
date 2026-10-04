@@ -390,6 +390,56 @@ html.js .rise:not(.in) {
   line-height: 1.5;
   color: var(--muted);
 }
+/* size charts: the size column stays in view while a wide table scrolls sideways */
+.prose .chart {
+  margin: 1.6em 0 0;
+}
+.prose .chart figcaption {
+  margin: 0 0 8px;
+  font: 600 15px/1.3 var(--sans);
+  color: var(--ink);
+}
+.prose .chart-scroll {
+  overflow-x: auto;
+  border-radius: 6px;
+  background: var(--sheet);
+}
+.prose .chart table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 15px/1.35 var(--sans);
+}
+.prose .chart th,
+.prose .chart td {
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgb(42 41 37 / 0.1);
+}
+.prose .chart thead th {
+  vertical-align: bottom;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.prose .chart tbody th {
+  position: sticky;
+  left: 0;
+  white-space: nowrap;
+  font-weight: 600;
+  background: var(--sheet);
+}
+.prose .chart tr:last-child > * {
+  border-bottom: 0;
+}
+@media (max-width: 420px) {
+  .prose .chart table {
+    font-size: 14px;
+  }
+  .prose .chart tbody th {
+    white-space: normal;
+  }
+}
 /* step photos side by side: whole photos, never cropped */
 .prose .photos {
   display: grid;

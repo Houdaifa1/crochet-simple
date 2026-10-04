@@ -231,9 +231,27 @@ test.describe('search engines and Pinterest', () => {
     expect(shown[0]!.top).toBe(shown[1]!.top);
     for (const p of shown) expect(Math.abs(p.ratio - p.own)).toBeLessThan(0.02);
     // a photo on its own keeps the full width, and cards keep the short title
-    await expect(page.locator('.prose > figure')).toHaveCount(1);
+    await expect(page.locator('.prose > figure:not(.chart)')).toHaveCount(1);
     await visit(page, '/patterns/category/bags/');
     await expect(page.locator('.grid')).toContainText('Blue market bag');
+  });
+
+  test('a size chart shows every size as a row and fits a small phone', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await visit(page, '/patterns/blue-market-bag/');
+    const chart = page.locator('.prose .chart');
+    await expect(chart.locator('figcaption')).toHaveText('Finished size');
+    await expect(chart.locator('thead th')).toHaveText(['Size', 'Width', 'Height', 'Handles']);
+    await expect(chart.locator('tbody th')).toHaveText(['Regular', 'Large']);
+    await expect(chart.locator('.chart-scroll')).toHaveAttribute('tabindex', '0');
+    await expect(chart.locator('.chart-scroll')).toHaveAttribute('aria-label', 'Finished size');
+    const fits = await chart.evaluate((c) => c.getBoundingClientRect().right <= innerWidth);
+    expect(fits).toBe(true);
+    // four columns fit without scrolling sideways, and a measurement never splits over two lines
+    const scroll = chart.locator('.chart-scroll');
+    const extra = await scroll.evaluate((s) => s.scrollWidth - s.clientWidth);
+    expect(extra).toBeLessThanOrEqual(0);
+    await expect(chart.locator('tbody td').first()).toHaveText('34\u00a0cm (13.4\u00a0in)');
   });
 
   test('a paid pattern ends with its Etsy listing as a full card', async ({ page }) => {

@@ -284,13 +284,16 @@ test('publishing builds the site with published content only, and makes a backup
   await expect(
     page.getByText(/Published .* 2 patterns and 0 articles are ready on this Mac\./),
   ).toBeVisible();
-  const cozy = readFileSync(resolve(ROOT, 'site/patterns/olive-cup-cozy/index.html'), 'utf8');
+  // stitch counts are kept on one line with a no-break space
+  const built = (f: string) =>
+    readFileSync(resolve(ROOT, f), 'utf8').replace(/\u00a0|&nbsp;/g, ' ');
+  const cozy = built('site/patterns/olive-cup-cozy/index.html');
   expect(cozy).toContain('Deep <strong>olive</strong> ribbing, worked flat and seamed.');
   expect(cozy).toContain('<h2 id="pattern">Pattern</h2>');
   expect(cozy).toContain('Ch 18, dc in 4th ch from hook and across.');
   expect(cozy).toContain('16 sts');
   expect(cozy).toContain('<title>Olive Cup Cozy Crochet Pattern | Crochet Simplified</title>');
-  const page1 = readFileSync(resolve(ROOT, 'site/patterns/blue-market-bag/index.html'), 'utf8');
+  const page1 = built('site/patterns/blue-market-bag/index.html');
   expect(page1).toContain('Ch 41, sc across.');
   expect(page1).toContain('4.0 mm (G)');
   // the Google title and description written in the admin reach the page

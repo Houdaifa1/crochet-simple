@@ -72,6 +72,44 @@ export const Abbreviations: Block = {
   ],
 };
 
+// sizes and measurements: one heading row, then one row per size, values separated by |
+export const SizeChart: Block = {
+  slug: 'sizeChart',
+  labels: { singular: 'Size chart', plural: 'Size charts' },
+  fields: [
+    {
+      name: 'title',
+      type: 'text',
+      admin: { description: 'Optional, like "Sizes and measurements".' },
+    },
+    {
+      name: 'columns',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'The column headings separated by |, for example: Size | Foot length | Chain',
+      },
+    },
+    {
+      name: 'rows',
+      type: 'array',
+      minRows: 1,
+      labels: { singular: 'Row', plural: 'Rows' },
+      fields: [
+        {
+          name: 'cells',
+          type: 'text',
+          required: true,
+          admin: {
+            description:
+              'The values in the same order, separated by |, for example: Newborn | 8 cm | 18',
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export const LinkCards: Block = {
   slug: 'linkCards',
   labels: { singular: 'Link cards', plural: 'Link cards' },
@@ -90,4 +128,4 @@ export const LinkCards: Block = {
   ],
 };
 
-export const BODY_BLOCKS = [Tip, Rounds, Abbreviations, LinkCards];
+export const BODY_BLOCKS = [Tip, Rounds, Abbreviations, SizeChart, LinkCards];

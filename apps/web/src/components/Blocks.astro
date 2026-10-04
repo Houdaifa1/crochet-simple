@@ -4,6 +4,7 @@ import { sharpCapped } from '../lib/sizes';
 import AdSlot from './AdSlot.astro';
 import LinkCards from './LinkCards.astro';
 import { headingId, type Blocks } from '../lib/content';
+import { keepCounts, keepMeasures } from '../lib/text';
 
 interface Props {
   blocks: Blocks;
@@ -132,7 +133,7 @@ const adItem = adAfter === undefined ? -1 : items.findIndex((it) => it.i + 1 >= 
                   <li>
                     <b>{r.label}</b>
                     <span>
-                      {r.text}
+                      {keepCounts(r.text)}
                       {r.count && <span class="count"> ({r.count})</span>}
                     </span>
                   </li>
@@ -151,6 +152,36 @@ const adItem = adAfter === undefined ? -1 : items.findIndex((it) => it.i + 1 >= 
                 ))}
               </tbody>
             </table>
+          )}
+          {b.type === 'chart' && (
+            <figure class="chart">
+              {b.title && <figcaption>{b.title}</figcaption>}
+              <div
+                class="chart-scroll"
+                tabindex="0"
+                role="region"
+                aria-label={b.title ?? 'Size chart'}
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      {b.head.map((h) => (
+                        <th scope="col">{keepMeasures(h)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((r) => (
+                      <tr>
+                        {r.map((c, k) =>
+                          k === 0 ? <th scope="row">{c}</th> : <td>{keepMeasures(c)}</td>,
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </figure>
           )}
           {b.type === 'quote' && (
             <blockquote>

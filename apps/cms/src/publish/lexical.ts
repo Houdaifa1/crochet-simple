@@ -160,6 +160,32 @@ export async function toBlocks(
             .map((row) => [String(row['short'] ?? '').trim(), String(row['meaning'] ?? '').trim()])
             .filter(([a, b]) => a && b);
           if (rows.length) out.push({ type: 'table', rows });
+        } else if (f['blockType'] === 'sizeChart') {
+          const cells = (v: unknown) =>
+            String(v ?? '')
+              .split('|')
+              .map((c) => c.trim());
+          const head = cells(f['columns']).filter(Boolean);
+          const rows = ((f['rows'] as Record<string, unknown>[] | undefined) ?? [])
+            .map((r) => cells(r['cells']))
+            .filter((r) => r.some(Boolean));
+          if (head.length < 2 || !rows.length) {
+            warn(
+              'A size chart needs at least two column headings and one row, so it was left out.',
+            );
+          } else {
+            if (rows.some((r) => r.length !== head.length))
+              warn(
+                `A size chart row does not have ${head.length} values; it was padded or cut to fit.`,
+              );
+            const title = String(f['title'] ?? '').trim();
+            out.push({
+              type: 'chart',
+              ...(title ? { title } : {}),
+              head,
+              rows: rows.map((r) => head.map((_, i) => r[i] ?? '')),
+            });
+          }
         } else if (f['blockType'] === 'linkCards') {
           const urls = ((f['links'] as Record<string, unknown>[] | undefined) ?? [])
             .map((l) => String(l['url'] ?? ''))

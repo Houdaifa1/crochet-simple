@@ -72,6 +72,15 @@
       ]
     },
     {
+      "type": "chart",
+      "title": "Finished size",
+      "head": ["Size", "Width", "Height", "Handles"],
+      "rows": [
+        ["Regular", "34 cm (13.4 in)", "30 cm (11.8 in)", "55 cm (21.7 in)"],
+        ["Large", "40 cm (15.7 in)", "36 cm (14.2 in)", "60 cm (23.6 in)"]
+      ]
+    },
+    {
       "type": "heading",
       "level": 2,
       "text": "Abbreviations"

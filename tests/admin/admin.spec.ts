@@ -24,7 +24,11 @@ const upload = async (file: string, alt: string) => {
     multipart: {
       file: {
         name: file.split('/').pop()!,
-        mimeType: file.endsWith('.pdf') ? 'application/pdf' : 'image/png',
+        mimeType: file.endsWith('.pdf')
+          ? 'application/pdf'
+          : file.endsWith('.jpg')
+            ? 'image/jpeg'
+            : 'image/png',
         buffer: readFileSync(resolve(REPO, file)),
       },
       _payload: JSON.stringify({ alt }),
@@ -193,6 +197,10 @@ test('publishing builds the site with published content only, and makes a backup
     'tests/fixtures/content/media/sample-pattern.pdf',
     'Blue bag pattern PDF',
   );
+  const downloadPicture = await upload(
+    'tests/fixtures/content/media/blue-market-bag-download.jpg',
+    'Blue crochet market bag stitches',
+  );
   const icon = await upload('tests/fixtures/content/categories/icons/bags.svg', 'Bag icon');
   expect(
     (
@@ -265,6 +273,7 @@ test('publishing builds the site with published content only, and makes a backup
     seoDescription: 'A free cobalt tote pattern with written rounds and a printable PDF.',
     category,
     cover: cover.id,
+    downloadPicture: downloadPicture.id,
     pdf: pdf.id,
     details: { hook: '4.0 mm (G)' },
     body,
@@ -300,6 +309,16 @@ test('publishing builds the site with published content only, and makes a backup
   expect(page1).toContain('<title>Free Crochet Market Bag Pattern | Crochet Simplified</title>');
   expect(page1).toContain('A free cobalt tote pattern with written rounds and a printable PDF.');
   expect(existsSync(resolve(ROOT, 'site/downloads/blue-market-bag.pdf'))).toBe(true);
+  const exported = JSON.parse(
+    readFileSync(resolve(ROOT, 'content/patterns/blue-market-bag.json'), 'utf8'),
+  );
+  expect(exported.downloadPicture).toBe('../media/blue-market-bag-download.jpg');
+  expect(existsSync(resolve(ROOT, 'content/media/blue-market-bag-download.jpg'))).toBe(true);
+  expect(page1).toContain('blue-market-bag-download');
+  expect(
+    JSON.parse(readFileSync(resolve(ROOT, 'content/patterns/olive-cup-cozy.json'), 'utf8'))
+      .downloadPicture,
+  ).toBeUndefined();
   expect(existsSync(resolve(ROOT, 'site/patterns/secret-draft-pattern'))).toBe(false);
   expect(readFileSync(resolve(ROOT, 'site/index.html'), 'utf8')).toContain(
     'Pull the thread to begin',
@@ -438,6 +457,12 @@ test('a category or file that is still used cannot be deleted, and the admin say
   await deleteFromList('media', '01-blue-market-bag.png');
   await expect(
     page.getByText(/This file is still used by .*pattern "Blue market bag" \(cover\)/).first(),
+  ).toBeVisible();
+  await deleteFromList('media', 'blue-market-bag-download.jpg');
+  await expect(
+    page
+      .getByText(/This file is still used by .*pattern "Blue market bag" \(download picture\)/)
+      .first(),
   ).toBeVisible();
   const stillThere = await page.request.get(`${ORIGIN}/api/categories?limit=0`, {
     headers: { origin: ORIGIN },

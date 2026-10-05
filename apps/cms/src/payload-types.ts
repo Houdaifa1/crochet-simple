@@ -170,6 +170,10 @@ export interface Pattern {
    * A tall 2:3 image made for Pinterest. Leave empty and the site makes one from the cover and title.
    */
   pinImage?: (number | null) | Media;
+  /**
+   * Background of the download card at the end of the page. Leave empty to use the cover photo.
+   */
+  downloadPicture?: (number | null) | Media;
   pdf?: (number | null) | Media;
   /**
    * Optional; counted automatically if empty.
@@ -489,6 +493,7 @@ export interface PatternsSelect<T extends boolean = true> {
       };
   video?: T;
   pinImage?: T;
+  downloadPicture?: T;
   pdf?: T;
   pdfPages?: T;
   etsyUrl?: T;

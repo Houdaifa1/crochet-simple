@@ -100,6 +100,7 @@ const patterns = defineCollection({
       category: reference('categories'),
       cover: ctx.image(),
       coverAlt: text,
+      downloadPicture: ctx.image().optional(),
       gallery: z.array(z.object({ image: ctx.image(), alt: text })).default([]),
       pinImage: ctx.image().optional(),
       details: z

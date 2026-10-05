@@ -93,6 +93,17 @@ export const Patterns: CollectionConfig = {
             'Upload a PDF for a free pattern, or paste the Etsy link for a paid one. Leave both empty for neither.',
           fields: [
             {
+              name: 'downloadPicture',
+              type: 'upload',
+              relationTo: 'media',
+              filterOptions: onlyImages,
+              label: 'Download picture',
+              admin: {
+                description:
+                  'Background of the download card at the end of the page. Leave empty to use the cover photo.',
+              },
+            },
+            {
               name: 'pdf',
               type: 'upload',
               relationTo: 'media',

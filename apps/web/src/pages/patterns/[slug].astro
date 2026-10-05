@@ -206,7 +206,14 @@ const thumb = await getImage({
             <Blocks blocks={d.body} adAfter={adAfter} ads={d.ads} />
           </article>
         )}
-        <GetPattern slug={pattern.id} pdf={pdf} etsyUrl={d.etsyUrl} etsyCard={d.etsyCard} />
+        <GetPattern
+          slug={pattern.id}
+          pdf={pdf}
+          etsyUrl={d.etsyUrl}
+          etsyCard={d.etsyCard}
+          cover={d.cover}
+          downloadPicture={d.downloadPicture}
+        />
         {saveHref && (
           <div class="share" data-pagefind-ignore>
             <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">

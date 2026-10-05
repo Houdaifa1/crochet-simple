@@ -1,4 +1,6 @@
 ---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import LinkCards from './LinkCards.astro';
 import { fileSize, type Pattern, type PdfInfo } from '../lib/content';
 
@@ -7,9 +9,14 @@ interface Props {
   pdf: PdfInfo | null;
   etsyUrl?: string | undefined;
   etsyCard?: Pattern['data']['etsyCard'];
+  cover: ImageMetadata;
+  downloadPicture?: ImageMetadata | undefined;
 }
-const { slug, pdf, etsyUrl, etsyCard } = Astro.props;
-// a paid pattern shows the Etsy listing itself: photo, price and shop rating
+const { slug, pdf, etsyUrl, etsyCard, cover, downloadPicture } = Astro.props;
+const picture = downloadPicture ?? cover;
+const sizes = downloadPicture
+  ? '(min-width: 1236px) 760px, (min-width: 1000px) calc(100vw - 476px), (min-width: 900px) calc(100vw - 112px), calc(100vw - 48px)'
+  : '(min-width: 1236px) 426px, (min-width: 1000px) calc((100vw - 476px) * 0.56), (min-width: 900px) calc((100vw - 112px) * 0.56), (min-width: 600px) calc((100vw - 48px) * 0.56), calc(100vw - 48px)';
 const listing = pdf ? undefined : etsyCard;
 const facts = pdf
   ? ['PDF', pdf.pages && `${pdf.pages} ${pdf.pages === 1 ? 'page' : 'pages'}`, fileSize(pdf.bytes)]
@@ -17,76 +24,186 @@ const facts = pdf
 ---
 
 {(pdf || etsyUrl) && (
-  <section class="get" id="download" aria-labelledby="download-title" data-get>
-    <h2 id="download-title">{pdf ? 'Download the free PDF' : 'Get the pattern'}</h2>
-    <p class="lead">
-      {pdf
-        ? 'The whole pattern with all the photos, ready to save on your phone or print.'
-        : 'The full pattern is available on Etsy.'}
-    </p>
-    {listing ? (
-      <div class="listing">
-        <LinkCards cards={[listing]} />
-      </div>
-    ) : pdf ? (
-      <a class="btn" href={`/downloads/${slug}.pdf`} download>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" />
-        </svg>
-        Download free PDF
-      </a>
-    ) : (
-      <a class="btn etsy" href={etsyUrl} rel="noopener" target="_blank">
-        Get the pattern on Etsy
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 17 17 7M9 7h8v8" />
-        </svg>
-        <span class="visually-hidden"> (opens in a new tab)</span>
-      </a>
-    )}
-    {pdf && <p class="fine">{facts.filter(Boolean).join(' · ')}</p>}
+  <section
+    class:list={['get', { cover: !downloadPicture, 'has-listing': Boolean(listing) }]}
+    id="download"
+    aria-labelledby="download-title"
+    data-get
+  >
+    <Picture
+      src={picture}
+      alt=""
+      formats={['avif', 'webp']}
+      fallbackFormat="jpg"
+      widths={[480, 800, 1200, 1600]}
+      sizes={sizes}
+      loading="lazy"
+      decoding="async"
+      class="background"
+    />
+    <div class="copy">
+      <h2 id="download-title">{pdf ? 'Download the free PDF' : 'Get the pattern'}</h2>
+      <p class="lead">
+        {pdf
+          ? 'The whole pattern with all the photos, ready to save on your phone or print.'
+          : 'The full pattern is available on Etsy.'}
+      </p>
+      {listing ? (
+        <div class="listing">
+          <LinkCards cards={[listing]} />
+        </div>
+      ) : pdf ? (
+        <a class="btn" href={`/downloads/${slug}.pdf`} download>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" />
+          </svg>
+          Download free PDF
+        </a>
+      ) : (
+        <a class="btn etsy" href={etsyUrl} rel="noopener" target="_blank">
+          Get the pattern on Etsy
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 17 17 7M9 7h8v8" />
+          </svg>
+          <span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      )}
+      {pdf && <p class="fine">{facts.filter(Boolean).join(' · ')}</p>}
+    </div>
   </section>
 )}
 
 <style>
   .get {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     margin: 56px 0 0;
-    padding: 30px 22px;
-    border-radius: 6px;
-    background: var(--ink);
-    color: #fbf7f0;
-    text-align: center;
+    padding: 258px 24px 28px;
+    min-height: 496px;
+    border-radius: 18px;
+    background: var(--sheet);
+    color: var(--ink);
+    text-align: left;
     scroll-margin-top: 90px;
   }
+  .get :global(picture) {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+  }
+  .get :global(.background) {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    object-position: 84% center;
+  }
+  .get::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--sheet) 0%, transparent) 170px,
+      color-mix(in srgb, var(--sheet) 94%, transparent) 254px,
+      var(--sheet) 295px
+    );
+  }
+  .copy {
+    position: relative;
+    max-width: 36ch;
+  }
   h2 {
-    margin: 0 0 8px;
-    font-size: 32px;
+    margin: 0 0 12px;
+    font: 400 32px/1.12 var(--serif);
+    letter-spacing: -0.025em;
   }
   .lead {
-    margin: 0 auto 20px;
+    margin: 0 0 22px;
     max-width: 34ch;
-    color: rgb(251 247 240 / 0.78);
-  }
-  .btn:not(.etsy) {
-    background: #fbf7f0;
     color: var(--ink);
+    font-size: 16px;
+    line-height: 1.55;
   }
-  .etsy {
-    background: #f1641e;
+  .btn {
+    width: 100%;
+    min-height: 54px;
+    padding: 12px 18px;
+    border-radius: 6px;
+    background: var(--blue);
+    color: var(--sheet);
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+  .btn:hover {
+    background: var(--ink);
+  }
+  .btn:active {
+    background: var(--ink);
+    box-shadow: inset 0 2px 4px color-mix(in srgb, var(--sheet) 16%, transparent);
+  }
+  .btn:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 5px;
   }
   .fine {
-    margin: 12px 0 0;
+    margin: 14px 0 0;
+    color: var(--ink);
     font-size: 14px;
-    color: rgb(251 247 240 / 0.72);
   }
-  /* the Etsy card keeps its own dark text inside the dark box */
   .listing {
     max-width: 520px;
-    margin: 0 auto;
     color: var(--ink);
     text-align: left;
   }
   .listing :global(.cards) {
     margin: 0;
+  }
+  @media (min-width: 600px) {
+    .get {
+      display: flex;
+      align-items: center;
+      min-height: 360px;
+      padding: 40px 36px;
+    }
+    .get :global(.background) {
+      height: 100%;
+      object-position: center;
+    }
+    .get::before {
+      background: linear-gradient(
+        90deg,
+        var(--sheet) 0%,
+        color-mix(in srgb, var(--sheet) 98%, transparent) 37%,
+        color-mix(in srgb, var(--sheet) 90%, transparent) 48%,
+        color-mix(in srgb, var(--sheet) 0%, transparent) 72%
+      );
+    }
+    .copy {
+      width: 52%;
+      max-width: 350px;
+    }
+    h2 {
+      font-size: 34px;
+    }
+    .btn {
+      width: auto;
+    }
+    .cover :global(picture) {
+      left: 44%;
+    }
+    .has-listing .copy {
+      width: 100%;
+      max-width: 520px;
+    }
+    .has-listing::before {
+      background: linear-gradient(
+        90deg,
+        var(--sheet) 0%,
+        color-mix(in srgb, var(--sheet) 96%, transparent) 72%,
+        color-mix(in srgb, var(--sheet) 0%, transparent) 100%
+      );
+    }
   }
 </style>

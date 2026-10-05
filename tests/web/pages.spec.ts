@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { PNG } from 'pngjs';
 
 // the test build: fixtures from tests/fixtures/content, SITE_URL=https://example.com, 6 per page
 const SITE = 'https://example.com';
@@ -315,6 +316,162 @@ test.describe('search engines and Pinterest', () => {
 
 test.describe('patterns', () => {
   test.use(SIZES.phone);
+
+  test('the download card uses its chosen picture or the cover photo', async ({ page }) => {
+    for (const [slug, filename] of [
+      ['blue-market-bag', 'blue-market-bag-download'],
+      ['daisy-clip', '02-daisy-clip'],
+    ]) {
+      await visit(page, `/patterns/${slug}/`);
+      const card = page.locator('[data-get]');
+      await expect(page.locator('#download')).toHaveCount(1);
+      const picture = card.locator('picture');
+      const photo = picture.locator('img');
+      await expect(photo).toHaveAttribute('alt', '');
+      await expect(photo).toHaveAttribute('loading', 'lazy');
+      await expect(photo).toHaveAttribute('src', new RegExp(filename!));
+      await expect(picture.locator('source[type="image/avif"]')).toHaveAttribute('srcset', /1600w/);
+      await expect(picture.locator('source[type="image/webp"]')).toHaveAttribute('srcset', /480w/);
+      await expect(photo).toHaveAttribute('sizes', /100vw - 48px/);
+      await card.scrollIntoViewIfNeeded();
+      await expect
+        .poll(() =>
+          photo.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+        )
+        .toBe(true);
+    }
+  });
+
+  for (const width of [360, 1280]) {
+    test(`download buttons fit inside the picture card at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      for (const slug of ['blue-market-bag', 'daisy-clip', 'laptop-sleeve']) {
+        await visit(page, `/patterns/${slug}/`);
+        const card = page.locator('[data-get]');
+        await card.scrollIntoViewIfNeeded();
+        const button = card.locator('.btn');
+        await expect(button).toBeVisible();
+        const cardBox = (await card.boundingBox())!;
+        const buttonBox = (await button.boundingBox())!;
+        expect(buttonBox.height).toBeGreaterThanOrEqual(48);
+        expect(buttonBox.x).toBeGreaterThanOrEqual(cardBox.x);
+        expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
+        expect(buttonBox.y).toBeGreaterThanOrEqual(cardBox.y);
+        expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+          width,
+        );
+      }
+    });
+
+    test(`download text has readable contrast over its picture at ${width} px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      const luminance = (color: number[]) =>
+        color.reduce((sum, channel, i) => {
+          const value = channel / 255;
+          return (
+            sum +
+            (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4) *
+              [0.2126, 0.7152, 0.0722][i]!
+          );
+        }, 0);
+      const contrast = (a: number[], b: number[]) => {
+        const values = [luminance(a), luminance(b)].sort((x, y) => x - y);
+        return (values[1]! + 0.05) / (values[0]! + 0.05);
+      };
+      for (const slug of ['blue-market-bag', 'daisy-clip', 'airpods-pouch', 'laptop-sleeve']) {
+        await visit(page, `/patterns/${slug}/`);
+        const card = page.locator('[data-get]');
+        await card.scrollIntoViewIfNeeded();
+        await card.evaluate((section) =>
+          window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 90),
+        );
+        await expect
+          .poll(() =>
+            card
+              .locator('img.background')
+              .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+          )
+          .toBe(true);
+        await page.evaluate(() => document.fonts.ready);
+        const text = await card.evaluate((section) => {
+          const card = section.getBoundingClientRect();
+          return [...section.querySelectorAll<HTMLElement>('h2, .lead, .fine')].map((element) => {
+            const box = element.getBoundingClientRect();
+            const color = getComputedStyle(element)
+              .color.match(/[\d.]+/g)!
+              .map(Number);
+            element.style.visibility = 'hidden';
+            return {
+              x: box.x - card.x,
+              y: box.y - card.y,
+              width: box.width,
+              height: box.height,
+              color,
+            };
+          });
+        });
+        const pixels = PNG.sync.read(await card.screenshot({ scale: 'css' }));
+        for (const box of text) {
+          let lowest = Infinity;
+          for (let y = Math.ceil(box.y); y < Math.floor(box.y + box.height); y += 2) {
+            for (let x = Math.ceil(box.x); x < Math.floor(box.x + box.width); x += 2) {
+              const i = (y * pixels.width + x) * 4;
+              lowest = Math.min(
+                lowest,
+                contrast(box.color.slice(0, 3), [...pixels.data.subarray(i, i + 3)]),
+              );
+            }
+          }
+          expect(lowest, `${slug} text over the photograph`).toBeGreaterThanOrEqual(4.5);
+        }
+        const button = card.locator('.btn');
+        if (await button.count()) {
+          const colors = await button.evaluate((element) => {
+            const css = getComputedStyle(element);
+            return [css.color, css.backgroundColor].map((value) =>
+              value
+                .match(/[\d.]+/g)!
+                .map(Number)
+                .slice(0, 3),
+            );
+          });
+          expect(contrast(colors[0]!, colors[1]!)).toBeGreaterThanOrEqual(4.5);
+          expect(contrast(colors[1]!, [251, 248, 242])).toBeGreaterThanOrEqual(3);
+        }
+      }
+    });
+  }
+
+  test('the picture card preserves both paid pattern choices', async ({ page }) => {
+    await visit(page, '/patterns/airpods-pouch/');
+    await expect(page.locator('[data-get] .link-card')).toBeVisible();
+    await expect(page.locator('[data-get] h2')).toHaveText('Get the pattern');
+    await visit(page, '/patterns/laptop-sleeve/');
+    await expect(page.locator('[data-get] .btn')).toHaveText(/Get the pattern on Etsy/);
+    await expect(page.locator('[data-get] .btn')).toHaveAttribute('target', '_blank');
+    await expect(page.locator('[data-get] .lead')).toHaveText(
+      'The full pattern is available on Etsy.',
+    );
+  });
+
+  test('the download button keeps its address, icon and keyboard focus', async ({ page }) => {
+    await visit(page, '/patterns/blue-market-bag/');
+    const card = page.locator('[data-get]');
+    await expect(card).toHaveAttribute('aria-labelledby', 'download-title');
+    await expect(card).toHaveCSS('scroll-margin-top', '90px');
+    const button = card.locator('.btn');
+    await expect(button).toHaveAttribute('href', '/downloads/blue-market-bag.pdf');
+    await expect(button).toHaveAttribute('download', '');
+    await expect(button.locator('svg')).toHaveAttribute('aria-hidden', 'true');
+    await button.focus();
+    await expect(button).toHaveCSS('outline-style', 'solid');
+    await expect(button).toHaveCSS('outline-width', '3px');
+    await button.hover();
+    await expect(button).toHaveCSS('background-color', 'rgb(42, 41, 37)');
+  });
 
   test('lists six per page with numbered pages', async ({ page }) => {
     await visit(page, '/patterns/');

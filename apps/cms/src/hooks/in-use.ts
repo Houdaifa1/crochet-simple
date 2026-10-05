@@ -64,6 +64,7 @@ export const fileInUse: CollectionBeforeDeleteHook = async ({ req, id }) => {
     check(p, `pattern "${String(p['title'])}"`, {
       cover: p['cover'],
       'Pinterest image': p['pinImage'],
+      'download picture': p['downloadPicture'],
       PDF: p['pdf'],
       ...Object.fromEntries(gallery.map((g, i) => [`photo ${i + 2}`, g['image']])),
     });

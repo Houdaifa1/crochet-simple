@@ -226,5 +226,6 @@
     "thumbnail": "../../../../apps/web/src/assets/details/01a-bag-stitches.png",
     "uploadDate": "2026-09-01T10:00:00Z",
     "duration": "PT8M36S"
-  }
+  },
+  "downloadPicture": "../media/blue-market-bag-download.jpg"
 }

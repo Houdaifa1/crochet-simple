@@ -272,6 +272,9 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         category,
         cover: rel(cover, 1),
         coverAlt: text(cover.alt),
+        downloadPicture: p['downloadPicture']
+          ? rel(file(p['downloadPicture'], `${where} (download picture)`, 'photo'), 1)
+          : undefined,
         gallery: ((p['gallery'] as Record<string, unknown>[] | undefined) ?? []).map((g, i) => {
           const m = file(g['image'], `${where} (photo ${i + 2})`, 'photo');
           return { image: rel(m, 1), alt: text(m.alt) };

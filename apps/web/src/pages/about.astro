@@ -1,9 +1,8 @@
 ---
-import { Picture } from 'astro:assets';
+import { Picture, getImage } from 'astro:assets';
 import { sharpCapped } from '../lib/sizes';
 import { getEntry } from 'astro:content';
 import Blocks from '../components/Blocks.astro';
-import PageHead from '../components/PageHead.astro';
 import ProfileCard from '../components/ProfileCard.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 import Base from '../layouts/Base.astro';
@@ -15,8 +14,14 @@ const page = (await getEntry('pages', 'about'))?.data;
 const s = await settings();
 const all = await patterns();
 const hasFree = all.some(isFree);
+const hasPaid = all.some((pattern) => !isFree(pattern));
 const freeHref = needsFreePage(all.map(isFree)) ? '/patterns/free/' : '/patterns/';
 const image = page?.image ?? heroPhoto;
+const share = await getImage({ src: image, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const opening = page?.body[0]?.type === 'paragraph' ? page.body[0] : undefined;
+const remaining = opening ? page!.body.slice(1) : (page?.body ?? []);
+const photos = remaining.filter((block) => block.type === 'image');
+const story = remaining.filter((block) => block.type !== 'image');
 const site = Astro.site;
 const jsonLd = site
   ? [
@@ -47,35 +52,96 @@ const imageAlt = page?.image
     'Crochet Simplified shares crochet patterns and tutorials with clear steps, good photos and printable PDFs.'
   }
   current="about"
-  image={undefined}
+  image={share.src}
   jsonLd={jsonLd}
 >
   <div class="wrap">
-    <PageHead eyebrow="About" title="Crochet Simplified" />
-    <p class="statement rise">
-      {page?.intro ?? (
-        <>
-          Patterns for pieces you will <em>use every day,</em> written so you can finish them.
-        </>
-      )}
-    </p>
-    <figure class="photo rise">
-      <Picture
-        src={image}
-        alt={imageAlt}
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
-        widths={[480, 800, 1200, 1600]}
-        sizes={sharpCapped('(min-width: 1320px) 1200px, calc(100vw - 40px)')}
-        loading="eager"
-      />
-    </figure>
-    {page && page.body.length > 0 && (
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">About Crochet Simplified</p>
+        <h1 class="statement">{page?.intro ?? 'Good patterns. More time for making.'}</h1>
+        <div class="lede prose">
+          {opening ? (
+            <Blocks blocks={[opening]} />
+          ) : (
+            <p>Clear crochet patterns, useful details and printable PDFs for your next project.</p>
+          )}
+        </div>
+        <a class="btn" href={hasFree ? freeHref : '/patterns/'}>
+          {hasFree ? 'Browse free patterns' : 'Browse patterns'}
+        </a>
+      </div>
+      <div
+        class:list={['pinboard', { single: photos.length < 2 }]}
+        aria-label="From the pattern collection"
+      >
+        <figure class="photo main-photo">
+          <Picture
+            src={image}
+            alt={imageAlt}
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            widths={[320, 480, 640, 960, 1200]}
+            sizes={sharpCapped(
+              photos.length >= 2
+                ? '(min-width: 1240px) 330px, (min-width: 900px) 28vw, 62vw'
+                : '(min-width: 1240px) 500px, (min-width: 900px) 42vw, calc(100vw - 48px)',
+            )}
+            loading="eager"
+            fetchpriority="high"
+          />
+        </figure>
+        {photos.slice(0, 2).map((photo, i) => (
+          <figure
+            class="photo small-photo"
+            style={`--order: ${i + 1}; --tilt: ${i === 0 ? 4 : -3}deg`}
+          >
+            <Picture
+              src={photo.image}
+              alt={photo.alt}
+              formats={['avif', 'webp']}
+              fallbackFormat="jpg"
+              widths={[192, 320, 480, 640]}
+              sizes={sharpCapped('(min-width: 1240px) 210px, (min-width: 900px) 17vw, 34vw')}
+              loading="lazy"
+            />
+            {photo.caption && <figcaption>{photo.caption}</figcaption>}
+          </figure>
+        ))}
+        <svg class="thread" viewBox="0 0 480 480" aria-hidden="true">
+          <path
+            pathLength="1"
+            d="M12 350C48 412 168 437 200 380S152 253 229 200S397 206 404 147S364 61 467 33"
+          />
+        </svg>
+      </div>
+    </header>
+    {story.length > 0 && (
       <section class="story rise">
         <h2>The story</h2>
         <div class="prose">
-          <Blocks blocks={page.body} />
+          <Blocks blocks={story} />
         </div>
+      </section>
+    )}
+    {photos.length > 2 && (
+      <section class="work" aria-label="More from the pattern collection">
+        {photos.slice(2).map((photo) => (
+          <figure class="work-photo rise">
+            <Picture
+              src={photo.image}
+              alt={photo.alt}
+              formats={['avif', 'webp']}
+              fallbackFormat="jpg"
+              widths={[320, 480, 720, 960, 1200]}
+              sizes={sharpCapped(
+                '(min-width: 1240px) 550px, (min-width: 700px) 43vw, calc(100vw - 48px)',
+              )}
+              loading="lazy"
+            />
+            {photo.caption && <figcaption>{photo.caption}</figcaption>}
+          </figure>
+        ))}
       </section>
     )}
     <section class="offers" aria-label="What you will find here">
@@ -92,7 +158,7 @@ const imageAlt = page?.image
           </a>
         </div>
       )}
-      {s.etsyShopUrl && (
+      {hasPaid && s.etsyShopUrl && (
         <div class="offer rise">
           <svg viewBox="0 0 40 40" aria-hidden="true">
             <path d="M8 14h24l-2 19a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2z" />
@@ -122,7 +188,7 @@ const imageAlt = page?.image
         <SocialLinks links={s.social} />
       </div>
     )}
-    <section class="contact rise">
+    <section class="contact">
       <h2>Say hello</h2>
       {s.contactEmail ? (
         <p>
@@ -150,27 +216,140 @@ const imageAlt = page?.image
 </script>
 
 <style>
+  .hero {
+    display: grid;
+    gap: 32px;
+    padding-top: 36px;
+  }
+  .hero-copy {
+    align-self: center;
+  }
   .statement {
-    max-width: 20ch;
-    margin: 24px 0 0;
-    font: 400 clamp(32px, 8.4vw, 64px) / 1.08 var(--serif);
-    letter-spacing: -0.03em;
+    max-width: 15ch;
+    margin: 18px 0 24px;
+    font: 400 clamp(42px, 10vw, 72px) / 1.03 var(--serif);
+    letter-spacing: -0.045em;
     font-variation-settings: 'opsz' 144;
     text-wrap: balance;
   }
-  .statement em {
-    font-style: italic;
-    color: var(--blue);
+  .lede {
+    max-width: 43ch;
+    color: var(--muted);
+  }
+  .hero-copy .btn {
+    margin-top: 24px;
+  }
+  .pinboard {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 22px 6px 26px;
+  }
+  .pinboard::before {
+    content: '';
+    position: absolute;
+    inset: 10% 0 4%;
+    z-index: -2;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--pink) 12%, var(--sheet));
+  }
+  .pinboard.single {
+    grid-template-columns: 1fr;
   }
   .photo {
-    margin: 36px 0 0;
+    margin: 0;
+    min-width: 0;
+    padding: 7px;
+    background: var(--sheet);
+    border-radius: 12px;
+    box-shadow: 0 16px 35px -18px rgb(42 41 37 / 0.32);
+    transform: rotate(var(--tilt, -4deg));
+    animation: settle 900ms var(--ease-out) calc(var(--order, 0) * 130ms) both;
+  }
+  .main-photo {
+    grid-row: span 2;
+    animation: none;
   }
   .photo :global(img) {
     width: 100%;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
-    border-radius: 20px;
-    background: #e6dccd;
+    border-radius: 7px;
+    background: var(--blue);
+  }
+  .small-photo :global(img) {
+    aspect-ratio: 4 / 5;
+  }
+  .photo figcaption {
+    padding: 8px 3px 2px;
+    font: 600 12px/1.3 var(--sans);
+  }
+  .thread {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: visible;
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .thread path {
+    stroke-dasharray: 1;
+    animation: thread-in 1600ms var(--ease-out) both;
+  }
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(24px) rotate(calc(var(--tilt, -4deg) - 6deg)) scale(0.94);
+    }
+  }
+  @keyframes thread-in {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .work {
+    display: grid;
+    gap: 30px;
+    margin: 56px 0 0;
+  }
+  .work-photo {
+    min-width: 0;
+    margin: 0;
+  }
+  .work-photo :global(img) {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 16px;
+  }
+  .work-photo figcaption {
+    margin: 12px 0 0;
+    font: 400 24px/1.2 var(--serif);
+  }
+  @media (min-width: 700px) {
+    .work {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .work-photo:nth-child(even) {
+      margin-top: 60px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .photo,
+    .thread path {
+      animation: none;
+    }
   }
   .story {
     display: grid;
@@ -190,7 +369,7 @@ const imageAlt = page?.image
   }
   .offer {
     padding: 24px;
-    border-radius: 6px;
+    border-radius: 16px;
     background: var(--sheet);
     box-shadow:
       0 1px 0 rgb(42 41 37 / 0.1),
@@ -226,17 +405,31 @@ const imageAlt = page?.image
   .contact {
     margin: 56px 0 0;
     padding: 32px 24px;
-    border-radius: 6px;
+    border-radius: 16px;
     background: var(--blue);
-    color: #fff;
+    color: var(--sheet);
   }
   .contact p {
     max-width: 44ch;
     margin: 10px 0 0;
-    color: rgb(255 255 255 / 0.86);
+    color: var(--sheet);
   }
   .contact a {
-    color: #fff;
+    color: var(--sheet);
+  }
+  .contact a:focus-visible {
+    outline-color: var(--sheet);
+  }
+  @media (min-width: 900px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+      gap: 64px;
+      padding-top: 48px;
+    }
+    .pinboard {
+      padding: 24px 0;
+      gap: 18px;
+    }
   }
   @media (min-width: 1000px) {
     .story {

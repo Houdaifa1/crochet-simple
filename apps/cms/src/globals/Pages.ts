@@ -15,7 +15,7 @@ export const About: GlobalConfig = {
       type: 'textarea',
       maxLength: 160,
       label: 'Big statement',
-      admin: { description: 'The large sentence under the title.' },
+      admin: { description: 'The main heading on the About page.' },
     },
     {
       type: 'collapsible',
@@ -28,9 +28,11 @@ export const About: GlobalConfig = {
       type: 'upload',
       relationTo: 'media',
       filterOptions: onlyImages,
-      admin: { description: 'Leave empty to use the yarn photo.' },
+      admin: { description: 'Main photo on the About page. Leave empty to use the yarn photo.' },
     },
-    bodyField('Your story. Shown under "The story" heading; leave empty to hide that part.'),
+    bodyField(
+      'Your story and photos. The first two photos complete the top photo board; more photos appear below the story.',
+    ),
   ],
 };
 
@@ -39,7 +41,7 @@ const legal = (slug: 'privacy' | 'terms', label: string): GlobalConfig => ({
   label,
   admin: {
     group: 'Pages',
-    description: `Leave the text empty to use the site’s default ${label.toLowerCase()} (written for a US site with AdSense). Anything you write here replaces it.`,
+    description: `Leave the text empty to use the site’s default ${label.toLowerCase()}. Anything you write here replaces it. Review the wording when the way your site works changes.`,
   },
   fields: [
     backGuard,

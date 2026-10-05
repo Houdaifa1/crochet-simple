@@ -722,7 +722,7 @@ export interface Listing {
 export interface About {
   id: number;
   /**
-   * The large sentence under the title.
+   * The main heading on the About page.
    */
   intro?: string | null;
   /**
@@ -734,11 +734,11 @@ export interface About {
    */
   seoDescription?: string | null;
   /**
-   * Leave empty to use the yarn photo.
+   * Main photo on the About page. Leave empty to use the yarn photo.
    */
   image?: (number | null) | Media;
   /**
-   * Your story. Shown under "The story" heading; leave empty to hide that part.
+   * Your story and photos. The first two photos complete the top photo board; more photos appear below the story.
    */
   body?: {
     root: {
@@ -759,7 +759,7 @@ export interface About {
   createdAt?: string | null;
 }
 /**
- * Leave the text empty to use the site’s default privacy policy (written for a US site with AdSense). Anything you write here replaces it.
+ * Leave the text empty to use the site’s default privacy policy. Anything you write here replaces it. Review the wording when the way your site works changes.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "privacy".
@@ -793,7 +793,7 @@ export interface Privacy {
   createdAt?: string | null;
 }
 /**
- * Leave the text empty to use the site’s default terms of use (written for a US site with AdSense). Anything you write here replaces it.
+ * Leave the text empty to use the site’s default terms of use. Anything you write here replaces it. Review the wording when the way your site works changes.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "terms".

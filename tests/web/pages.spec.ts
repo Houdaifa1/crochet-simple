@@ -314,6 +314,95 @@ test.describe('search engines and Pinterest', () => {
   });
 });
 
+test.describe('information pages and journal guides', () => {
+  for (const width of [360, 430, 1280]) {
+    test(`policy and guide contents work at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      for (const path of ['/privacy/', '/terms/', '/journal/how-to-read-a-crochet-pattern/']) {
+        await visit(page, path);
+        const nav = page.locator('main nav.contents');
+        await expect(nav).toBeVisible();
+        const links = nav.locator('a');
+        expect(await links.count()).toBeGreaterThan(0);
+        const hrefs = await links.evaluateAll((elements) =>
+          elements.map((el) => el.getAttribute('href')),
+        );
+        expect(new Set(hrefs).size).toBe(hrefs.length);
+        for (const href of hrefs) await expect(page.locator(href!)).toHaveCount(1);
+        await links.first().focus();
+        await expect(links.first()).toBeFocused();
+        await page.keyboard.press('Enter');
+        expect(new URL(page.url()).hash).toBe(hrefs[0]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+          width,
+        );
+      }
+    });
+  }
+
+  test('the About introduction and story remain editable content', async ({ page }) => {
+    await visit(page, '/about/');
+    await expect(page.locator('h1')).toContainText('Test fixture: patterns');
+    await expect(page.locator('.hero .lede')).toContainText('Test fixture story paragraph');
+    await expect(page.locator('.story')).toContainText('A second test paragraph.');
+    await expect(page.locator('.hero picture source[type="image/avif"]')).toHaveCount(3);
+    await expect(page.locator('.main-photo img')).toHaveAttribute('fetchpriority', 'high');
+    await expect(page.locator('.small-photo img')).toHaveCount(2);
+    for (const image of await page.locator('.small-photo img, .work-photo img').all())
+      await expect(image).toHaveAttribute('loading', 'lazy');
+    await expect(page.locator('.work-photo figcaption')).toHaveText(['Cup cozy', 'Pouch']);
+  });
+
+  test('the Journal links to real guides and the pattern collection', async ({ page }) => {
+    await visit(page, '/journal/');
+    const featured = page.locator('a.featured');
+    await expect(featured).toBeVisible();
+    const destination = await featured.getAttribute('href');
+    expect(destination).toMatch(/^\/journal\/[^/]+\/$/);
+    await expect(page.locator('.practice .btn')).toHaveAttribute('href', '/patterns/');
+    await featured.click();
+    await expect(page.locator('article.prose')).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content', /noindex/);
+  });
+
+  test('the photo board stops movement when reduced motion is selected', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await visit(page, '/about/');
+    for (const element of await page.locator('.photo, .thread path').all())
+      await expect(element).toHaveCSS('animation-name', 'none');
+    await expect(page.locator('.main-photo')).toBeVisible();
+    await page.goto('/journal/');
+    await expect(page.locator('.featured .media img')).toHaveCSS('transition-duration', '0s');
+  });
+
+  test('the photo board and story work without scripts', async ({ browser }) => {
+    const context = await browser.newContext({
+      javaScriptEnabled: false,
+      viewport: { width: 360, height: 800 },
+    });
+    const page = await context.newPage();
+    await page.goto('/about/');
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('.small-photo')).toHaveCount(2);
+    await page.locator('.story').scrollIntoViewIfNeeded();
+    await expect(page.locator('.story')).toBeVisible();
+    await expect(page.locator('.story')).toHaveCSS('opacity', '1');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      360,
+    );
+    await context.close();
+  });
+
+  test('the default privacy policy describes storage and video playback', async ({ page }) => {
+    await visit(page, '/privacy/');
+    await expect(page.locator('main')).toContainText('browser session');
+    await expect(page.locator('main')).toContainText('only after you press play');
+    await visit(page, '/terms/');
+    await expect(page.locator('main')).toContainText('sell finished items you make by hand');
+    await expect(page.locator('main')).toContainText('consumer rights');
+  });
+});
+
 test.describe('patterns', () => {
   test.use(SIZES.phone);
 

@@ -1,20 +1,26 @@
 ---
 import { getEntry } from 'astro:content';
 import Blocks from './Blocks.astro';
-import PageHead from './PageHead.astro';
 import Base from '../layouts/Base.astro';
 import { LEGAL_UPDATED, privacy, terms } from '../data/legal';
-import { formatDate, isoDate, settings } from '../lib/content';
+import { formatDate, isoDate, sections, settings } from '../lib/content';
 
 interface Props {
   id: 'privacy' | 'terms';
 }
 const { id } = Astro.props;
 const own = (await getEntry('pages', id))?.data;
-const { contactEmail } = await settings();
+const { contactEmail, adsense } = await settings();
 const title = own?.title ?? (id === 'privacy' ? 'Privacy policy' : 'Terms of use');
-const body = own?.body.length ? own.body : (id === 'privacy' ? privacy : terms)(contactEmail);
+const body = own?.body.length
+  ? own.body
+  : id === 'privacy'
+    ? privacy(contactEmail, adsense.enabled)
+    : terms(contactEmail);
 const updated = own?.updated ?? LEGAL_UPDATED;
+const contents = sections(body);
+const lead = body[0]?.type === 'paragraph' ? body[0].content : undefined;
+const rest = lead ? body.slice(1) : body;
 ---
 
 <Base
@@ -26,27 +32,157 @@ const updated = own?.updated ?? LEGAL_UPDATED;
   }
   current="none"
 >
-  <div class="wrap">
-    <PageHead title={title} />
-    <p class="updated">
-      Last updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>
-    </p>
-    <article class="prose legal">
-      <Blocks blocks={body} />
-    </article>
+  <div class="wrap policy">
+    <header class="policy-head">
+      <p class="eyebrow">Crochet Simplified</p>
+      <h1>{title}</h1>
+      {lead && (
+        <div class="lead prose">
+          <Blocks blocks={[{ type: 'paragraph', content: lead }]} />
+        </div>
+      )}
+      <p class="updated">
+        Last updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>
+      </p>
+    </header>
+    <div class="reading-layout">
+      {contents.length > 0 && (
+        <nav class="contents" aria-label="On this page">
+          <p class="eyebrow">On this page</p>
+          <ol>
+            {contents.map((section) => (
+              <li>
+                <a href={`#${section.id}`}>{section.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+      <article class="prose legal">
+        <Blocks blocks={rest} />
+      </article>
+    </div>
+    <aside class="question">
+      <div>
+        <p class="eyebrow">Here to help</p>
+        <h2>Something you would like to clarify?</h2>
+        <p>
+          {id === 'privacy'
+            ? 'Contact us with a privacy question or request.'
+            : 'Ask us about using a pattern or sharing your finished work.'}
+        </p>
+      </div>
+      {contactEmail && (
+        <a class="btn" href={`mailto:${contactEmail}`}>
+          Contact us
+        </a>
+      )}
+    </aside>
   </div>
 </Base>
 
 <style>
-  .updated {
-    margin: 12px 0 32px;
-    font-size: 15px;
+  .policy {
+    max-width: 1160px;
+  }
+  .policy-head {
+    padding: 42px 0 32px;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  h1 {
+    margin: 14px 0 20px;
+    font-size: clamp(42px, 10vw, 76px);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+  .lead {
+    max-width: 52ch;
     color: var(--muted);
+  }
+  .updated {
+    margin: 20px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .reading-layout {
+    display: grid;
+    gap: 32px;
+    margin-top: 28px;
+  }
+  .contents {
+    padding: 20px;
+    background: var(--sheet);
+    border-radius: 16px;
+    align-self: start;
+  }
+  .contents ol {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .contents a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 0;
+    font-size: 15px;
+    text-decoration: none;
+    text-underline-offset: 4px;
+  }
+  .contents a:hover {
+    color: var(--blue);
+    text-decoration: underline;
   }
   .legal {
     font-size: 17px;
+    overflow-wrap: anywhere;
+    min-width: 0;
   }
   .legal :global(h2) {
-    font-size: 26px;
+    font-size: 29px;
+    scroll-margin-top: 24px;
+  }
+  .question {
+    display: flex;
+    align-items: start;
+    flex-direction: column;
+    gap: 24px;
+    margin: 52px 0 0;
+    padding: 28px 24px;
+    background: var(--sheet);
+    border-radius: 16px;
+  }
+  .question h2 {
+    margin: 10px 0;
+    font-size: 30px;
+    line-height: 1.15;
+    max-width: 24ch;
+  }
+  .question p:not(.eyebrow) {
+    margin: 0;
+    color: var(--muted);
+  }
+  .question .btn {
+    flex: none;
+  }
+  @media (min-width: 1000px) {
+    .policy-head {
+      padding-top: 60px;
+    }
+    .reading-layout {
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 64px;
+      margin-top: 48px;
+    }
+    .contents {
+      position: sticky;
+      top: 24px;
+    }
+    .question {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36px;
+    }
   }
 </style>

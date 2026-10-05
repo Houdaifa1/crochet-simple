@@ -19,6 +19,30 @@
           "text": "A second test paragraph."
         }
       ]
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/story/01-blue-market-bag.png",
+      "alt": "Test fixture blue crochet bag",
+      "caption": "Blue market bag"
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/story/02-daisy-clip.png",
+      "alt": "Test fixture daisy crochet clip",
+      "caption": "Daisy clip"
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/story/03-olive-cup-cozy.png",
+      "alt": "Test fixture cup cozy",
+      "caption": "Cup cozy"
+    },
+    {
+      "type": "image",
+      "image": "../../../../apps/web/src/assets/story/04-airpods-pouch.png",
+      "alt": "Test fixture crochet pouch",
+      "caption": "Pouch"
     }
   ]
 }

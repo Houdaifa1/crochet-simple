@@ -1,5 +1,6 @@
 ---
 import { Picture, getImage } from 'astro:assets';
+import { sharpCapped } from '../../lib/sizes';
 import Blocks from '../../components/Blocks.astro';
 import Base from '../../layouts/Base.astro';
 import { withBrand } from '../../lib/seo';
@@ -9,6 +10,7 @@ import {
   formatDate,
   isoDate,
   readingMinutes,
+  sections,
   type Article,
 } from '../../lib/content';
 
@@ -26,6 +28,7 @@ interface Props {
 }
 const { article, more } = Astro.props;
 const d = article.data;
+const contents = sections(d.body);
 const site = Astro.site;
 const path = `/journal/${article.id}/`;
 const og = await getImage({
@@ -95,34 +98,53 @@ const thumb = await getImage({
     <span data-pagefind-filter="type" hidden>
       Journal
     </span>
-    <header class="a-head">
-      <nav class="crumbs" aria-label="Breadcrumb" data-pagefind-ignore>
-        <a href="/journal/">Journal</a>
-      </nav>
-      {d.topic && <p class="kicker">{d.topic}</p>}
-      <h1>{d.heading ?? d.title}</h1>
-      <p class="lede">{d.summary}</p>
-      <p class="byline" data-pagefind-ignore>
-        <time datetime={isoDate(d.published)}>{formatDate(d.published)}</time>
-        <i aria-hidden="true"></i>
-        {readingMinutes(d.body, d.summary)} min read
-      </p>
-    </header>
-    <figure class="cover">
-      <Picture
-        src={d.cover}
-        alt={d.coverAlt}
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
-        widths={[400, 560, 720, 960, 1280, 1600]}
-        sizes="(min-width: 1180px) 1100px, calc(100vw - 40px)"
-        loading="eager"
-        fetchpriority="high"
-      />
-    </figure>
-    <article class="prose">
-      <Blocks blocks={d.body} adAfter={d.body.length >= 5 ? 2 : undefined} ads={d.ads} />
-    </article>
+    <div class="article-intro">
+      <header class="a-head">
+        <nav class="crumbs" aria-label="Breadcrumb" data-pagefind-ignore>
+          <a href="/journal/">Journal</a>
+        </nav>
+        {d.topic && <p class="kicker">{d.topic}</p>}
+        <h1>{d.heading ?? d.title}</h1>
+        <p class="lede">{d.summary}</p>
+        <p class="byline" data-pagefind-ignore>
+          <time datetime={isoDate(d.published)}>{formatDate(d.published)}</time>
+          <i aria-hidden="true"></i>
+          {readingMinutes(d.body, d.summary)} min read
+        </p>
+      </header>
+      <figure class="cover">
+        <Picture
+          src={d.cover}
+          alt={d.coverAlt}
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          widths={[400, 560, 640, 720, 960, 1280, 1536]}
+          quality={40}
+          sizes={sharpCapped(
+            '(min-width: 1240px) 480px, (min-width: 900px) 40vw, calc(100vw - 48px)',
+          )}
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
+    </div>
+    <div class="reading">
+      {contents.length > 0 && (
+        <nav class="contents" aria-label="In this guide" data-pagefind-ignore>
+          <p class="eyebrow">In this guide</p>
+          <ol>
+            {contents.map((section) => (
+              <li>
+                <a href={`#${section.id}`}>{section.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+      <article class="prose">
+        <Blocks blocks={d.body} adAfter={d.body.length >= 5 ? 2 : undefined} ads={d.ads} />
+      </article>
+    </div>
     {saveHref && (
       <div class="share" data-pagefind-ignore>
         <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
@@ -180,6 +202,47 @@ const thumb = await getImage({
   }
   .prose {
     max-width: 680px;
+    min-width: 0;
+  }
+  .reading {
+    display: grid;
+    gap: 32px;
+    max-width: 1024px;
+    margin: 0 auto;
+  }
+  .contents {
+    padding: 20px;
+    background: var(--sheet);
+    border-radius: 16px;
+    align-self: start;
+  }
+  .contents ol {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+  }
+  .contents a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 0;
+    font-size: 15px;
+    text-decoration: none;
+  }
+  .contents a:hover {
+    color: var(--blue);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  @media (min-width: 1100px) {
+    .reading {
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 56px;
+    }
+    .contents {
+      position: sticky;
+      top: 24px;
+    }
   }
   .crumbs a {
     display: inline-block;
@@ -221,16 +284,42 @@ const thumb = await getImage({
     border-radius: 50%;
     background: currentColor;
   }
-  .cover {
+  .article-intro {
+    display: grid;
+    gap: 28px;
+    margin: 24px auto 48px;
     max-width: 1100px;
-    margin: 28px auto 40px;
+  }
+  .article-intro .a-head {
+    width: 100%;
+    margin: 0;
+    align-self: center;
+  }
+  .cover {
+    margin: 0;
+    min-width: 0;
+  }
+  @media (min-width: 900px) {
+    .article-intro {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 64px;
+    }
+    .article-intro h1 {
+      font-size: 60px;
+    }
   }
   .cover :global(img) {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
     border-radius: 20px;
-    background: #e6dccd;
+    background: var(--sheet);
+  }
+  .prose :global(.link-card.pinterest) {
+    border-radius: 16px;
+  }
+  .prose :global(.link-card.pinterest .desc) {
+    display: none;
   }
   .share {
     display: flex;
@@ -258,6 +347,7 @@ const thumb = await getImage({
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
+    object-position: 50% 0%;
     border-radius: 14px;
   }
   .next h3 {

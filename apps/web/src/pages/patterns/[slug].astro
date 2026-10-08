@@ -214,14 +214,23 @@ const thumb = await getImage({
           cover={d.cover}
           downloadPicture={d.downloadPicture}
         />
-        {saveHref && (
+        {(d.pinterestUrl || saveHref) && (
           <div class="share" data-pagefind-ignore>
-            <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
-              Save to Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
-            </a>
-            <button class="btn ghost" type="button" data-copy={pageUrl}>
-              Copy link
-            </button>
+            {d.pinterestUrl && (
+              <a class="btn ghost" href={d.pinterestUrl} rel="noopener" target="_blank">
+                View on Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
+            )}
+            {saveHref && (
+              <a class="btn ghost" href={saveHref} rel="noopener" target="_blank">
+                Save to Pinterest<span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
+            )}
+            {pageUrl && (
+              <button class="btn ghost" type="button" data-copy={pageUrl}>
+                Copy link
+              </button>
+            )}
           </div>
         )}
       </div>

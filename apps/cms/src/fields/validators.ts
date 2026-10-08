@@ -13,6 +13,12 @@ export const httpsUrl =
   };
 
 export const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/avif'];
+export const pinterestPin = (value: unknown): true | string => {
+  const hint = 'a published Pinterest pin link starting with https://';
+  const valid = httpsUrl(/(^|\.)pinterest\.com$/, hint)(value);
+  if (valid !== true || value === undefined || value === null || value === '') return valid;
+  return /^\/pin\/\d+\/?$/.test(new URL(String(value)).pathname) ? true : `Use ${hint}.`;
+};
 export const onlyImages = { mimeType: { in: IMAGE_TYPES } };
 export const onlyIcons = { mimeType: { in: ['image/svg+xml', 'image/png'] } };
 export const onlyPdf = { mimeType: { equals: 'application/pdf' } };

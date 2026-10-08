@@ -28,7 +28,23 @@ export const bodyEditor = lexicalEditor({
     OrderedListFeature(),
     BlockquoteFeature(),
     UploadFeature({
-      collections: { media: { fields: [{ name: 'caption', type: 'text' }] } },
+      collections: {
+        media: {
+          fields: [
+            { name: 'caption', type: 'text' },
+            {
+              name: 'pattern',
+              type: 'relationship',
+              relationTo: 'patterns',
+              label: 'Pattern shown in this photo',
+              admin: {
+                description:
+                  'Optional. Links this picture to the matching pattern and its published Pinterest pin.',
+              },
+            },
+          ],
+        },
+      },
     }),
     BlocksFeature({ blocks: BODY_BLOCKS }),
     FixedToolbarFeature(),

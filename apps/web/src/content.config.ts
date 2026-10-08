@@ -15,6 +15,15 @@ const seo = {
 };
 const url = z.url({ protocol: /^https$/ });
 const href = z.union([url, z.string().regex(/^\/[^/]/, 'must be https:// or a path on this site')]);
+const pinterestPin = url.refine((value) => {
+  const target = new URL(value);
+  return /(^|\.)pinterest\.com$/.test(target.hostname) && /^\/pin\/\d+\/?$/.test(target.pathname);
+}, 'must be a published Pinterest pin');
+const product = z.object({
+  title: text,
+  url: z.string().regex(/^\/patterns\/[^/]+\/$/),
+  pinterestUrl: pinterestPin.optional(),
+});
 
 // a link shown as a card: what the admin fetched from Pinterest, Etsy or the page itself
 const cardOf = (image: SchemaContext['image']) =>
@@ -56,6 +65,7 @@ function blocks({ image }: SchemaContext) {
           image: image(),
           alt: text,
           caption: z.string().optional(),
+          pattern: product.optional(),
         }),
         z.object({ type: z.literal('tip'), title: z.string().optional(), content: inline }),
         z.object({
@@ -103,6 +113,7 @@ const patterns = defineCollection({
       downloadPicture: ctx.image().optional(),
       gallery: z.array(z.object({ image: ctx.image(), alt: text })).default([]),
       pinImage: ctx.image().optional(),
+      pinterestUrl: pinterestPin.optional(),
       details: z
         .object({
           skill: z.enum(['beginner', 'easy', 'intermediate', 'experienced']).optional(),
@@ -149,6 +160,7 @@ const articles = defineCollection({
       topic: z.string().optional(),
       cover: ctx.image(),
       coverAlt: text,
+      coverPattern: product.optional(),
       body: blocks(ctx),
       published: z.coerce.date(),
       updated: z.coerce.date().optional(),
@@ -165,6 +177,7 @@ const pages = defineCollection({
       intro: z.string().optional(),
       image: ctx.image().optional(),
       imageAlt: z.string().optional(),
+      imagePattern: product.optional(),
       body: blocks(ctx),
       updated: z.coerce.date().optional(),
     }),

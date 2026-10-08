@@ -45,6 +45,16 @@ export const Articles: CollectionConfig = {
       required: true,
       filterOptions: onlyImages,
     },
+    {
+      name: 'coverPattern',
+      type: 'relationship',
+      relationTo: 'patterns',
+      label: 'Pattern shown in the cover',
+      admin: {
+        description:
+          'Optional. Adds links to the matching pattern and its published Pinterest pin beneath the picture.',
+      },
+    },
     bodyField('The article: headings, paragraphs, lists, quotes, photos, tips and link cards.'),
     slugField('title'),
     {

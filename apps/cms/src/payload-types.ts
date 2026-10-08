@@ -171,6 +171,10 @@ export interface Pattern {
    */
   pinImage?: (number | null) | Media;
   /**
+   * Your published pin for this pattern. Make sure its website link leads back to this pattern page.
+   */
+  pinterestUrl?: string | null;
+  /**
    * Background of the download card at the end of the page. Leave empty to use the cover photo.
    */
   downloadPicture?: (number | null) | Media;
@@ -335,6 +339,10 @@ export interface Article {
   topic?: string | null;
   cover: number | Media;
   /**
+   * Optional. Adds links to the matching pattern and its published Pinterest pin beneath the picture.
+   */
+  coverPattern?: (number | null) | Pattern;
+  /**
    * The article: headings, paragraphs, lists, quotes, photos, tips and link cards.
    */
   body?: {
@@ -493,6 +501,7 @@ export interface PatternsSelect<T extends boolean = true> {
       };
   video?: T;
   pinImage?: T;
+  pinterestUrl?: T;
   downloadPicture?: T;
   pdf?: T;
   pdfPages?: T;
@@ -545,6 +554,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   seoDescription?: T;
   topic?: T;
   cover?: T;
+  coverPattern?: T;
   body?: T;
   slug?: T;
   published?: T;
@@ -737,6 +747,10 @@ export interface About {
    * Main photo on the About page. Leave empty to use the yarn photo.
    */
   image?: (number | null) | Media;
+  /**
+   * Optional. Adds links to the matching pattern and its published Pinterest pin.
+   */
+  imagePattern?: (number | null) | Pattern;
   /**
    * Your story and photos. The first two photos complete the top photo board; more photos appear below the story.
    */
@@ -966,6 +980,7 @@ export interface AboutSelect<T extends boolean = true> {
   seoTitle?: T;
   seoDescription?: T;
   image?: T;
+  imagePattern?: T;
   body?: T;
   updatedAt?: T;
   createdAt?: T;

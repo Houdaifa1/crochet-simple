@@ -4,6 +4,7 @@ import { sharpCapped } from '../lib/sizes';
 import { getEntry } from 'astro:content';
 import Blocks from '../components/Blocks.astro';
 import ProfileCard from '../components/ProfileCard.astro';
+import ProductLinks from '../components/ProductLinks.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 import Base from '../layouts/Base.astro';
 import heroPhoto from '../assets/story/00-yarn-hero.png';
@@ -90,6 +91,7 @@ const imageAlt = page?.image
             loading="eager"
             fetchpriority="high"
           />
+          <ProductLinks product={page?.imagePattern} />
         </figure>
         {photos.slice(0, 2).map((photo, i) => (
           <figure
@@ -106,6 +108,7 @@ const imageAlt = page?.image
               loading="lazy"
             />
             {photo.caption && <figcaption>{photo.caption}</figcaption>}
+            <ProductLinks product={photo.pattern} />
           </figure>
         ))}
         <svg class="thread" viewBox="0 0 480 480" aria-hidden="true">
@@ -140,6 +143,7 @@ const imageAlt = page?.image
               loading="lazy"
             />
             {photo.caption && <figcaption>{photo.caption}</figcaption>}
+            <ProductLinks product={photo.pattern} />
           </figure>
         ))}
       </section>

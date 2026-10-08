@@ -197,6 +197,8 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
   };
 
   const slugs = new Map<string, string>();
+  const patternLinks = new Map<string, { title: string; url: string; pinterestUrl?: string }>();
+  const patternFor = (value: unknown) => patternLinks.get(idOf(value));
   const resolvers = (where: string): Resolvers => ({
     image: async (value) => {
       const m = media.get(idOf(value));
@@ -205,6 +207,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
     },
     internal: async (relationTo, value) => slugs.get(`${relationTo}:${idOf(value)}`) ?? null,
     cards: (urls) => cardsOut(urls, where),
+    pattern: async (value) => patternFor(value) ?? null,
   });
   const body = (doc: Record<string, unknown>, where: string): Promise<OutBlock[]> =>
     toBlocks(doc['body'], resolvers(where), (m) => warn(`${where}: ${m}`));
@@ -233,7 +236,14 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
   const articles = await found('articles', 'Article');
   const categories = (await payload.find({ collection: 'categories', pagination: false, depth: 0 }))
     .docs as unknown as Record<string, unknown>[];
-  for (const p of patterns) slugs.set(`patterns:${p['id']}`, `/patterns/${p['slug']}/`);
+  for (const p of patterns) {
+    const url = `/patterns/${p['slug']}/`;
+    slugs.set(`patterns:${p['id']}`, url);
+    patternLinks.set(
+      String(p['id']),
+      drop({ title: String(p['title']), url, pinterestUrl: text(p['pinterestUrl']) }),
+    );
+  }
   for (const a of articles) slugs.set(`articles:${a['id']}`, `/journal/${a['slug']}/`);
   const catSlug = new Map(categories.map((c) => [String(c['id']), String(c['slug'])]));
 
@@ -282,6 +292,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         pinImage: p['pinImage']
           ? rel(file(p['pinImage'], `${where} (Pinterest image)`, 'photo'), 1)
           : undefined,
+        pinterestUrl: text(p['pinterestUrl']),
         details: drop({
           skill: text(details['skill']),
           time: text(details['time']),
@@ -321,6 +332,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         topic: text(a['topic']),
         cover: rel(cover, 1),
         coverAlt: text(cover.alt),
+        coverPattern: patternFor(a['coverPattern']),
         body: await body(a, where),
         published: day(a['published']),
         updated: day(a['updated']),
@@ -352,6 +364,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         intro: text(about['intro']),
         image: aboutImage ? rel(aboutImage, 1) : undefined,
         imageAlt: aboutImage ? text(aboutImage.alt) : undefined,
+        imagePattern: patternFor(about['imagePattern']),
         body: aboutBody,
       }),
     );

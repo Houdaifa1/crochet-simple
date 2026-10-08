@@ -72,6 +72,43 @@ for (const [name, size] of Object.entries(SIZES)) {
 }
 
 test.describe('search engines and Pinterest', () => {
+  test('a pattern links to its published pin and still offers a new save', async ({ page }) => {
+    await visit(page, '/patterns/blue-market-bag/');
+    const pin = page.locator('.share').getByRole('link', { name: /^View on Pinterest/ });
+    await expect(pin).toHaveAttribute('href', 'https://www.pinterest.com/pin/123456789/');
+    await expect(pin).toHaveAttribute('target', '_blank');
+    await expect(page.getByRole('link', { name: /^Save to Pinterest/ })).toHaveAttribute(
+      'href',
+      /pin\/create\/button/,
+    );
+    await visit(page, '/patterns/crochet-panda/');
+    await expect(page.getByRole('link', { name: /^View on Pinterest/ })).toHaveCount(0);
+  });
+
+  test('featured products link to the same pattern and its published pin', async ({ page }) => {
+    await visit(page, '/about/');
+    const links = page.getByRole('navigation', { name: 'Blue market bag links' });
+    await expect(links).toHaveCount(2);
+    for (const product of await links.all()) {
+      await expect(
+        product.getByRole('link', { name: 'Get the pattern', exact: true }),
+      ).toHaveAttribute('href', '/patterns/blue-market-bag/');
+      await expect(product.getByRole('link', { name: /^View on Pinterest/ })).toHaveAttribute(
+        'href',
+        'https://www.pinterest.com/pin/123456789/',
+      );
+    }
+    await visit(page, '/journal/how-to-read-a-crochet-pattern/');
+    const cover = page.getByRole('navigation', { name: 'Laptop sleeve links' });
+    await expect(cover.getByRole('link', { name: 'Get the pattern', exact: true })).toHaveAttribute(
+      'href',
+      '/patterns/laptop-sleeve/',
+    );
+    await expect(cover.getByRole('link', { name: /^View on Pinterest/ })).toHaveAttribute(
+      'href',
+      'https://www.pinterest.com/pin/987654321/',
+    );
+  });
   test('every page has its own title, a description and the right canonical address', async ({
     page,
   }) => {

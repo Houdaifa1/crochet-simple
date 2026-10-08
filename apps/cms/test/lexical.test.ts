@@ -7,6 +7,14 @@ const resolvers: Resolvers = {
   image: async (v) => (v === 7 ? { path: '../media/a.png', alt: 'A photo' } : null),
   internal: async (rel, v) => (rel === 'patterns' && v === 3 ? '/patterns/daisy-clip/' : null),
   cards: async (urls) => urls.map((url) => ({ kind: 'link', url, title: 'T' })),
+  pattern: async (v) =>
+    v === 3
+      ? {
+          title: 'Daisy clip',
+          url: '/patterns/daisy-clip/',
+          pinterestUrl: 'https://www.pinterest.com/pin/123456789/',
+        }
+      : null,
 };
 const run = async (d: unknown) => {
   const warnings: string[] = [];
@@ -14,6 +22,35 @@ const run = async (d: unknown) => {
 };
 
 describe('write-up conversion', () => {
+  it('links a product photo to its published pattern and pin without changing the caption', async () => {
+    const { blocks, warnings } = await run(
+      doc({ type: 'upload', value: 7, fields: { caption: 'Daisy clip', pattern: 3 } }),
+    );
+    expect(blocks).toEqual([
+      {
+        type: 'image',
+        image: '../media/a.png',
+        alt: 'A photo',
+        caption: 'Daisy clip',
+        pattern: {
+          title: 'Daisy clip',
+          url: '/patterns/daisy-clip/',
+          pinterestUrl: 'https://www.pinterest.com/pin/123456789/',
+        },
+      },
+    ]);
+    expect(warnings).toEqual([]);
+  });
+
+  it('keeps the photo and omits links to an unpublished pattern', async () => {
+    const { blocks, warnings } = await run(
+      doc({ type: 'upload', value: 7, fields: { pattern: 99 } }),
+    );
+    expect(blocks).toEqual([{ type: 'image', image: '../media/a.png', alt: 'A photo' }]);
+    expect(warnings).toEqual([
+      'The pattern linked to a photo is no longer published. Its links were left out.',
+    ]);
+  });
   it('keeps bold, italic and links, and merges neighbouring text', async () => {
     const { blocks } = await run(
       doc({

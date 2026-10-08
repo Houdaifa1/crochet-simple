@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload';
 import { bodyField } from '../fields/body.ts';
 import { headingField, seoFields } from '../fields/seo.ts';
 import { slugField } from '../fields/slug.ts';
-import { httpsUrl, onlyImages, onlyPdf } from '../fields/validators.ts';
+import { httpsUrl, onlyImages, onlyPdf, pinterestPin } from '../fields/validators.ts';
 
 export const Patterns: CollectionConfig = {
   slug: 'patterns',
@@ -83,6 +83,16 @@ export const Patterns: CollectionConfig = {
               admin: {
                 description:
                   'A tall 2:3 image made for Pinterest. Leave empty and the site makes one from the cover and title.',
+              },
+            },
+            {
+              name: 'pinterestUrl',
+              type: 'text',
+              label: 'Published Pinterest pin',
+              validate: pinterestPin,
+              admin: {
+                description:
+                  'Your published pin for this pattern. Make sure its website link leads back to this pattern page.',
               },
             },
           ],

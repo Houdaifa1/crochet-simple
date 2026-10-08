@@ -6,6 +6,7 @@ import * as migration_20261003_125616_pattern_seo_fields from './20261003_125616
 import * as migration_20261003_230132_seo_titles from './20261003_230132_seo_titles';
 import * as migration_20261003_235740_page_heading from './20261003_235740_page_heading';
 import * as migration_20261004_233651_download_picture from './20261004_233651_download_picture';
+import * as migration_20261006_145424_pattern_pinterest_links from './20261006_145424_pattern_pinterest_links';
 
 export const migrations = [
   {
@@ -46,6 +47,11 @@ export const migrations = [
   {
     up: migration_20261004_233651_download_picture.up,
     down: migration_20261004_233651_download_picture.down,
-    name: '20261004_233651_download_picture'
+    name: '20261004_233651_download_picture',
+  },
+  {
+    up: migration_20261006_145424_pattern_pinterest_links.up,
+    down: migration_20261006_145424_pattern_pinterest_links.down,
+    name: '20261006_145424_pattern_pinterest_links'
   },
 ];

@@ -30,6 +30,16 @@ export const About: GlobalConfig = {
       filterOptions: onlyImages,
       admin: { description: 'Main photo on the About page. Leave empty to use the yarn photo.' },
     },
+    {
+      name: 'imagePattern',
+      type: 'relationship',
+      relationTo: 'patterns',
+      label: 'Pattern shown in the main photo',
+      admin: {
+        description:
+          'Optional. Adds links to the matching pattern and its published Pinterest pin.',
+      },
+    },
     bodyField(
       'Your story and photos. The first two photos complete the top photo board; more photos appear below the story.',
     ),

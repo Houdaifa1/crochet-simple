@@ -3,6 +3,7 @@ import { Picture } from 'astro:assets';
 import { sharpCapped } from '../lib/sizes';
 import AdSlot from './AdSlot.astro';
 import LinkCards from './LinkCards.astro';
+import ProductLinks from './ProductLinks.astro';
 import { headingId, type Blocks } from '../lib/content';
 import { keepCounts, keepMeasures } from '../lib/text';
 
@@ -51,6 +52,7 @@ const adItem = adAfter === undefined ? -1 : items.findIndex((it) => it.i + 1 >= 
               )}
             />
             {p.caption && <figcaption>{p.caption}</figcaption>}
+            <ProductLinks product={p.pattern} />
           </figure>
         ))}
       </div>
@@ -113,6 +115,7 @@ const adItem = adAfter === undefined ? -1 : items.findIndex((it) => it.i + 1 >= 
                 sizes={sharpCapped('(min-width: 760px) 680px, calc(100vw - 40px)')}
               />
               {b.caption && <figcaption>{b.caption}</figcaption>}
+              <ProductLinks product={b.pattern} />
             </figure>
           )}
           {b.type === 'tip' && (

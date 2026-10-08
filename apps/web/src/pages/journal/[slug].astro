@@ -2,6 +2,7 @@
 import { Picture, getImage } from 'astro:assets';
 import { sharpCapped } from '../../lib/sizes';
 import Blocks from '../../components/Blocks.astro';
+import ProductLinks from '../../components/ProductLinks.astro';
 import Base from '../../layouts/Base.astro';
 import { withBrand } from '../../lib/seo';
 import {
@@ -126,6 +127,7 @@ const thumb = await getImage({
           loading="eager"
           fetchpriority="high"
         />
+        <ProductLinks product={d.coverPattern} />
       </figure>
     </div>
     <div class="reading">

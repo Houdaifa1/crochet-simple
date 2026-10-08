@@ -4,6 +4,11 @@
   "topic": "Tutorials",
   "cover": "../../../../apps/web/src/assets/details/05b-laptop-stitches.png",
   "coverAlt": "How to read a crochet pattern (test fixture photo)",
+  "coverPattern": {
+    "title": "Laptop sleeve",
+    "url": "/patterns/laptop-sleeve/",
+    "pinterestUrl": "https://www.pinterest.com/pin/987654321/"
+  },
   "body": [
     {
       "type": "paragraph",

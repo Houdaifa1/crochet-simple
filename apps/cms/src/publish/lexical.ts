@@ -19,6 +19,7 @@ export interface Resolvers {
   // a link to one of the site's own patterns or articles
   internal(relationTo: string, value: unknown): Promise<string | null>;
   cards(urls: string[]): Promise<unknown[]>;
+  pattern?(value: unknown): Promise<{ title: string; url: string; pinterestUrl?: string } | null>;
 }
 
 export type OutBlock = Record<string, unknown> & { type: string };
@@ -135,7 +136,17 @@ export async function toBlocks(
           break;
         }
         const caption = String(n.fields?.['caption'] ?? '').trim();
-        out.push({ type: 'image', image: img.path, alt: img.alt, ...(caption ? { caption } : {}) });
+        const pattern =
+          n.fields?.['pattern'] && r.pattern ? await r.pattern(n.fields['pattern']) : null;
+        if (n.fields?.['pattern'] && !pattern)
+          warn('The pattern linked to a photo is no longer published. Its links were left out.');
+        out.push({
+          type: 'image',
+          image: img.path,
+          alt: img.alt,
+          ...(caption ? { caption } : {}),
+          ...(pattern ? { pattern } : {}),
+        });
         break;
       }
       case 'block': {

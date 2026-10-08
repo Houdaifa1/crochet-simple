@@ -3,6 +3,11 @@
   "intro": "Test fixture: patterns for pieces you will use every day, written so you can finish them.",
   "image": "../../../../apps/web/src/assets/story/00-yarn-hero.png",
   "imageAlt": "Yarn and a crochet hook on linen",
+  "imagePattern": {
+    "title": "Blue market bag",
+    "url": "/patterns/blue-market-bag/",
+    "pinterestUrl": "https://www.pinterest.com/pin/123456789/"
+  },
   "body": [
     {
       "type": "paragraph",
@@ -24,7 +29,12 @@
       "type": "image",
       "image": "../../../../apps/web/src/assets/story/01-blue-market-bag.png",
       "alt": "Test fixture blue crochet bag",
-      "caption": "Blue market bag"
+      "caption": "Blue market bag",
+      "pattern": {
+        "title": "Blue market bag",
+        "url": "/patterns/blue-market-bag/",
+        "pinterestUrl": "https://www.pinterest.com/pin/123456789/"
+      }
     },
     {
       "type": "image",

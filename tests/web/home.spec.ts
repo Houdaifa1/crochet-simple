@@ -5,6 +5,8 @@ const SIZES = {
   phone: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 },
   small: { viewport: { width: 360, height: 740 }, deviceScaleFactor: 2 },
   desktop: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 },
+  shortDesktop: { viewport: { width: 1280, height: 480 }, deviceScaleFactor: 1 },
+  landscape: { viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 },
 } as const;
 
 type Rect = { name: string; x: number; y: number; w: number; h: number };

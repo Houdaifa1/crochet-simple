@@ -7,6 +7,7 @@ import * as migration_20261003_230132_seo_titles from './20261003_230132_seo_tit
 import * as migration_20261003_235740_page_heading from './20261003_235740_page_heading';
 import * as migration_20261004_233651_download_picture from './20261004_233651_download_picture';
 import * as migration_20261006_145424_pattern_pinterest_links from './20261006_145424_pattern_pinterest_links';
+import * as migration_20261009_202401_glass_controls from './20261009_202401_glass_controls';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20261006_145424_pattern_pinterest_links.up,
     down: migration_20261006_145424_pattern_pinterest_links.down,
-    name: '20261006_145424_pattern_pinterest_links'
+    name: '20261006_145424_pattern_pinterest_links',
+  },
+  {
+    up: migration_20261009_202401_glass_controls.up,
+    down: migration_20261009_202401_glass_controls.down,
+    name: '20261009_202401_glass_controls'
   },
 ];

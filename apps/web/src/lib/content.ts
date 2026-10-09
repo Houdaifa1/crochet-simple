@@ -72,6 +72,7 @@ const DEFAULT_SETTINGS: Settings = {
   verification: {},
   social: [],
   indexable: false,
+  controls: {},
 };
 
 export type Homepage = CollectionEntry<'homepage'>['data'];

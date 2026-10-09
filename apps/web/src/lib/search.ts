@@ -48,8 +48,10 @@ export const searchReady = (): boolean => ready;
 
 // start downloading the index once the page has settled, so the first letter is answered at once
 export function warmSearch(): void {
-  const net = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-  if (net?.saveData) return;
+  const net = (
+    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
+  if (net?.saveData || /^(slow-)?2g$/.test(net?.effectiveType ?? '')) return;
   const go = () => void loadSearch().catch(() => undefined);
   const idle = () =>
     'requestIdleCallback' in window

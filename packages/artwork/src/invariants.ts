@@ -14,7 +14,11 @@ export function assertSingleLinePathData(d: string, label = 'path'): void {
 
 export function assertRouteStructure(route: Route): void {
   const expected = [
-    ...PRODUCT_ORDER.flatMap((id) => [`connector:${id}`, `drawing:${id}`, `wrap:${id}`]),
+    ...PRODUCT_ORDER.flatMap((id) =>
+      route.photoFirst
+        ? [`connector:${id}`, `wrap:${id}`, `connector:${id}`, `drawing:${id}`]
+        : [`connector:${id}`, `drawing:${id}`, `wrap:${id}`],
+    ),
     'tail:',
   ];
   const actual = route.segments.map((s) => `${s.kind}:${s.chapter ?? ''}`);

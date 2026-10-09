@@ -23,8 +23,11 @@ const many = photos.length > 1;
             formats={['avif', 'webp']}
             fallbackFormat="jpg"
             widths={[480, 720, 960, 1280]}
-            sizes={sharpCapped('(min-width: 1000px) 700px, calc(100vw - 40px)')}
+            sizes={sharpCapped(
+              '(min-width: 1236px) 760px, (min-width: 1000px) calc(100vw - 476px), (min-width: 900px) calc(100vw - 112px), calc(100vw - 48px)',
+            )}
             loading={i === 0 ? 'eager' : 'lazy'}
+            decoding="async"
             fetchpriority={i === 0 ? 'high' : undefined}
           />
         </figure>

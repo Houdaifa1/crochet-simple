@@ -124,6 +124,8 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
                 fallbackFormat="jpg"
                 widths={[160, 240, 360]}
                 sizes={detailSizes}
+                loading="lazy"
+                decoding="async"
               />
             </figure>
           ))}
@@ -135,6 +137,8 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
               fallbackFormat="jpg"
               widths={[480, 720, 960, 1280, 1672]}
               sizes={photoSizes}
+              loading="lazy"
+              decoding="async"
             />
           </figure>
         </div>
@@ -266,9 +270,10 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
   .cue {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin: 20px 0 0;
-    font: 500 16px/1.2 var(--sans);
+    gap: 8px;
+    margin: 16px 0 0;
+    color: var(--muted);
+    font: 500 13px/1.4 var(--sans);
     transition:
       opacity 0.45s,
       transform 0.45s;
@@ -304,11 +309,11 @@ const detailSizes = '(min-width: 900px) 170px, 110px';
     position: absolute;
     left: 0;
     top: 0;
-    width: 9px;
-    height: 9px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--pink);
-    box-shadow: 0 0 0 2px #fffdf9;
+    box-shadow: 0 0 0 1.5px var(--sheet);
     offset-path: path('M11 3 C 2 13, 20 25, 11 41');
     offset-anchor: center;
     offset-rotate: 0deg;

@@ -1,6 +1,7 @@
 ---
 import { getImage } from 'astro:assets';
 import '../styles/global.css';
+import '../styles/glass.css';
 import Dock from '../components/Dock.astro';
 import Mark from '../components/Mark.astro';
 import ProfileCard from '../components/ProfileCard.astro';
@@ -49,7 +50,7 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
-<html lang="en-US">
+<html lang="en-US" class="glass">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -97,11 +98,6 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     ))}
     <script is:inline>
       document.documentElement.classList.add('js');
-      // the menu slides in on the first page of a visit only, then simply stays
-      try {
-        if (sessionStorage.getItem('dock')) document.documentElement.classList.add('dock-seen');
-        else sessionStorage.setItem('dock', '1');
-      } catch {}
     </script>
     {adClient && (
       <script
@@ -138,6 +134,16 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
         <span>
           Crochet <em>Simplified</em>
         </span>
+      </a>
+      <a
+        class="header-search"
+        href="/search/"
+        aria-label={s.controls.searchLabel ?? 'Search patterns and stories'}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 4.5 4.5" />
+        </svg>
       </a>
     </header>
     <Dock current={current} />

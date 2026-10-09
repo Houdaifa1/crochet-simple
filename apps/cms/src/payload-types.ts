@@ -858,6 +858,16 @@ export interface Setting {
    * Shown on About, Privacy and Terms. Leave empty to hide.
    */
   contactEmail?: string | null;
+  controls?: {
+    /**
+     * Accessible name of the search button in the header. Leave empty to use Search patterns and stories.
+     */
+    searchLabel?: string | null;
+    /**
+     * The free PDF button and its shortcut near the top of a pattern. Leave empty to use Download free PDF.
+     */
+    downloadLabel?: string | null;
+  };
   /**
    * The "Follow on Pinterest" card in the footer and on About.
    */
@@ -1018,6 +1028,12 @@ export interface SettingsSelect<T extends boolean = true> {
   siteUrl?: T;
   indexable?: T;
   contactEmail?: T;
+  controls?:
+    | T
+    | {
+        searchLabel?: T;
+        downloadLabel?: T;
+      };
   pinterest?:
     | T
     | {

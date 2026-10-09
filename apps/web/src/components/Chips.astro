@@ -18,11 +18,16 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
 
 <div class="filters">
   <nav class="chips" aria-label="Categories">
-    <a class="chip" href={`/patterns/${suffix}`} aria-current={at(null)}>
+    <a class="chip" href={`/patterns/${suffix}`} aria-current={at(null)} data-category="all">
       <span class="icon all" aria-hidden="true"></span>All <span class="n">{total}</span>
     </a>
     {items.map(({ category, count }) => (
-      <a class="chip" href={href(category.id)} aria-current={at(category.id)}>
+      <a
+        class="chip"
+        href={href(category.id)}
+        aria-current={at(category.id)}
+        data-category={category.id}
+      >
         {category.data.icon && (
           <span class="icon" aria-hidden="true" style={`--icon:url(${category.data.icon.src})`} />
         )}
@@ -31,19 +36,6 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
     ))}
   </nav>
 </div>
-
-<script>
-  const bar = document.querySelector<HTMLElement>('.filters');
-  if (bar) {
-    new IntersectionObserver(([e]) => bar.classList.toggle('stuck', e!.intersectionRatio < 1), {
-      threshold: [1],
-      rootMargin: '-1px 0px 0px 0px',
-    }).observe(bar);
-    const row = bar.querySelector<HTMLElement>('.chips')!;
-    const on = row.querySelector<HTMLElement>('[aria-current="page"]');
-    if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
-  }
-</script>
 
 <style>
   .filters {

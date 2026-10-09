@@ -557,15 +557,23 @@ test.describe('patterns', () => {
         if (await button.count()) {
           const colors = await button.evaluate((element) => {
             const css = getComputedStyle(element);
-            return [css.color, css.backgroundColor].map((value) =>
-              value
-                .match(/[\d.]+/g)!
-                .map(Number)
-                .slice(0, 3),
-            );
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 1;
+            const context = canvas.getContext('2d')!;
+            const sample = (color: string) => {
+              context.clearRect(0, 0, 1, 1);
+              context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(
+                '--sheet',
+              );
+              context.fillRect(0, 0, 1, 1);
+              context.fillStyle = color;
+              context.fillRect(0, 0, 1, 1);
+              return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+            };
+            return [css.color, css.backgroundColor, css.borderTopColor].map(sample);
           });
           expect(contrast(colors[0]!, colors[1]!)).toBeGreaterThanOrEqual(4.5);
-          expect(contrast(colors[1]!, [251, 248, 242])).toBeGreaterThanOrEqual(3);
+          expect(contrast(colors[2]!, [251, 248, 242])).toBeGreaterThanOrEqual(3);
         }
       }
     });
@@ -595,8 +603,12 @@ test.describe('patterns', () => {
     await button.focus();
     await expect(button).toHaveCSS('outline-style', 'solid');
     await expect(button).toHaveCSS('outline-width', '3px');
+    const shadow = await button.evaluate((element) => getComputedStyle(element).boxShadow);
     await button.hover();
-    await expect(button).toHaveCSS('background-color', 'rgb(42, 41, 37)');
+    await expect
+      .poll(() => button.evaluate((element) => getComputedStyle(element).boxShadow))
+      .not.toBe(shadow);
+    await expect(button).toHaveCSS('color', 'rgb(42, 41, 37)');
   });
 
   test('lists six per page with numbered pages', async ({ page }) => {

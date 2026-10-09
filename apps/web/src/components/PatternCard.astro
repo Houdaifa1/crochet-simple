@@ -10,8 +10,16 @@ interface Props {
   // the first card is usually the largest thing on screen, so it downloads first
   priority?: boolean;
   headingLevel?: 2 | 3;
+  imageSizes?: string;
 }
-const { pattern, category, eager = false, priority = false, headingLevel = 2 } = Astro.props;
+const {
+  pattern,
+  category,
+  eager = false,
+  priority = false,
+  headingLevel = 2,
+  imageSizes = '(min-width: 1240px) 249px, (min-width: 1100px) calc((100vw - 244px) / 4), (min-width: 900px) calc((100vw - 206px) / 3), (min-width: 700px) calc((100vw - 142px) / 3), (min-width: 431px) calc((100vw - 104px) / 2), calc((100vw - 88px) / 2)',
+} = Astro.props;
 const d = pattern.data;
 const free = isFree(pattern);
 const H = `h${headingLevel}` as 'h2' | 'h3';
@@ -24,9 +32,10 @@ const H = `h${headingLevel}` as 'h2' | 'h3';
       alt=""
       formats={['avif', 'webp']}
       fallbackFormat="jpg"
-      widths={[240, 360, 540, 720]}
-      sizes={sharpCapped('(min-width: 1100px) 280px, (min-width: 700px) 30vw, 46vw')}
+      widths={[192, 288, 384, 576, 768]}
+      sizes={sharpCapped(imageSizes)}
       loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
       fetchpriority={priority ? 'high' : undefined}
     />
     {free && <span class="badge free">Free PDF</span>}

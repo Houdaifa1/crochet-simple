@@ -41,6 +41,31 @@ export const Settings: GlobalConfig = {
               type: 'email',
               admin: { description: 'Shown on About, Privacy and Terms. Leave empty to hide.' },
             },
+            {
+              name: 'controls',
+              type: 'group',
+              label: 'Search and download buttons',
+              fields: [
+                {
+                  name: 'searchLabel',
+                  type: 'text',
+                  maxLength: 80,
+                  admin: {
+                    description:
+                      'Accessible name of the search button in the header. Leave empty to use Search patterns and stories.',
+                  },
+                },
+                {
+                  name: 'downloadLabel',
+                  type: 'text',
+                  maxLength: 60,
+                  admin: {
+                    description:
+                      'The free PDF button and its shortcut near the top of a pattern. Leave empty to use Download free PDF.',
+                  },
+                },
+              ],
+            },
           ],
         },
         {

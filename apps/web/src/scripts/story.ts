@@ -90,6 +90,7 @@ async function build(
       text: box(ch.querySelector('.meta')!),
       wrapSide,
       connector: STYLES[i]!,
+      details: [...ch.querySelectorAll('.float')].map(box),
     };
   });
   const knot = box(story.querySelector('.knot')!);
@@ -143,6 +144,8 @@ async function build(
   story.classList.remove('measuring');
 
   const route = buildRoute({
+    photoFirst: phone,
+    ...(phone ? {} : { photoReach: vh * 0.08 }),
     width: origin.width,
     yarnStart: {
       x: hero.x + hero.width * Number(d.yarnX),
@@ -194,6 +197,7 @@ async function build(
   svg.append(line);
   const tip = document.createElementNS(NS, 'g');
   tip.setAttribute('class', 'tip');
+  tip.setAttribute('visibility', 'hidden');
   const halo = document.createElementNS(NS, 'circle');
   halo.setAttribute('r', phone ? '6.4' : '7');
   halo.setAttribute('fill', '#fffdf9');

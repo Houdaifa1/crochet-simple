@@ -208,6 +208,9 @@ const settings = defineCollection({
         .optional(),
       etsyShopUrl: url.optional(),
       contactEmail: z.email().optional(),
+      controls: z
+        .object({ searchLabel: text.max(80).optional(), downloadLabel: text.max(60).optional() })
+        .default({}),
       // off until the final domain is live, so a test address never gets indexed
       indexable: z.boolean().default(false),
       social: z

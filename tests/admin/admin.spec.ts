@@ -569,6 +569,7 @@ test('site settings reach the website: social links, Pinterest card, ads and sea
     page.request.post(`${ORIGIN}/api/globals/settings`, { data, headers: { origin: ORIGIN } });
   const on = await set({
     indexable: true,
+    controls: { searchLabel: 'Find patterns and stories', downloadLabel: 'Save the PDF' },
     social: [{ platform: 'instagram', url: 'https://www.instagram.com/crochetsimple' }],
     pinterest: {
       url: 'https://www.pinterest.com/hdrahm/',
@@ -584,13 +585,16 @@ test('site settings reach the website: social links, Pinterest card, ads and sea
   expect(home).toContain('https://www.pinterest.com/hdrahm/');
   expect(home).toContain('max-image-preview:large');
   expect(home).not.toContain('noindex');
+  expect(home).toContain('aria-label="Find patterns and stories"');
   const bag = built('patterns/blue-market-bag/index.html');
   expect(bag).toContain('ca-pub-1234567890123456');
   expect(bag).toContain('adsbygoogle');
+  expect(bag.match(/Save the PDF/g)).toHaveLength(2);
   expect(built('robots.txt')).not.toMatch(/^Disallow: \/$/m);
 
   const off = await set({
     indexable: false,
+    controls: { searchLabel: '', downloadLabel: '' },
     social: [],
     pinterest: { url: '', name: '', photo: null },
     adsense: { enabled: false },
@@ -601,6 +605,8 @@ test('site settings reach the website: social links, Pinterest card, ads and sea
   expect(home2).not.toContain('instagram.com');
   expect(home2).not.toContain('pinterest.com/hdrahm');
   expect(home2).toContain('noindex');
+  expect(home2).toContain('aria-label="Search patterns and stories"');
+  expect(built('patterns/blue-market-bag/index.html').match(/Download free PDF/g)).toHaveLength(2);
   expect(built('patterns/blue-market-bag/index.html')).not.toContain('adsbygoogle');
   expect(built('robots.txt')).toMatch(/^Disallow: \/$/m);
 });

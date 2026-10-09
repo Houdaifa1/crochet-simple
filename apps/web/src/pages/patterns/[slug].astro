@@ -16,6 +16,7 @@ import {
   pdfInfo,
   related,
   sections,
+  settings,
   SKILL,
   type Pattern,
 } from '../../lib/content';
@@ -33,6 +34,7 @@ const { pattern, all } = Astro.props;
 const d = pattern.data;
 const category = await categoryOf(pattern);
 const pdf = pdfInfo(pattern);
+const downloadLabel = (await settings()).controls.downloadLabel ?? 'Download free PDF';
 const site = Astro.site;
 const path = `/patterns/${pattern.id}/`;
 const og = await getImage({
@@ -160,6 +162,11 @@ const thumb = await getImage({
       <header class="p-head">
         <h1>{d.heading ?? d.title}</h1>
         <p class="lede">{d.summary}</p>
+        {pdf && (
+          <a class="btn head-download" href="#download">
+            {downloadLabel}
+          </a>
+        )}
         <div class="tags" data-pagefind-ignore>
           <div class="tags-in">
             {pdf && <span class="tag free">Free PDF</span>}
@@ -242,7 +249,12 @@ const thumb = await getImage({
       <h2 id="more-title">More patterns</h2>
       <div class="row">
         {more.map((p) => (
-          <PatternCard pattern={p} category={names.get(p.data.category.id)!} headingLevel={3} />
+          <PatternCard
+            pattern={p}
+            category={names.get(p.data.category.id)!}
+            headingLevel={3}
+            imageSizes="(min-width: 1240px) 249px, (min-width: 1000px) calc((100vw - 244px) / 4), (min-width: 900px) calc((100vw - 112px) * 0.62 - 18px), calc((100vw - 48px) * 0.62 - 14px)"
+          />
         ))}
       </div>
     </section>

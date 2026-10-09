@@ -10,11 +10,14 @@ export interface ChapterLayout {
   readonly photo: Box;
   readonly wrapSide: 'left' | 'right';
   readonly connector: ConnectorStyle;
+  readonly details?: readonly Box[];
   // name, description and tags under the photo; the yarn passes outside it
   readonly text?: Box;
 }
 
 export interface StoryLayout {
+  readonly photoFirst?: boolean;
+  readonly photoReach?: number;
   readonly width: number;
   readonly yarnStart: Point;
   readonly yarnDirection: Point;
@@ -38,6 +41,7 @@ export interface RouteSegment {
 }
 
 export interface Route {
+  readonly photoFirst: boolean;
   readonly commands: readonly PathCommand[];
   readonly segments: readonly RouteSegment[];
   readonly placements: readonly PlacedDrawing[];
@@ -45,6 +49,35 @@ export interface Route {
 
 const DOWN: Point = { x: 0, y: 1 };
 const KAPPA = 0.5522847498;
+
+function photoCurve(
+  ink: PathBuilder,
+  to: Point,
+  direction: Point,
+  bounds: XBounds,
+  limit: number,
+): void {
+  const from = ink.current;
+  const reach = Math.min(Math.hypot(to.x - from.x, to.y - from.y) * 0.4, limit);
+  const room =
+    direction.x > 0
+      ? (bounds.maxX - from.x) / direction.x
+      : direction.x < 0
+        ? (bounds.minX - from.x) / direction.x
+        : Infinity;
+  const incoming = Math.max(0, Math.min(reach, room));
+  ink.cubicTo(
+    { x: from.x + direction.x * incoming, y: from.y + direction.y * incoming },
+    { x: to.x, y: to.y - reach },
+    to,
+  );
+}
+
+function approachPhoto(ink: PathBuilder, to: Point, direction: Point, bounds: XBounds): void {
+  const from = ink.current;
+  // Keep a wide approach above the detail photos on short screens.
+  photoCurve(ink, to, direction, bounds, Math.max(0, to.y - from.y) * 0.4);
+}
 
 function validateLayout(layout: StoryLayout): void {
   const ids = layout.chapters.map((c) => c.id);
@@ -83,7 +116,8 @@ function wrapPhoto(
   const bottom = boxBottom(photo) + gap;
   const r = Math.min(layout.cornerRadius, photo.height / 3, photo.width / 3);
   const top = { x: sx, y: photo.y + Math.min(r, photo.height / 4) };
-  curveTo(ink, top, direction, DOWN, bounds);
+  if (layout.photoReach === undefined) curveTo(ink, top, direction, DOWN, bounds);
+  else photoCurve(ink, top, direction, bounds, layout.photoReach);
   ink.lineTo({ x: sx, y: bottom - r });
   ink.cubicTo(
     { x: sx, y: bottom - r + KAPPA * r },
@@ -163,25 +197,61 @@ export function buildRoute(layout: StoryLayout): Route {
   layout.chapters.forEach((chapter, k) => {
     const placed = placeDrawing(getDrawing(chapter.id), chapter.art);
     placements.push(placed);
-    mark('connector', chapter.id, () => {
-      // the drop past the scroll cue belongs to the first product's approach
-      if (k === 0) leadIn();
-      drawConnector(ink, {
-        to: placed.entry,
-        fromDirection: direction,
-        toDirection: placed.entryDirection,
-        style: chapter.connector,
-        size: layout.decorationSize,
-        ...bounds,
+    if (layout.photoFirst) {
+      mark('connector', chapter.id, () => {
+        if (k === 0) leadIn();
+        const sideX =
+          chapter.wrapSide === 'left'
+            ? chapter.photo.x - layout.photoGap
+            : boxRight(chapter.photo) + layout.photoGap;
+        const clearY =
+          Math.min(chapter.photo.y, ...(chapter.details ?? []).map((detail) => detail.y)) -
+          layout.photoGap;
+        approachPhoto(ink, { x: sideX, y: clearY }, direction, bounds);
+        direction = DOWN;
+        direction = wrapPhoto(ink, direction, layout, chapter, bounds);
       });
-    });
-    mark('drawing', chapter.id, () => ink.append(placed.body));
-    mark('wrap', chapter.id, () => {
-      direction = wrapPhoto(ink, placed.exitDirection, layout, chapter, bounds);
-      direction = passText(ink, direction, layout, chapter, bounds);
-    });
+      mark('wrap', chapter.id, () => {
+        direction = passText(ink, direction, layout, chapter, bounds);
+      });
+      mark('connector', chapter.id, () => {
+        drawConnector(ink, {
+          to: placed.entry,
+          fromDirection: direction,
+          toDirection: placed.entryDirection,
+          style: chapter.connector,
+          size: layout.decorationSize,
+          ...bounds,
+        });
+      });
+      mark('drawing', chapter.id, () => ink.append(placed.body));
+      direction = placed.exitDirection;
+    } else {
+      mark('connector', chapter.id, () => {
+        // the drop past the scroll cue belongs to the first product's approach
+        if (k === 0) leadIn();
+        drawConnector(ink, {
+          to: placed.entry,
+          fromDirection: direction,
+          toDirection: placed.entryDirection,
+          style: chapter.connector,
+          size: layout.decorationSize,
+          ...bounds,
+        });
+      });
+      mark('drawing', chapter.id, () => ink.append(placed.body));
+      mark('wrap', chapter.id, () => {
+        direction = wrapPhoto(ink, placed.exitDirection, layout, chapter, bounds);
+        direction = passText(ink, direction, layout, chapter, bounds);
+      });
+    }
   });
   mark('tail', null, () => curveTo(ink, layout.end, direction, DOWN, bounds));
 
-  return { commands: ink.toCommands(), segments, placements };
+  return {
+    photoFirst: layout.photoFirst ?? false,
+    commands: ink.toCommands(),
+    segments,
+    placements,
+  };
 }

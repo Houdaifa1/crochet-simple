@@ -228,3 +228,62 @@ describe('route rules', () => {
     expect(() => assertSingleLinePathData('M0,0 L1,1 z')).toThrow(/unexpected/);
   });
 });
+
+describe('pictures before drawings on phones', () => {
+  const story = phoneStory();
+  const layout = {
+    ...story.layout,
+    photoFirst: true,
+    chapters: story.layout.chapters.map((chapter) => {
+      const photo = { ...chapter.photo, y: chapter.art.y };
+      const text = { ...chapter.text!, y: photo.y + photo.height + 30 };
+      return { ...chapter, photo, text, art: { ...chapter.art, y: text.y + text.height + 56 } };
+    }),
+  };
+  const route = buildRoute(layout);
+  const poly = flatten(route.commands);
+
+  it('preserves the complete approved drawings, product order and one continuous route', () => {
+    assertRouteStructure(route);
+    assertSingleLinePathData(toPathData(route.commands), 'route');
+    expect(route.placements.map((placed) => placed.id)).toEqual([...PRODUCT_ORDER]);
+    for (const placed of route.placements) {
+      const segment = route.segments.find(
+        (item) => item.kind === 'drawing' && item.chapter === placed.id,
+      )!;
+      expect(route.commands.slice(segment.startCommand, segment.endCommand)).toEqual(placed.body);
+    }
+  });
+
+  it('passes every picture and caption before reaching its drawing without crossing either', () => {
+    for (const chapter of layout.chapters) {
+      const drawing = route.segments.find(
+        (item) => item.kind === 'drawing' && item.chapter === chapter.id,
+      )!;
+      const wrap = route.segments.find(
+        (item) => item.kind === 'wrap' && item.chapter === chapter.id,
+      )!;
+      expect(wrap.endCommand).toBeLessThan(drawing.startCommand);
+      for (const box of [chapter.photo, chapter.text]) {
+        for (let i = 0; i < poly.count; i++) {
+          const inside =
+            poly.xs[i]! > box.x + 0.5 &&
+            poly.xs[i]! < box.x + box.width - 0.5 &&
+            poly.ys[i]! > box.y + 0.5 &&
+            poly.ys[i]! < box.y + box.height - 0.5;
+          expect(inside, chapter.id).toBe(false);
+        }
+      }
+    }
+    expect(() => buildScrollMap(poly, route, story.policy)).not.toThrow();
+  });
+
+  it('rejects reordered segments and a sequence declared as the wrong layout', () => {
+    expect(() => assertRouteStructure({ ...route, photoFirst: false })).toThrow(
+      'Route order mismatch',
+    );
+    const segments = [...route.segments];
+    [segments[1], segments[2]] = [segments[2]!, segments[1]!];
+    expect(() => assertRouteStructure({ ...route, segments })).toThrow('Route order mismatch');
+  });
+});

@@ -488,6 +488,12 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
       pinterest,
       etsyShopUrl: text(s['etsyShopUrl']),
       contactEmail: text(s['contactEmail']),
+      controls: drop({
+        searchLabel: text((s['controls'] as Record<string, unknown> | undefined)?.['searchLabel']),
+        downloadLabel: text(
+          (s['controls'] as Record<string, unknown> | undefined)?.['downloadLabel'],
+        ),
+      }),
       indexable: Boolean(s['indexable']),
       social: ((s['social'] as Record<string, unknown>[] | undefined) ?? []).map((x) => ({
         platform: x['platform'],

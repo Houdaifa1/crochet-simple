@@ -145,6 +145,8 @@ export function startCategories(filters: HTMLElement, row: HTMLElement) {
       }
       const copy = copyLink(link);
       copy.classList.add('category-ghost');
+      copy.setAttribute('aria-hidden', 'true');
+      copy.inert = true;
       copy.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.width}px;height:${r.height}px;min-height:${r.height}px!important;`;
       document.body.append(copy);
       addLiquid(copy);

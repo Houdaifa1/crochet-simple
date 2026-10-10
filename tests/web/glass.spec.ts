@@ -255,6 +255,32 @@ test('categories condense and unfold as glass controls without a background pane
   await expect(page.locator('.dock a .liquid-layer')).toHaveCount(0);
 });
 
+test('category motion never adds duplicate links or keyboard stops', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 844 });
+  await visit(page);
+  await page.evaluate(() => {
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.addedNodes)
+          if (node instanceof HTMLElement && node.matches('.category-ghost'))
+            node.getAnimations().forEach((animation) => animation.pause());
+    }).observe(document.body, { childList: true });
+    const filters = document.querySelector('.filters')!;
+    scrollTo(0, scrollY + filters.getBoundingClientRect().top - 50);
+  });
+  await page.locator('.category-ghost').first().waitFor({ state: 'attached' });
+  await expect(page.getByRole('link').and(page.locator('.category-ghost'))).toHaveCount(0);
+  await page.locator('.header-search').focus();
+  for (let i = 0; i < 40; i++) {
+    await page.keyboard.press('Tab');
+    expect(
+      await page
+        .locator('.category-ghost')
+        .evaluateAll((copies) => copies.some((copy) => copy === document.activeElement)),
+    ).toBe(false);
+  }
+});
+
 test('opening can be interrupted without jumping and reduced motion remains static', async ({
   page,
 }) => {

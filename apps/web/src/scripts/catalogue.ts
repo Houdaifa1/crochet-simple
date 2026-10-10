@@ -39,6 +39,7 @@ export function startCatalogue(): void {
   let searching = 0;
   let swapping = false;
   let scrollTimer: ReturnType<typeof setTimeout>;
+  let cancelFocus: (() => void) | undefined;
 
   function snapshot(): void {
     original = [...grid!.children];
@@ -158,6 +159,7 @@ export function startCatalogue(): void {
   }
 
   async function navigate(url: URL, options: Navigation = {}): Promise<void> {
+    cancelFocus?.();
     clearTimeout(scrollTimer);
     window.scrollTo({ top: scrollY, behavior: 'instant' });
     const serial = ++navigation;
@@ -236,26 +238,60 @@ export function startCatalogue(): void {
       updateHead(next);
       await runSearch(input!.value, false);
       if (serial !== navigation) return;
-      const y =
+      const y = Math.max(
+        0,
         options.restore?.y ??
-        scrollY + form!.getBoundingClientRect().top - (innerWidth >= 900 ? 96 : 20);
+          Math.round(scrollY + form!.getBoundingClientRect().top - (innerWidth >= 900 ? 96 : 20)),
+      );
       if (!options.restore && url.href !== location.href) {
-        history.pushState({ catalogue: { y: Math.max(0, y), left } }, '', url);
+        history.pushState({ catalogue: { y, left } }, '', url);
       }
       history.scrollRestoration = 'manual';
       if (row) row.scrollLeft = left;
-      window.scrollTo({
-        top: Math.max(0, y),
-        behavior: options.restore || reduced.matches ? 'instant' : 'smooth',
-      });
       refreshLiquid();
-      categories?.changed(Boolean(options.control));
-      if (!categories && options.control?.isConnected)
-        options.control.focus({ preventScroll: true });
+      categories?.changed();
+      const smooth = !options.restore && !reduced.matches;
+      const focus = () => {
+        if (serial !== navigation) return;
+        categories?.changed(Boolean(options.control));
+        if (!categories && options.control?.isConnected)
+          options.control.focus({ preventScroll: true });
+      };
+      const deferFocus = options.control && smooth && Math.abs(scrollY - y) >= 0.5;
+      if (deferFocus) {
+        let frame = 0;
+        let stable = 0;
+        let last = scrollY;
+        const cleanup = () => {
+          document.removeEventListener('scrollend', complete);
+          clearTimeout(limit);
+          cancelAnimationFrame(frame);
+          cancelFocus = undefined;
+        };
+        const complete = () => {
+          cleanup();
+          focus();
+        };
+        const limit = setTimeout(complete, 1500);
+        cancelFocus = cleanup;
+        if ('onscrollend' in document)
+          document.addEventListener('scrollend', complete, { once: true });
+        else {
+          const check = () => {
+            stable = scrollY === last ? stable + 1 : 0;
+            last = scrollY;
+            if (stable >= 4) complete();
+            else frame = requestAnimationFrame(check);
+          };
+          frame = requestAnimationFrame(check);
+        }
+      }
+      window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'instant' });
+      if (!deferFocus) focus();
       if (options.restore)
         requestAnimationFrame(() => {
           if (serial !== navigation) return;
-          window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
+          window.scrollTo({ top: y, behavior: 'instant' });
           savePosition();
         });
       document.dispatchEvent(new Event('cataloguechange'));

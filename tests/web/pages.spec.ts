@@ -369,7 +369,7 @@ test.describe('information pages and journal guides', () => {
         await links.first().focus();
         await expect(links.first()).toBeFocused();
         await page.keyboard.press('Enter');
-        expect(new URL(page.url()).hash).toBe(hrefs[0]);
+        await expect.poll(() => new URL(page.url()).hash).toBe(hrefs[0]);
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
           width,
         );

@@ -141,14 +141,14 @@ html:root.glass .dock.ribbon > a {
   backdrop-filter: none;
   border-radius: 999px;
   padding: 0 20px;
-  min-height: 48px;
+  min-height: 50px;
 }
 html:root.glass .dock.ribbon > a::before,
 html:root.glass .dock.ribbon > a::after {
   display: none;
 }
 html:root.glass .dock.ribbon > a.home {
-  width: 48px;
+  width: 50px;
   padding: 0;
 }
 html:root.glass .dock.ribbon > a[aria-current='page'] {
@@ -189,12 +189,18 @@ html:root.glass .chips {
   overflow: visible;
   scroll-snap-type: none;
 }
-html:root.glass .chip {
+html:root.glass .chips .chip,
+html:root.glass .chip.liquid {
   gap: 7px;
   padding: 0 15px;
-  min-height: 50px;
+  min-height: 52px;
   background-image: none;
   font-size: 14px;
+}
+html:root.glass .header-search {
+  width: 52px;
+  height: 52px;
+  min-height: 52px;
 }
 html:root.glass .chip .n {
   position: static;

@@ -234,6 +234,8 @@ export function startCatalogue(): void {
       snapshot();
       input!.value = url.searchParams.get('q') ?? '';
       updateHead(next);
+      await runSearch(input!.value, false);
+      if (serial !== navigation) return;
       const y =
         options.restore?.y ??
         scrollY + form!.getBoundingClientRect().top - (innerWidth >= 900 ? 96 : 20);
@@ -250,8 +252,12 @@ export function startCatalogue(): void {
       categories?.changed(Boolean(options.control));
       if (!categories && options.control?.isConnected)
         options.control.focus({ preventScroll: true });
-      if (options.restore) savePosition();
-      void runSearch(input!.value, false);
+      if (options.restore)
+        requestAnimationFrame(() => {
+          if (serial !== navigation) return;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
+          savePosition();
+        });
       document.dispatchEvent(new Event('cataloguechange'));
     } catch {
       if (serial === navigation) location.assign(url.href);

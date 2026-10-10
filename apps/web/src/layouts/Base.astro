@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import '../styles/global.css';
 import '../styles/glass.css';
+import '../styles/liquid.css';
 import Dock from '../components/Dock.astro';
 import Mark from '../components/Mark.astro';
 import ProfileCard from '../components/ProfileCard.astro';
@@ -166,3 +167,8 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
     </footer>
   </body>
 </html>
+
+<script>
+  import { startLiquid } from '../scripts/liquid';
+  startLiquid();
+</script>

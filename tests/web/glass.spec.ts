@@ -8,29 +8,34 @@ async function visit(page: Page, path = '/patterns/') {
   await page.goto(path, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
 }
-const category = (page: Page, id: string) => page.locator(`.chips a[data-category="${id}"]`);
+const category = (page: Page, id: string) =>
+  page.locator(`.filters .chips a[data-category="${id}"]`);
 
 for (const width of [360, 375, 430, 1280]) {
-  test(`glass controls fit and categories keep their position at ${width} px`, async ({ page }) => {
+  test(`glass controls fit and each category starts below search at ${width} px`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height: 900 });
     await visit(page);
     await page.evaluate(() => {
       (window as Window & { retained?: object }).retained = {};
-      window.scrollTo(0, 260);
+      window.scrollTo(0, 650);
     });
-    const position = await page.locator('.filters').boundingBox();
     const navigation = await page.evaluate(() => performance.timeOrigin);
-    const hit = (await category(page, 'bags').boundingBox())!;
-    await page.mouse.click(hit.x + hit.width / 2, hit.y + hit.height / 2);
+    await page.locator('.category-trigger').click();
+    await page.locator('.category-panel a[data-category="bags"]').click();
     await expect(page).toHaveURL(/\/patterns\/category\/bags\/$/);
     await expect(category(page, 'bags')).toHaveAttribute('aria-current', 'page');
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(navigation);
     expect(
       await page.evaluate(() => Boolean((window as Window & { retained?: object }).retained)),
     ).toBe(true);
-    expect(Math.abs((await page.locator('.filters').boundingBox())!.y - position!.y)).toBeLessThan(
-      2,
-    );
+    await expect
+      .poll(async () =>
+        Math.abs((await page.locator('.search').boundingBox())!.y - (width >= 900 ? 96 : 20)),
+      )
+      .toBeLessThan(1);
+    await expect(page.locator('.category-panel')).toBeHidden();
     await expect(category(page, 'bags')).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       width,
@@ -102,8 +107,13 @@ test('query, scroll and categories survive browser back and forward', async ({ p
   await page.locator('#q').fill('bag');
   await expect(page.locator('.count')).toContainText('for “bag”');
   await page.evaluate(() => window.scrollTo(0, 260));
-  await category(page, 'bags').click();
+  await page.locator('.category-trigger').click();
+  await page.locator('.category-panel a[data-category="bags"]').click();
   await expect(page).toHaveURL(/category\/bags\/\?q=bag$/);
+  await expect(category(page, 'bags')).toBeFocused();
+  await expect
+    .poll(async () => Math.abs((await page.locator('.search').boundingBox())!.y - 20))
+    .toBeLessThan(1);
   const bagY = await page.evaluate(() => scrollY);
   await category(page, 'accessories').click();
   await expect(page).toHaveURL(/category\/accessories\/\?q=bag$/);
@@ -125,6 +135,30 @@ test('failed category enhancement falls back to the ordinary page', async ({ pag
   await expect(page).toHaveURL(/category\/bags\/$/);
   await expect(page.locator('h1')).toHaveText('Bags');
   await expect(page.locator('.grid .card')).toHaveCount(1);
+});
+
+test('Back restores the reading position when category introductions have different heights', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 812 });
+  await page.route('**/patterns/category/amigurumi/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(
+      'Test category: amigurumi patterns.',
+      'Crochet small animals and keepsakes. Choose a pattern, gather your yarn and take your time with each stitch. Make something to keep or give to someone you love.',
+    );
+    await route.fulfill({ response, body });
+  });
+  await visit(page, '/patterns/category/amigurumi/');
+  await page.evaluate(() => scrollTo(0, 500));
+  await page.locator('.category-trigger').click();
+  const y = await page.evaluate(() => scrollY);
+  await page.locator('.category-panel a[data-category="bags"]').click();
+  await expect(page).toHaveURL(/category\/bags\/$/);
+  await expect(category(page, 'bags')).toBeFocused();
+  await page.goBack();
+  await expect(page.locator('h1')).toHaveText('Amigurumi');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(y, 0);
 });
 
 test('categories are complete ordinary links without JavaScript', async ({ browser }) => {
@@ -187,5 +221,102 @@ test('reduced motion and increased contrast keep content and controls visible', 
       await expect(content).toHaveCSS('color', 'rgb(42, 41, 37)');
       await expect(content).toHaveCSS('opacity', '1');
     }
+  }
+});
+
+test('categories condense and unfold as glass controls without a background panel', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 844 });
+  await visit(page);
+  await page.evaluate(() => scrollTo(0, 650));
+  await expect(page.locator('.category-trigger')).toBeVisible();
+  await expect(page.locator('.filters')).toHaveJSProperty('inert', true);
+  await page.locator('.category-trigger').click();
+  await expect(page.locator('.category-panel')).toBeVisible();
+  await expect(page.locator('.category-panel a')).toHaveCount(7);
+  await expect(page.locator('.category-panel')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(page.locator('.category-panel')).toHaveCSS('box-shadow', 'none');
+  await expect(page.locator('.category-panel a').first()).toHaveClass(/liquid/);
+  await expect(page.locator('.category-panel a[data-category="all"]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.category-panel')).toBeHidden();
+  await expect(page.locator('.category-trigger')).toBeFocused();
+  await page.locator('.category-trigger').click();
+  await page.locator('.category-panel a[data-category="all"]').click();
+  await expect(page.locator('.category-panel')).toBeHidden();
+  await expect(page.locator('.category-trigger')).toBeFocused();
+  await page.evaluate(() => scrollTo(0, 0));
+  await expect(page.locator('.category-control')).toBeHidden();
+  await expect(page.locator('.filters')).toHaveJSProperty('inert', false);
+  await expect(category(page, 'bags')).toBeVisible();
+  await expect(page.locator('.dock')).toHaveClass(/ribbon/);
+  await expect(page.locator('.dock > .liquid-layer')).toHaveCount(1);
+  await expect(page.locator('.dock a .liquid-layer')).toHaveCount(0);
+});
+
+test('opening can be interrupted without jumping and reduced motion remains static', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 844 });
+  await visit(page);
+  await page.evaluate(() => scrollTo(0, 650));
+  await expect(page.locator('.category-trigger')).toBeVisible();
+  await page.evaluate(() =>
+    (document.querySelector('.category-trigger') as HTMLButtonElement).click(),
+  );
+  await page.waitForTimeout(70);
+  await page.evaluate(() =>
+    (document.querySelector('.category-close') as HTMLButtonElement).click(),
+  );
+  await page.waitForTimeout(35);
+  const values = await page.evaluate(() => {
+    const el = document.querySelector('.category-panel a')!;
+    const before = Number(getComputedStyle(el).opacity);
+    (document.querySelector('.category-trigger') as HTMLButtonElement).click();
+    return { before, after: Number(getComputedStyle(el).opacity) };
+  });
+  expect(Math.abs(values.before - values.after)).toBeLessThan(0.02);
+  await expect(page.locator('.category-panel a').first()).toHaveCSS('opacity', '1');
+  await page.emulateMedia({ reducedMotion: 'reduce', contrast: 'more' });
+  await page.keyboard.press('Escape');
+  await page.locator('.category-trigger').click();
+  await expect(page.locator('.category-trigger')).toHaveCSS(
+    'background-color',
+    'rgb(251, 248, 242)',
+  );
+  expect(
+    await page
+      .locator('.category-panel')
+      .evaluate(
+        (el) => el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length,
+      ),
+  ).toBe(0);
+  await expect(page.locator('.category-panel a').first()).toHaveCSS('color', 'rgb(42, 41, 37)');
+});
+
+test('category choices fit short phones, landscape, tablets and wide screens', async ({ page }) => {
+  for (const [width, height] of [
+    [360, 640],
+    [812, 375],
+    [768, 1024],
+    [1920, 1080],
+  ]) {
+    await page.setViewportSize({ width: width!, height: height! });
+    await visit(page);
+    await page.evaluate(() => scrollTo(0, 650));
+    await page.locator('.category-trigger').click();
+    const panel = (await page.locator('.category-panel').boundingBox())!;
+    expect(panel.x).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width).toBeLessThanOrEqual(width!);
+    expect(panel.y + panel.height).toBeLessThanOrEqual(height!);
+    const last = page.locator('.category-panel a').last();
+    await last.scrollIntoViewIfNeeded();
+    await expect(last).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width!,
+    );
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.category-panel')).toBeHidden();
   }
 });

@@ -7,6 +7,8 @@ import {
   searchReady,
   warmSearch,
 } from '../lib/search';
+import { startCategories } from './categories';
+import { refreshLiquid } from './liquid';
 
 type Position = { y: number; left: number };
 type Navigation = { control?: HTMLAnchorElement; restore?: Position };
@@ -51,11 +53,13 @@ export function startCatalogue(): void {
     pager = wrap!.querySelector<HTMLElement>('.pager');
   }
   snapshot();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 
   const initial = document.implementation.createHTMLDocument(document.title);
   initial.head.replaceChildren(...[...document.head.children].map((node) => node.cloneNode(true)));
   initial.body.append(wrap.cloneNode(true));
   cache.set(activePath, Promise.resolve(initial));
+  const categories = filters && row ? startCategories(filters, row) : undefined;
 
   function savePosition(): void {
     history.replaceState(
@@ -154,12 +158,14 @@ export function startCatalogue(): void {
   }
 
   async function navigate(url: URL, options: Navigation = {}): Promise<void> {
+    clearTimeout(scrollTimer);
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
     const serial = ++navigation;
     ++searching;
     swapping = true;
-    const oldTop = filters?.getBoundingClientRect().top;
     const left = options.restore?.left ?? row?.scrollLeft ?? 0;
     if (!options.restore) savePosition();
+    categories?.beforeNavigate();
     options.control?.setAttribute('data-pending', '');
     grid!.setAttribute('aria-busy', 'true');
     try {
@@ -180,7 +186,7 @@ export function startCatalogue(): void {
             link,
           ]),
         );
-        const links = [...nextWrap.querySelectorAll<HTMLAnchorElement>('.chips a')].map(
+        const links = [...nextWrap.querySelectorAll<HTMLAnchorElement>('.filters .chips a')].map(
           (nextLink) => {
             const link =
               present.get(nextLink.dataset.category) ??
@@ -228,17 +234,23 @@ export function startCatalogue(): void {
       snapshot();
       input!.value = url.searchParams.get('q') ?? '';
       updateHead(next);
+      const y =
+        options.restore?.y ??
+        scrollY + form!.getBoundingClientRect().top - (innerWidth >= 900 ? 96 : 20);
       if (!options.restore && url.href !== location.href) {
-        history.pushState({ catalogue: { y: scrollY, left } }, '', url);
+        history.pushState({ catalogue: { y: Math.max(0, y), left } }, '', url);
       }
       history.scrollRestoration = 'manual';
       if (row) row.scrollLeft = left;
-      const y =
-        options.restore?.y ??
-        (oldTop === undefined ? scrollY : scrollY + filters!.getBoundingClientRect().top - oldTop);
-      window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
-      if (options.control?.isConnected) options.control.focus({ preventScroll: true });
-      savePosition();
+      window.scrollTo({
+        top: Math.max(0, y),
+        behavior: options.restore || reduced.matches ? 'instant' : 'smooth',
+      });
+      refreshLiquid();
+      categories?.changed(Boolean(options.control));
+      if (!categories && options.control?.isConnected)
+        options.control.focus({ preventScroll: true });
+      if (options.restore) savePosition();
       void runSearch(input!.value, false);
       document.dispatchEvent(new Event('cataloguechange'));
     } catch {
@@ -265,7 +277,7 @@ export function startCatalogue(): void {
 
   wrap.addEventListener('click', (event) => {
     const link = (event.target as Element).closest<HTMLAnchorElement>(
-      '.chips a,.bar a.toggle,.pager a',
+      '.chips a,.category-options a,.bar a.toggle,.pager a',
     );
     if (
       !link ||
@@ -283,7 +295,10 @@ export function startCatalogue(): void {
     if (url.origin !== location.origin || !url.pathname.startsWith('/patterns/')) return;
     event.preventDefault();
     if (input.value.trim()) url.searchParams.set('q', input.value.trim());
-    if (url.pathname === activePath && !swapping) return;
+    if (url.pathname === activePath && !swapping) {
+      categories?.dismiss();
+      return;
+    }
     void navigate(url, { control: link });
   });
 
@@ -294,8 +309,10 @@ export function startCatalogue(): void {
   ).connection;
   if (!connection?.saveData && !/^(slow-)?2g$/.test(connection?.effectiveType ?? '')) {
     for (const event of ['pointerover', 'focusin'])
-      filters?.addEventListener(event, (event) => {
-        const link = (event.target as Element).closest<HTMLAnchorElement>('a');
+      wrap.addEventListener(event, (event) => {
+        const link = (event.target as Element).closest<HTMLAnchorElement>(
+          '.chips a,.category-options a',
+        );
         if (link) void load(new URL(link.href)).catch(() => undefined);
       });
   }

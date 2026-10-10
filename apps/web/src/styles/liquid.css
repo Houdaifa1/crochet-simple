@@ -1,0 +1,477 @@
+html:root.glass {
+  --liquid-fill: color-mix(in srgb, var(--sheet) 64%, transparent);
+  --liquid-rim:
+    inset 0 2px 2px color-mix(in srgb, var(--sheet) 95%, transparent),
+    inset 2px 0 3px color-mix(in srgb, var(--sheet) 50%, transparent),
+    inset 0 -2px 3px color-mix(in srgb, var(--blue) 20%, transparent),
+    inset -2px 0 3px color-mix(in srgb, var(--ink) 12%, transparent),
+    0 8px 20px -9px color-mix(in srgb, var(--blue) 28%, transparent),
+    0 0 0 0.5px color-mix(in srgb, var(--sheet) 70%, transparent);
+}
+html:root.glass:has([data-catalogue]) {
+  overflow-anchor: none;
+}
+html:root.glass
+  :is(
+    .liquid,
+    .btn,
+    .button,
+    .play,
+    .chip,
+    .thumbs button,
+    .header-search,
+    .pager a,
+    .gallery .save,
+    .profile .follow,
+    .social a
+  ) {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 999px;
+  background: var(--liquid-fill);
+  color: var(--ink);
+  box-shadow: var(--liquid-rim);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition:
+    transform 140ms,
+    box-shadow 160ms;
+}
+html:root.glass
+  :is(
+    .liquid,
+    .btn,
+    .button,
+    .play,
+    .chip,
+    .thumbs button,
+    .header-search,
+    .pager a,
+    .gallery .save,
+    .profile .follow,
+    .social a
+  )::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse 95% 60% at 35% -15%,
+      color-mix(in srgb, var(--sheet) 75%, transparent),
+      transparent 75%
+    ),
+    linear-gradient(
+      130deg,
+      transparent 35%,
+      color-mix(in srgb, var(--sheet) 9%, transparent) 60%,
+      transparent 85%
+    );
+  box-shadow: none;
+  transform: none;
+}
+html:root.glass .liquid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: var(--liquid-rim);
+  background: none;
+}
+html:root.glass .liquid-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(1.5px) saturate(125%);
+  backdrop-filter: blur(1.5px) saturate(125%);
+  clip-path: inset(0 round 999px);
+}
+html:root.glass .liquid-layer.refract {
+  -webkit-backdrop-filter: var(--liquid-filter);
+  backdrop-filter: var(--liquid-filter);
+}
+html:root.glass .liquid:active {
+  transform: scale(0.975);
+}
+html:root.glass .liquid:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+html:root.glass
+  :is(.chip, .pager a, .thumbs button):is([aria-current='page'], [aria-current='true']),
+html:root.glass .liquid[aria-pressed='true'] {
+  background: var(--liquid-fill);
+  color: var(--ink);
+  font-weight: 650;
+}
+html:root.glass
+  :is(.chip, .pager a, .thumbs button):is([aria-current='page'], [aria-current='true'])::after {
+  box-shadow:
+    var(--liquid-rim),
+    inset 0 0 0 1px color-mix(in srgb, var(--blue) 30%, transparent);
+}
+html:root.glass .dock.ribbon {
+  position: fixed;
+  padding: 6px;
+  gap: 2px;
+  border: 0;
+  overflow: visible;
+  background: var(--liquid-fill);
+  border-radius: 999px;
+  --liquid-rim:
+    inset 0 1px 1px color-mix(in srgb, var(--sheet) 90%, transparent),
+    inset 0 -1px 1px color-mix(in srgb, var(--ink) 15%, transparent),
+    0 7px 18px -10px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+html:root.glass .dock.ribbon > a {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 999px;
+  padding: 0 20px;
+  min-height: 48px;
+}
+html:root.glass .dock.ribbon > a::before,
+html:root.glass .dock.ribbon > a::after {
+  display: none;
+}
+html:root.glass .dock.ribbon > a.home {
+  width: 48px;
+  padding: 0;
+}
+html:root.glass .dock.ribbon > a[aria-current='page'] {
+  font-weight: 650;
+}
+html:root.glass .dock.ribbon:not([data-liquid-ready]) > a[aria-current='page'],
+.liquid-selection {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sheet) 18%, transparent);
+  box-shadow:
+    inset 0 1px 1px color-mix(in srgb, var(--sheet) 80%, transparent),
+    inset 0 -1px 1px color-mix(in srgb, var(--ink) 12%, transparent),
+    0 2px 5px color-mix(in srgb, var(--ink) 9%, transparent);
+}
+.liquid-selection {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+html:root.glass .filters {
+  position: relative;
+  top: auto;
+  padding: 12px 0;
+  margin-inline: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  z-index: 4;
+}
+html:root.glass .chips {
+  padding: 3px;
+  gap: 10px;
+  mask-image: none;
+  flex-wrap: wrap;
+  overflow: visible;
+  scroll-snap-type: none;
+}
+html:root.glass .chip {
+  gap: 7px;
+  padding: 0 15px;
+  min-height: 50px;
+  background-image: none;
+  font-size: 14px;
+}
+html:root.glass .chip .n {
+  position: static;
+  top: 0;
+  margin-left: 1px;
+  color: inherit;
+  font-size: 12px;
+  opacity: 1;
+}
+html:root.glass .wrap[data-catalogue] {
+  max-width: 1240px;
+  padding-inline: var(--gutter);
+}
+html:root.glass .wrap[data-catalogue] > .grid {
+  gap: 28px;
+}
+html:root.glass a.card {
+  background: color-mix(in srgb, var(--sheet) 70%, transparent);
+  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--sheet) 65%, transparent);
+}
+html:root.glass a.card::before {
+  display: none;
+}
+html:root.glass .search input {
+  background: color-mix(in srgb, var(--sheet) 52%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sheet) 90%, transparent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html:root.glass :is(.get .btn, .head-download) {
+  background: color-mix(in srgb, var(--sheet) 88%, transparent);
+  color: var(--ink);
+}
+html:root.glass .profile .follow {
+  color: var(--ink);
+}
+html:root.glass .filters.condensed {
+  opacity: 0;
+  pointer-events: none;
+}
+html:root.glass .chips {
+  gap: 10px !important;
+}
+.category-control {
+  position: fixed;
+  top: 24px;
+  left: max(56px, calc((100vw - 1240px) / 2 + 56px));
+  z-index: 24;
+  transform-origin: 0 0;
+}
+.category-control[hidden],
+.category-panel[hidden] {
+  display: none !important;
+}
+html:root.glass .category-trigger.liquid {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 18px;
+  max-width: calc(100vw - 48px);
+  cursor: pointer;
+  font: 600 14px/1.25 var(--sans);
+  --liquid-fill: color-mix(in srgb, var(--sheet) 64%, transparent);
+}
+.category-trigger .icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  background: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+.category-trigger .n {
+  position: static;
+  top: 0;
+  margin-left: 2px;
+  font-size: 12px;
+  opacity: 1;
+}
+.category-trigger .label {
+  white-space: nowrap;
+}
+.category-trigger .chevron {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  margin-left: 2px;
+  flex: none;
+}
+.category-shade {
+  position: fixed;
+  inset: 0;
+  z-index: 26;
+  background: none;
+}
+.category-shade[hidden] {
+  display: none;
+}
+.category-panel {
+  position: fixed;
+  z-index: 27;
+  top: 88px;
+  left: max(56px, calc((100vw - 1240px) / 2 + 56px));
+  width: 552px;
+  max-width: calc(100vw - 32px);
+  padding: 8px;
+  background: none;
+  color: var(--ink);
+  border: 0;
+  box-shadow: none;
+  max-height: calc(100svh - 112px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.category-panel header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 12px;
+}
+.category-panel h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0;
+}
+.category-close {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  cursor: pointer;
+}
+.category-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+html:root.glass .category-panel .category-options {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 !important;
+  gap: 12px !important;
+  overflow: visible !important;
+}
+html:root.glass .category-panel .chip {
+  width: 100%;
+  min-height: 66px !important;
+  font-size: 14px;
+  line-height: 1.25;
+  padding-inline: 14px !important;
+}
+html:root.glass .category-panel :is(.chip, .category-close).liquid {
+  --liquid-fill: color-mix(in srgb, var(--sheet) 64%, transparent);
+  background: var(--liquid-fill) !important;
+}
+html:root.glass .category-panel .chip[aria-current='page']::after {
+  box-shadow:
+    var(--liquid-rim),
+    inset 0 0 0 1px color-mix(in srgb, var(--blue) 30%, transparent);
+}
+.category-panel .chip .icon {
+  flex: none;
+}
+.category-panel .chip .n {
+  margin-left: auto;
+  opacity: 1;
+}
+html:root.glass .category-ghost.liquid {
+  position: fixed !important;
+  margin: 0 !important;
+  pointer-events: none;
+  z-index: 23;
+  transform-origin: 50% 50%;
+}
+@media (min-width: 1100px) {
+  html:root.glass .wrap[data-catalogue] > .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 900px) and (max-width: 1099px) {
+  html:root.glass .wrap[data-catalogue] > .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 899px) {
+  .category-control {
+    top: max(16px, env(safe-area-inset-top));
+    left: 24px;
+  }
+  .category-panel {
+    top: max(16px, env(safe-area-inset-top));
+    left: 16px;
+    width: calc(100vw - 32px);
+    padding: 8px;
+    max-height: calc(100svh - 48px);
+  }
+  html:root.glass .category-panel .category-options {
+    grid-template-columns: 1fr;
+    gap: 9px !important;
+  }
+  html:root.glass .category-panel .chip {
+    min-height: 52px !important;
+    font-size: 14px;
+  }
+  .category-panel header {
+    padding-bottom: 10px;
+  }
+  html:root.glass .wrap[data-catalogue] > .grid {
+    gap: 20px !important;
+  }
+  html:root.glass .dock.ribbon > a {
+    padding-inline: 16px;
+  }
+}
+@media (max-width: 899px) and (min-width: 600px) and (max-height: 540px) {
+  html:root.glass .category-panel .category-options {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  html:root.glass .category-trigger.liquid,
+  html:root.glass .category-panel :is(.chip, .category-close).liquid {
+    background: var(--sheet) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:root.glass .liquid {
+    transition: none;
+  }
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  html:root.glass .liquid {
+    background: var(--sheet);
+    color: var(--ink);
+    box-shadow: 0 0 0 1px var(--ink);
+  }
+  html:root.glass .liquid-layer {
+    display: none;
+  }
+  html:root.glass .liquid::before {
+    display: none;
+  }
+  html:root.glass .dock.ribbon > a {
+    background: none;
+    box-shadow: none;
+    border: 0;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html:root.glass .liquid {
+    background: var(--sheet);
+    color: var(--ink);
+  }
+  html:root.glass .liquid-layer {
+    display: none;
+  }
+}
+
+@media (hover: hover) {
+  html:root.glass .liquid:hover {
+    box-shadow:
+      var(--liquid-rim),
+      0 12px 26px -12px color-mix(in srgb, var(--blue) 22%, transparent);
+  }
+  html:root.glass .dock.ribbon > a:hover {
+    background: color-mix(in srgb, var(--sheet) 18%, transparent);
+  }
+}

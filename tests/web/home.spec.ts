@@ -179,7 +179,7 @@ test.describe('homepage behaviour', () => {
     await open(page);
     const tint = page.locator('.tint');
     const colour = () => tint.evaluate((el) => getComputedStyle(el).backgroundColor);
-    await expect.poll(colour).toBe('rgb(239, 230, 214)');
+    await expect.poll(colour).toBe('rgb(252, 248, 245)');
     await page
       .locator('.chapter[data-id="cozy"] .meta')
       .evaluate((el) =>
@@ -187,7 +187,7 @@ test.describe('homepage behaviour', () => {
       );
     await expect.poll(colour, { timeout: 4000 }).toBe('rgb(228, 233, 217)');
     await page.evaluate(() => window.scrollTo(0, 0));
-    await expect.poll(colour, { timeout: 4000 }).toBe('rgb(239, 230, 214)');
+    await expect.poll(colour, { timeout: 4000 }).toBe('rgb(252, 248, 245)');
   });
 
   test('redraws the line after a resize without a long pause', async ({ page }) => {

@@ -1,56 +1,60 @@
+/* calm surfaces: a warm white page with a few soft colour orbs, white controls with crisp hairline edges, nothing blurred */
 html:root.glass {
   scroll-padding-block: 104px 112px;
+  --paper: #fcf8f5;
+  --sheet: #fffefc;
+  --rose: 255 47 131;
+  --butter: 255 196 61;
+  /* each orb fades out slowly, like a soft ball of light */
+  --orbs:
+    radial-gradient(
+      circle min(520px, 64vw) at 96% 90px,
+      rgb(var(--rose) / 0.13),
+      rgb(var(--rose) / 0.07) 38%,
+      rgb(var(--rose) / 0.02) 68%,
+      transparent
+    ),
+    radial-gradient(
+      circle min(400px, 58vw) at 0% 420px,
+      rgb(var(--butter) / 0.16),
+      rgb(var(--butter) / 0.08) 38%,
+      rgb(var(--butter) / 0.02) 68%,
+      transparent
+    ),
+    radial-gradient(
+      circle min(300px, 44vw) at 46% -40px,
+      rgb(var(--rose) / 0.07),
+      rgb(var(--rose) / 0.03) 45%,
+      transparent
+    );
   --surface: var(--sheet);
   --readable-muted: color-mix(in srgb, var(--ink) 40%, var(--muted));
-  --edge: color-mix(in srgb, var(--ink) 9%, transparent);
-  --lift: 0 12px 36px -24px color-mix(in srgb, var(--ink) 35%, transparent);
+  --edge: color-mix(in srgb, var(--ink) 11%, transparent);
+  --edge-strong: color-mix(in srgb, var(--ink) 18%, transparent);
+  --raise:
+    0 1px 1px color-mix(in srgb, var(--ink) 5%, transparent),
+    0 6px 16px -10px color-mix(in srgb, var(--ink) 22%, transparent);
+  --lift:
+    0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent),
+    0 14px 34px -22px color-mix(in srgb, var(--ink) 38%, transparent);
   --press: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 html:root.glass body {
   --muted: var(--readable-muted);
-  background:
-    radial-gradient(
-      ellipse 640px 520px at 8% 110px,
-      color-mix(in srgb, var(--blue) 18%, transparent),
-      transparent 76%
-    ),
-    radial-gradient(
-      ellipse 680px 580px at 95% 360px,
-      color-mix(in srgb, var(--pink) 16%, transparent),
-      transparent 78%
-    ),
-    radial-gradient(
-      ellipse 900px 700px at 50% 850px,
-      color-mix(in srgb, var(--sheet) 92%, transparent),
-      transparent 80%
-    ),
-    var(--paper);
+  background: var(--orbs), var(--paper);
 }
 html:root.glass body::before {
   display: none;
 }
 html:root.glass .tint {
-  background-image:
-    radial-gradient(
-      ellipse 640px 520px at 8% 110px,
-      color-mix(in srgb, var(--blue) 18%, transparent),
-      transparent 76%
-    ),
-    radial-gradient(
-      ellipse 680px 580px at 95% 360px,
-      color-mix(in srgb, var(--pink) 16%, transparent),
-      transparent 78%
-    ),
-    radial-gradient(
-      ellipse 900px 700px at 50% 850px,
-      color-mix(in srgb, var(--sheet) 92%, transparent),
-      transparent 80%
-    );
+  background-image: var(--orbs);
 }
 html:root.glass h1,
 html:root.glass h2 {
   font-optical-sizing: auto;
 }
+
+/* header */
 html:root.glass .site-header {
   display: flex;
   align-items: center;
@@ -66,15 +70,11 @@ html:root.glass .header-search {
   flex: none;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--sheet) 72%, transparent);
+  border-radius: 12px;
+  border: 1px solid var(--edge);
+  background: var(--sheet);
   color: var(--blue);
-  box-shadow:
-    0 8px 20px -14px color-mix(in srgb, var(--ink) 30%, transparent),
-    inset 0 1px 0 var(--sheet);
-  border: 1px solid color-mix(in srgb, var(--sheet) 80%, transparent);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  box-shadow: var(--raise);
 }
 html:root.glass .header-search svg {
   width: 21px;
@@ -87,78 +87,102 @@ html:root.glass .header-search svg {
 html:root.glass .head-download {
   margin-top: 20px;
 }
+
+/* the menu: one solid white bar with a thin edge, it never moves */
 html:root.glass .dock {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--sheet) 86%, transparent),
-    color-mix(in srgb, var(--sheet) 68%, transparent)
-  );
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
-  backdrop-filter: blur(28px) saturate(140%);
-  border: 1px solid color-mix(in srgb, var(--sheet) 85%, transparent);
-  box-shadow:
-    0 12px 36px -18px color-mix(in srgb, var(--ink) 35%, transparent),
-    inset 0 1px 0 var(--sheet),
-    inset 0 -1px 0 color-mix(in srgb, var(--sheet) 40%, transparent);
-  gap: 3px;
+  gap: 2px;
   padding: 5px;
+  border-radius: 16px;
+  border: 1px solid var(--edge);
+  background: var(--sheet);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent),
+    0 14px 32px -14px color-mix(in srgb, var(--ink) 34%, transparent);
   animation: none;
 }
 html:root.glass .dock a {
-  color: var(--ink);
-  min-height: 46px;
+  min-height: 48px;
+  height: auto;
   padding-inline: 16px;
+  border-radius: 11px;
+  color: var(--ink);
   font-size: 14px;
   transition:
     background-color 120ms,
     color 120ms,
-    transform 100ms;
+    transform 100ms var(--press);
 }
 html:root.glass .dock .home {
-  width: 46px;
+  width: 48px;
   padding: 0;
 }
 html:root.glass .dock a:hover {
-  background: color-mix(in srgb, var(--blue) 9%, transparent);
-  color: var(--blue);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
 html:root.glass .dock a[aria-current='page'] {
-  background: var(--glass-blue);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--blue) 10%, var(--sheet));
+  color: var(--blue);
 }
-html:root.glass .dock a:focus-visible {
+html:root.glass .dock :focus-visible {
   outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
+
+/* controls: respond the moment they are pressed */
 html:root.glass
   :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a) {
   touch-action: manipulation;
 }
+html:root.glass
+  :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a):active {
+  transform: scale(0.97);
+  transition-duration: 0ms;
+}
+html:root.glass
+  :is(
+    .btn,
+    .button,
+    .play,
+    .chip,
+    .thumbs button,
+    .header-search,
+    .pager a,
+    .gallery .save,
+    .profile .follow,
+    .social a
+  ):focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
 html:root.glass :is(.btn, .button) {
-  border-radius: 999px;
   min-height: 52px;
   padding-inline: 24px;
-  background: var(--glass-blue);
-  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--blue) 78%, var(--ink));
+  border-radius: 10px;
+  background: var(--blue);
+  color: #fff;
   font-size: 16px;
-  box-shadow: 0 4px 12px -8px color-mix(in srgb, var(--blue) 70%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 1px 2px color-mix(in srgb, var(--blue) 30%, transparent),
+    0 8px 18px -10px color-mix(in srgb, var(--blue) 60%, transparent);
   transition:
     background-color 140ms,
     box-shadow 140ms,
     transform 120ms var(--press);
 }
 html:root.glass :is(.btn, .button):hover {
-  background: var(--glass-blue);
-}
-html:root.glass
-  :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a):active {
-  transform: scale(0.975);
-  transition-duration: 0ms;
+  background: color-mix(in srgb, var(--blue) 86%, var(--ink));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 1px 2px color-mix(in srgb, var(--blue) 30%, transparent),
+    0 12px 24px -12px color-mix(in srgb, var(--blue) 70%, transparent);
 }
 html:root.glass :is(.btn.ghost, .button.quiet) {
-  background: transparent;
+  border-color: var(--edge-strong);
+  background: var(--sheet);
   color: var(--blue);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 28%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent);
 }
 html:root.glass :is(.btn.ghost, .button.quiet):hover {
   background: color-mix(in srgb, var(--blue) 6%, var(--sheet));
@@ -168,6 +192,8 @@ html:root.glass .rise {
   transform: none !important;
   transition: none;
 }
+
+/* patterns list */
 html:root.glass .page-head {
   padding-block: 30px 12px;
 }
@@ -189,117 +215,96 @@ html:root.glass .search {
   margin-top: 24px;
 }
 html:root.glass .search input {
-  height: 56px;
-  border-radius: 18px;
-  border: 1px solid color-mix(in srgb, var(--sheet) 90%, transparent);
-  background: color-mix(in srgb, var(--sheet) 64%, transparent);
-  box-shadow:
-    0 8px 24px -18px color-mix(in srgb, var(--ink) 30%, transparent),
-    inset 0 1px 0 var(--sheet);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  height: 54px;
+  border-radius: 12px;
+  border: 1px solid var(--edge-strong);
+  background: var(--sheet);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent);
 }
 html:root.glass .search input:focus-visible {
   outline: 2px solid var(--blue);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 html:root.glass .search svg {
   z-index: 1;
   pointer-events: none;
 }
+/* the category row stays in one line and gets a quiet strip once it sticks to the top */
 html:root.glass .filters {
-  background: transparent;
   padding-block: 14px;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
   border: 0;
   border-radius: 0;
+  background: transparent;
   box-shadow: none;
+  overflow-anchor: none;
 }
 html:root.glass .filters.stuck {
-  box-shadow: none;
+  background: var(--paper);
+  box-shadow: 0 1px 0 var(--edge);
 }
 html:root.glass .chips {
+  flex-wrap: nowrap;
   gap: 8px;
   padding-block: 4px;
   scroll-snap-type: none;
   scroll-behavior: auto;
   mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
-html:root.glass .filters {
-  transition: none;
-  overflow-anchor: none;
-}
-html:root.glass .grid {
-  overflow-anchor: none;
-}
-html:root.glass .filters [data-pending] {
-  box-shadow:
-    var(--glass-rim),
-    inset 0 0 0 2px color-mix(in srgb, var(--blue) 45%, transparent);
-}
 html:root.glass .chip {
   gap: 8px;
-  min-height: 46px;
+  min-height: 48px;
   padding: 0 16px;
-  background: color-mix(in srgb, var(--sheet) 72%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sheet) 85%, transparent);
-  box-shadow: inset 0 1px 0 var(--sheet);
-  border-radius: 999px;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--sheet);
   color: var(--ink);
   font-size: 14px;
+  box-shadow: 0 1px 1px color-mix(in srgb, var(--ink) 4%, transparent);
+  transition:
+    background-color 140ms,
+    color 140ms,
+    transform 100ms var(--press);
 }
 html:root.glass .chip .n {
   position: static;
   margin: 0;
   font: 600 12px/1 var(--sans);
   color: inherit;
+  opacity: 0.72;
+}
+html:root.glass .chip:hover {
+  background: color-mix(in srgb, var(--blue) 5%, var(--sheet));
 }
 html:root.glass .chip[aria-current='page'] {
-  background: var(--glass-blue);
-  color: var(--ink);
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
 }
 html:root.glass .grid {
   column-gap: 20px;
   row-gap: 24px;
+  overflow-anchor: none;
 }
 html:root.glass a.card {
-  background: linear-gradient(
-    140deg,
-    color-mix(in srgb, var(--sheet) 78%, transparent),
-    color-mix(in srgb, var(--sheet) 48%, transparent)
-  );
-  padding: 8px 8px 16px;
-  border: 1px solid color-mix(in srgb, var(--sheet) 85%, transparent);
-  border-radius: 24px;
-  box-shadow:
-    0 12px 32px -24px color-mix(in srgb, var(--ink) 35%, transparent),
-    inset 0 1px 0 var(--sheet);
+  padding: 6px 6px 16px;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--sheet);
+  box-shadow: var(--raise);
   transition:
     box-shadow 180ms,
     translate 180ms var(--press);
 }
-html:root.glass a.card:hover {
-  translate: 0 -2px;
-  box-shadow: 0 15px 28px -22px color-mix(in srgb, var(--ink) 45%, transparent);
-}
 html:root.glass a.card:active {
   transform: scale(0.99) !important;
-  translate: none;
   transition-duration: 0ms;
 }
 html:root.glass a.card .media {
-  border-radius: 18px;
-}
-html:root.glass a.card .media img {
-  transition: transform 260ms var(--press);
-}
-html:root.glass a.card:hover .media img {
-  transform: scale(1.015);
+  border-radius: 9px;
 }
 html:root.glass a.card .badge {
-  border-radius: 999px;
-  padding: 7px 10px;
+  padding: 6px 9px;
+  border-radius: 6px;
   background: var(--sheet);
   color: var(--blue);
 }
@@ -313,6 +318,20 @@ html:root.glass a.card .meta {
   font-size: 13px;
   line-height: 1.5;
 }
+@media (hover: hover) {
+  html:root.glass a.card:hover {
+    translate: 0 -2px;
+    box-shadow: var(--lift);
+  }
+  html:root.glass a.card .media img {
+    transition: transform 260ms var(--press);
+  }
+  html:root.glass a.card:hover .media img {
+    transform: scale(1.015);
+  }
+}
+
+/* pattern pages */
 html:root.glass .p-head h1 {
   font-size: clamp(38px, 9vw, 68px);
   line-height: 1.06;
@@ -332,8 +351,9 @@ html:root.glass .tags-in {
 html:root.glass .tag {
   min-height: 30px;
   padding: 5px 10px;
-  background: color-mix(in srgb, var(--sheet) 70%, var(--paper));
-  border-radius: 999px;
+  border-radius: 6px;
+  background: var(--sheet);
+  box-shadow: inset 0 0 0 1px var(--edge);
   font-size: 12px;
   color: var(--muted);
 }
@@ -345,25 +365,25 @@ html:root.glass .tag.free {
   color: var(--blue);
 }
 html:root.glass .gallery .track img {
-  border-radius: 24px;
+  border-radius: 14px;
 }
 html:root.glass .gallery .save {
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--sheet);
   color: var(--blue);
-  box-shadow: var(--lift);
+  box-shadow: var(--raise);
 }
 html:root.glass .gallery .count {
-  border-radius: 999px;
+  padding: 8px 12px;
+  border-radius: 8px;
   background: var(--sheet);
   color: var(--ink);
-  padding: 8px 12px;
 }
 html:root.glass .thumbs {
   gap: 12px;
 }
 html:root.glass .thumbs button {
-  border-radius: 16px;
+  border-radius: 10px;
   opacity: 0.7;
 }
 html:root.glass .thumbs button[aria-current='true'] {
@@ -372,16 +392,16 @@ html:root.glass .thumbs button[aria-current='true'] {
   outline-offset: 3px;
 }
 html:root.glass .side .facts {
+  gap: 0;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
   background: var(--sheet);
   box-shadow: none;
-  border: 1px solid var(--edge);
-  border-radius: 20px;
-  gap: 0;
 }
 html:root.glass .side .facts div {
-  background: transparent;
-  border-bottom: 1px solid var(--edge);
   padding: 16px;
+  border-bottom: 1px solid var(--edge);
+  background: transparent;
 }
 html:root.glass .side .facts dt {
   font-size: 12px;
@@ -406,74 +426,80 @@ html:root.glass .prose :is(h2, h3) {
   letter-spacing: -0.022em;
 }
 html:root.glass .get {
-  border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--ink) 5%, transparent);
+  border: 1px solid var(--edge);
   box-shadow: var(--lift);
-}
-html:root.glass .get .btn {
-  border-radius: 999px;
 }
 html:root.glass .share {
   gap: 10px;
 }
-html:root.glass :is(.contents, .question, .practice, .try-it, .keep-going) {
-  border-radius: 24px;
+html:root.glass .play {
+  border-radius: 14px;
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: var(--lift);
+}
+html:root.glass .play svg {
+  fill: currentColor;
+}
+
+/* journal, about and the rest share the same plain white panels */
+html:root.glass
+  :is(.contents, .question, .practice, .try-it, .keep-going, .contact, .legal, .featured, .post) {
   border: 1px solid var(--edge);
+  border-radius: 16px;
   background: var(--sheet);
   color: var(--ink);
 }
 html:root.glass
-  :is(.contents, .question, .practice, .try-it, .keep-going)
-  :is(h2, h3, p, li, .eyebrow) {
+  :is(.contents, .question, .practice, .try-it, .keep-going, .contact)
+  :is(h2, h3, p, li, a, .eyebrow) {
   color: var(--ink);
 }
-html:root.glass :is(.contents, .question, .practice, .try-it, .keep-going) :focus-visible {
+html:root.glass
+  :is(.contents, .question, .practice, .try-it, .keep-going, .contact)
+  :focus-visible {
   outline-color: var(--blue);
 }
+html:root.glass :is(.featured, .contact, .practice) {
+  box-shadow: var(--lift);
+}
 html:root.glass .featured {
-  border-radius: 28px;
-  background: color-mix(in srgb, var(--sheet) 70%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sheet) 90%, transparent);
-  padding: 16px;
   gap: 28px;
-  box-shadow:
-    var(--lift),
-    inset 0 1px 0 var(--sheet);
+  padding: 14px;
 }
 html:root.glass .featured .media {
-  border-radius: 20px;
+  border-radius: 10px;
 }
 html:root.glass .featured .text {
   padding: 8px 10px 14px;
 }
 html:root.glass .post {
-  border-radius: 24px;
   padding: 24px;
-  background: color-mix(in srgb, var(--sheet) 74%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sheet) 90%, transparent);
-  box-shadow: inset 0 1px 0 var(--sheet);
 }
 html:root.glass .post img {
-  border-radius: 18px;
+  border-radius: 10px;
 }
-html:root.glass .cover img {
-  border-radius: 24px;
+html:root.glass .cover img,
+html:root.glass .work-photo img {
+  border-radius: 14px;
+}
+html:root.glass .legal {
+  padding: 24px;
 }
 html:root.glass .photo {
-  border-radius: 20px;
   padding: 8px;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--sheet);
   box-shadow: var(--lift);
   animation: none;
 }
 html:root.glass .photo img {
-  border-radius: 14px;
+  border-radius: 8px;
 }
 html:root.glass .pinboard .thread path {
   animation: none;
   stroke-dashoffset: 0;
-}
-html:root.glass .work-photo img {
-  border-radius: 24px;
 }
 html:root.glass .product-links {
   gap: 0 18px;
@@ -483,36 +509,43 @@ html:root.glass .product-links {
 html:root.glass .product-links a {
   min-height: 48px;
 }
-html:root.glass .legal {
-  background: var(--sheet);
-  border: 1px solid var(--edge);
-  padding: 24px;
-  border-radius: 24px;
-}
 html:root.glass :is(.link-card, .profile, .video .frame) {
-  border-radius: 22px;
+  border-radius: 14px;
 }
 html:root.glass .profile {
   box-shadow: var(--lift);
 }
-html:root.glass .profile :is(.follow, .kicker) {
-  background: var(--glass-blue);
-  color: var(--ink);
-  border-radius: 999px;
+html:root.glass .profile .follow {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  background: var(--blue);
+  color: #fff;
 }
 html:root.glass .profile .kicker {
+  border-radius: 6px;
   background: transparent;
   color: var(--blue);
 }
 html:root.glass .link-card .site {
   color: var(--blue);
 }
+html:root.glass .social a {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--sheet);
+  color: var(--ink);
+}
 html:root.glass .pager a {
-  border-radius: 999px;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--sheet);
+  color: var(--ink);
 }
 html:root.glass .pager a[aria-current='page'] {
-  background: var(--glass-blue);
-  color: var(--ink);
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
 }
 html:root.glass .site-footer {
   border-top-color: var(--edge);
@@ -520,334 +553,23 @@ html:root.glass .site-footer {
 html:root.glass .site-footer nav a {
   color: var(--ink);
 }
-
-html:root.glass {
-  --glass-clear: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--sheet) 68%, transparent),
-    color-mix(in srgb, var(--sheet) 36%, transparent) 55%,
-    color-mix(in srgb, var(--sheet) 54%, transparent)
-  );
-  --glass-blue:
-    linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--blue) 3%, transparent),
-      color-mix(in srgb, var(--blue) 7%, transparent) 58%,
-      color-mix(in srgb, var(--blue) 4%, transparent)
-    ),
-    var(--glass-clear);
-  --glass-rim:
-    inset 0 1px 1px color-mix(in srgb, var(--sheet) 96%, transparent),
-    inset 1px 0 1px color-mix(in srgb, var(--sheet) 70%, transparent),
-    inset 0 -1px 2px color-mix(in srgb, var(--blue) 16%, transparent),
-    inset 0 0 10px color-mix(in srgb, var(--sheet) 26%, transparent),
-    0 7px 16px -11px color-mix(in srgb, var(--ink) 50%, transparent),
-    0 0 0 0.5px color-mix(in srgb, var(--ink) 8%, transparent);
-}
-html:root.glass .dock {
-  --glass-clear: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--sheet) 78%, transparent),
-    color-mix(in srgb, var(--sheet) 64%, transparent) 55%,
-    color-mix(in srgb, var(--sheet) 72%, transparent)
-  );
-  --glass-blue:
-    linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--blue) 3%, transparent),
-      color-mix(in srgb, var(--blue) 7%, transparent) 58%,
-      color-mix(in srgb, var(--blue) 4%, transparent)
-    ),
-    var(--glass-clear);
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--sheet) 58%, transparent),
-    color-mix(in srgb, var(--sheet) 28%, transparent)
-  );
-  border-color: color-mix(in srgb, var(--sheet) 94%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  backdrop-filter: blur(18px) saturate(160%);
-  box-shadow:
-    var(--glass-rim),
-    0 12px 32px -18px color-mix(in srgb, var(--ink) 28%, transparent);
-  gap: 4px;
-}
-
-html:root.glass :is(.chip, .gallery .save) {
-  --glass-clear: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--sheet) 88%, transparent),
-    color-mix(in srgb, var(--sheet) 72%, transparent) 55%,
-    color-mix(in srgb, var(--sheet) 80%, transparent)
-  );
-  --glass-blue:
-    linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--blue) 3%, transparent),
-      color-mix(in srgb, var(--blue) 7%, transparent) 58%,
-      color-mix(in srgb, var(--blue) 4%, transparent)
-    ),
-    var(--glass-clear);
-}
-html:root.glass
-  :is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ) {
-  isolation: isolate;
-  overflow: hidden;
-  background: var(--glass-clear);
-  color: var(--ink);
-  border: 1px solid color-mix(in srgb, var(--ink) 58%, transparent);
-  box-shadow: var(--glass-rim);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  backdrop-filter: blur(8px) saturate(140%);
-  transition:
-    box-shadow 160ms,
-    transform 120ms var(--press),
-    background-color 160ms;
-}
-html:root.glass
-  :is(
-    .btn,
-    .button,
-    .chip,
-    .dock a,
-    .header-search,
-    .pager a,
-    .profile .follow,
-    .social a,
-    .thumbs button
-  ) {
-  position: relative;
-}
-html:root.glass
-  :is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  )::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 90% 130% at var(--shine-x, 18%) var(--shine-y, 0%),
-    color-mix(in srgb, var(--sheet) 28%, transparent),
-    transparent 66%
-  );
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sheet) 30%, transparent);
-}
-html:root.glass
-  :is(
-    .btn:not(.ghost),
-    .button:not(.quiet),
-    .play,
-    .profile .follow,
-    .dock a[aria-current='page'],
-    .chip[aria-current='page'],
-    .pager a[aria-current='page']
-  ) {
-  background: var(--glass-blue);
-  color: var(--ink);
-  border-color: color-mix(in srgb, var(--ink) 58%, transparent);
-  box-shadow:
-    var(--glass-rim),
-    inset 0 0 0 1px color-mix(in srgb, var(--blue) 10%, transparent),
-    0 7px 18px -12px color-mix(in srgb, var(--blue) 24%, transparent);
-}
-html:root.glass
-  :is(
-    .btn:not(.ghost),
-    .button:not(.quiet),
-    .play,
-    .profile .follow,
-    .dock a[aria-current='page'],
-    .chip[aria-current='page'],
-    .pager a[aria-current='page']
-  )::before {
-  background: radial-gradient(
-    ellipse 100% 110% at var(--shine-x, 18%) 0%,
-    color-mix(in srgb, var(--sheet) 40%, transparent),
-    transparent 60%
-  );
-}
-html:root.glass
-  :is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ):hover {
-  box-shadow:
-    var(--glass-rim),
-    0 10px 22px -13px color-mix(in srgb, var(--blue) 40%, transparent);
-}
-html:root.glass
-  :is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ):active {
-  transform: scale(0.975);
-  transition-duration: 0ms;
-  box-shadow:
-    inset 0 2px 5px color-mix(in srgb, var(--ink) 15%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--sheet) 60%, transparent);
-}
-html:root.glass
-  :is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ):focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: 4px;
-}
-html:root.glass
-  .dock
-  :is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ):focus-visible {
-  outline-width: 2px;
-  outline-offset: 1px;
-}
-html:root.glass
-  .chip:is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ):focus-visible {
-  outline-width: 2px;
-  outline-offset: -4px;
-}
-html:root.glass
-  .chip:is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  )[aria-current='page']:focus-visible {
-  outline-color: var(--blue);
-}
-html:root.glass
-  .play:is(
-    .btn,
-    .button,
-    .play,
-    .chip,
-    .dock a,
-    .thumbs button,
-    .header-search,
-    .pager a,
-    .gallery .save,
-    .profile .follow,
-    .social a
-  ) {
-  border-radius: 999px;
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--sheet) 88%, transparent),
-    color-mix(in srgb, var(--sheet) 72%, transparent)
-  );
-  color: var(--ink);
-}
-html:root.glass .play svg {
-  fill: currentColor;
-}
-html:root.glass .profile .follow {
-  display: inline-flex;
-  align-items: center;
-}
-html:root.glass .social a {
-  border-radius: 50%;
-}
-html:root.glass .photo {
-  background: color-mix(in srgb, var(--sheet) 74%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sheet) 94%, transparent);
-  box-shadow: var(--glass-rim), var(--lift);
-}
-html:root.glass .side .facts {
-  background: transparent;
-  border-radius: 0;
-}
-
 html:root.glass .missing em {
   color: color-mix(in srgb, var(--blue) 85%, var(--ink));
 }
+
+/* homepage */
 html:root.glass .hero h1 .w {
   opacity: 1;
   transform: none;
   animation: none;
 }
-
+html:root.glass .chapter .meta > *,
+html:root.glass .chapter .float {
+  opacity: 1;
+}
+html:root.glass .story:not(.ready) .photo {
+  transform: none;
+}
 @media (max-width: 899px) {
   html:root.glass .chapter {
     display: flex;
@@ -881,27 +603,25 @@ html:root.glass .hero h1 .w {
     height: min(46svh, max(calc(42svh - 40px), calc(166svh - 660px)));
   }
 }
-
-html:root.glass :is(.contact, .practice) {
-  background: var(--glass-blue);
-  border: 1px solid color-mix(in srgb, var(--sheet) 94%, transparent);
-  border-radius: 24px;
-  color: var(--ink);
-  box-shadow: var(--glass-rim), var(--lift);
+@media (max-width: 899px) and (max-height: 749px) {
+  html:root.glass .hero-photo {
+    width: min(100%, max(180px, calc(100svh - 380px)));
+    margin-inline: auto;
+  }
 }
-html:root.glass .contact :is(h2, p, a) {
-  color: var(--ink);
-}
-html:root.glass .contact a:focus-visible {
-  outline-color: var(--blue);
+@media (min-width: 431px) and (max-width: 899px) and (max-height: 749px) {
+  html:root.glass .hero-photo {
+    width: min(100%, max(180px, calc(100svh - 440px)));
+  }
 }
 
+/* wider screens */
 @media (min-width: 900px) {
   html:root.glass .wordmark {
     font-size: 23px;
   }
   html:root.glass .dock {
-    top: 24px;
+    top: 13px;
     bottom: auto;
     left: auto;
     right: max(120px, calc((100vw - 1240px) / 2 + 72px));
@@ -928,17 +648,15 @@ html:root.glass .contact a:focus-visible {
     top: 94px;
     max-height: calc(100vh - 114px);
     padding: 20px;
-    border-radius: 24px;
-    background: color-mix(in srgb, var(--sheet) 76%, transparent);
-    border: 1px solid color-mix(in srgb, var(--sheet) 85%, transparent);
-    box-shadow:
-      var(--lift),
-      inset 0 1px 0 var(--sheet);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    background: var(--sheet);
+    box-shadow: var(--lift);
   }
   html:root.glass .side .facts {
     border: 0;
+    border-radius: 0;
+    background: transparent;
   }
   html:root.glass .side .facts div {
     padding-inline: 0;
@@ -948,8 +666,8 @@ html:root.glass .contact a:focus-visible {
     margin-top: 20px;
   }
   html:root.glass .toc a {
-    border-bottom: 0;
     padding-block: 9px;
+    border-bottom: 0;
     line-height: 1.4;
   }
   html:root.glass .toc a:hover {
@@ -957,10 +675,15 @@ html:root.glass .contact a:focus-visible {
   }
 }
 @media (min-width: 1100px) {
+  html:root.glass .chips {
+    flex-wrap: wrap;
+  }
   html:root.glass .chip {
     padding-inline: 14px;
   }
 }
+
+/* phones */
 @media (max-width: 430px) {
   html:root.glass .wordmark {
     gap: 7px;
@@ -986,11 +709,11 @@ html:root.glass .contact a:focus-visible {
     row-gap: 18px;
   }
   html:root.glass a.card {
-    border-radius: 20px;
-    padding: 6px 6px 14px;
+    padding: 5px 5px 14px;
+    border-radius: 13px;
   }
   html:root.glass a.card .media {
-    border-radius: 15px;
+    border-radius: 9px;
   }
   html:root.glass a.card .title {
     font-size: 19px;
@@ -1010,17 +733,7 @@ html:root.glass .contact a:focus-visible {
     padding: 20px;
   }
 }
-@media (max-width: 899px) and (max-height: 749px) {
-  html:root.glass .hero-photo {
-    width: min(100%, max(180px, calc(100svh - 380px)));
-    margin-inline: auto;
-  }
-}
-@media (min-width: 431px) and (max-width: 899px) and (max-height: 749px) {
-  html:root.glass .hero-photo {
-    width: min(100%, max(180px, calc(100svh - 440px)));
-  }
-}
+
 @media (prefers-reduced-motion: reduce) {
   html:root.glass
     :is(
@@ -1033,67 +746,33 @@ html:root.glass .contact a:focus-visible {
       .chip,
       .thumbs button,
       .header-search,
-      .pager a,
-      :is(
-        .btn,
-        .button,
-        .play,
-        .chip,
-        .dock a,
-        .thumbs button,
-        .header-search,
-        .pager a,
-        .gallery .save,
-        .profile .follow,
-        .social a
-      )
+      .pager a
     ) {
     transition: none !important;
     animation: none !important;
   }
   html:root.glass
-    :is(
-      .btn,
-      .button,
-      .play,
-      .chip,
-      .dock a,
-      .thumbs button,
-      .header-search,
-      .pager a,
-      :is(
-        .btn,
-        .button,
-        .play,
-        .chip,
-        .dock a,
-        .thumbs button,
-        .header-search,
-        .pager a,
-        .gallery .save,
-        .profile .follow,
-        .social a
-      )
-    ):active {
-    transform: none;
-    background: var(--glass-blue);
-    color: var(--ink);
+    :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a):active,
+  html:root.glass a.card:active {
+    transform: none !important;
   }
   html:root.glass a.card:hover {
     translate: none;
   }
-  html:root.glass a.card:active {
-    transform: none !important;
-    background: var(--sheet);
-  }
 }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  html:root.glass body {
+  html:root.glass body,
+  html:root.glass .filters.stuck {
     background: var(--paper);
   }
   html:root.glass .tint {
     background-image: none;
   }
+  html:root.glass .chips {
+    mask-image: none;
+  }
+}
+@media (prefers-contrast: more) {
   html:root.glass
     :is(
       .dock,
@@ -1107,110 +786,22 @@ html:root.glass .contact a:focus-visible {
       .photo,
       .contact,
       .practice,
-      :is(
-        .btn,
-        .button,
-        .play,
-        .chip,
-        .dock a,
-        .thumbs button,
-        .header-search,
-        .pager a,
-        .gallery .save,
-        .profile .follow,
-        .social a
-      )
-    ) {
-    background: var(--sheet);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    border: 1px solid var(--ink);
-  }
-  html:root.glass :is(.dock a, .chip)[aria-current='page'] {
-    background: color-mix(in srgb, var(--blue) 8%, var(--sheet));
-    color: var(--ink);
-  }
-  html:root.glass .chips {
-    mask-image: none;
-  }
-  html:root.glass
-    :is(
-      .btn,
-      .button,
-      .play,
-      .chip,
-      .dock a,
       .thumbs button,
-      .header-search,
       .pager a,
       .gallery .save,
-      .profile .follow,
-      .social a
-    )::before {
-    display: none;
-  }
-  html:root.glass :is(.btn:not(.ghost), .button:not(.quiet), .play, .profile .follow) {
-    background: color-mix(in srgb, var(--blue) 8%, var(--sheet));
-    color: var(--ink);
-  }
-}
-html:root.glass .wrap[data-catalogue] > .grid {
-  min-height: calc(100svh - 160px);
-  align-content: start;
-}
-
-@supports not (
-  ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) and
-    (color: color-mix(in srgb, var(--ink) 50%, transparent))
-) {
-  html:root.glass
-    :is(
-      .dock,
-      .chip,
-      .header-search,
-      .search input,
-      .featured,
-      .post,
-      .side,
-      .contact,
-      .practice,
-      .btn,
-      .button,
-      .play,
-      .pager a,
-      .profile .follow,
-      .social a
+      .social a,
+      .btn.ghost,
+      .button.quiet
     ) {
-    background: var(--sheet);
+    border: 1px solid var(--ink);
+  }
+  html:root.glass .dock a,
+  html:root.glass :is(.dock a, .chip, .pager a)[aria-current='page'] {
     color: var(--ink);
+  }
+  html:root.glass :is(.dock a, .chip, .pager a)[aria-current='page'] {
     border-color: var(--ink);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
   }
-  html:root.glass :is(.dock a, .chip)[aria-current='page'] {
-    background: var(--sheet);
-    border-color: var(--blue);
-  }
-}
-html:root.glass :is(.get .btn, .head-download) {
-  background-color: var(--sheet);
-}
-html:root.glass .chapter .meta > *,
-html:root.glass .chapter .float {
-  opacity: 1;
-}
-html:root.glass .story:not(.ready) .photo {
-  transform: none;
-}
-html:root.glass .get .btn:focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: 5px;
-}
-
-html:root.glass :is(.dock a, .thumbs button) {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-html:root.glass :is(.dock a, .chip) {
-  min-height: 48px;
 }

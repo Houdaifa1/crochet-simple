@@ -89,7 +89,9 @@ test('the homepage scrolls smoothly on a 4× slower CPU (phone, 3×)', async ({ 
   expect(longTasks.filter((d) => d > 50)).toHaveLength(0);
 });
 
-test('category motion stays smooth on a 4× slower CPU (phone, 3×)', async ({ browser }) => {
+test('the category row and patterns scroll smoothly on a 4× slower CPU (phone, 3×)', async ({
+  browser,
+}) => {
   const context = await browser.newContext({
     viewport: { width: 375, height: 844 },
     deviceScaleFactor: 3,
@@ -123,10 +125,8 @@ test('category motion stays smooth on a 4× slower CPU (phone, 3×)', async ({ b
     await page.mouse.wheel(0, 50);
     await page.waitForTimeout(35);
   }
-  await page.locator('.category-trigger').click();
+  await page.locator('.filters .chips').evaluate((row) => row.scrollBy({ left: 240 }));
   await page.waitForTimeout(450);
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(250);
   for (let i = 0; i < 14; i++) {
     await page.mouse.wheel(0, -50);
     await page.waitForTimeout(35);

@@ -142,7 +142,7 @@ const jsonLd = site
 ---
 
 <Base title={title} description={description} current="patterns" jsonLd={jsonLd} ads>
-  <div class="wrap" data-catalogue>
+  <div class="wrap">
     <PageHead
       eyebrow={free ? 'Free crochet patterns' : (words.eyebrow ?? 'Crochet patterns')}
       title={h1}
@@ -215,8 +215,106 @@ const jsonLd = site
 </Base>
 
 <script>
-  import { startCatalogue } from '../../scripts/catalogue';
-  startCatalogue();
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach(
+        (e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target)),
+      ),
+    { rootMargin: '0px 0px -6% 0px' },
+  );
+  document.querySelectorAll('.rise').forEach((el, i) => {
+    (el as HTMLElement).style.transitionDelay = `${(i % 4) * 60}ms`;
+    io.observe(el);
+  });
+</script>
+
+<script>
+  import {
+    SEARCH_FAILED,
+    hitHtml,
+    loadSearch,
+    resultWords,
+    search,
+    searchReady,
+    warmSearch,
+  } from '../../lib/search';
+
+  // results appear while typing: matching cards stay, best match first; matches on other pages are listed below
+  const form = document.querySelector<HTMLFormElement>('form.search');
+  const input = document.querySelector<HTMLInputElement>('#q');
+  const grid = document.querySelector<HTMLElement>('.grid');
+  const count = document.querySelector<HTMLElement>('.count');
+  const more = document.querySelector<HTMLElement>('.more');
+  if (form && input && grid && count && more) {
+    const list = more.querySelector('ol')!;
+    const pager = document.querySelector<HTMLElement>('.pager');
+    const original = [...grid.children];
+    const cards = new Map(
+      [...grid.querySelectorAll<HTMLAnchorElement>('a.card')].map((c) => [
+        c.getAttribute('href'),
+        c,
+      ]),
+    );
+    const allText = count.textContent;
+    let current = '';
+
+    const restore = () => {
+      grid.classList.remove('searching');
+      original.forEach((el) => grid.append(el));
+      cards.forEach((c) => (c.hidden = false));
+      count.textContent = allText;
+      more.hidden = true;
+      if (pager) pager.hidden = false;
+    };
+
+    const run = async (raw: string) => {
+      const q = raw.trim();
+      current = q;
+      history.replaceState(null, '', q ? `?q=${encodeURIComponent(q)}` : location.pathname);
+      if (!q) return restore();
+      if (!searchReady()) count.textContent = 'Searching…';
+      let hits;
+      try {
+        hits = await search(q);
+      } catch {
+        if (q === current) count.textContent = SEARCH_FAILED;
+        return;
+      }
+      if (!hits || q !== current) return;
+      const here = hits.filter((h) => cards.has(h.url));
+      const elsewhere = hits.filter((h) => !cards.has(h.url));
+      grid.classList.add('searching');
+      cards.forEach((c) => (c.hidden = true));
+      for (const h of here) {
+        const c = cards.get(h.url)!;
+        c.hidden = false;
+        c.classList.add('in');
+        grid.append(c);
+      }
+      count.textContent = here.length
+        ? `${resultWords(here.length, 'pattern', 'patterns')} for “${q}”`
+        : elsewhere.length
+          ? `No patterns here for “${q}”, see more results below.`
+          : `Nothing found for “${q}”. Try a shorter word, like bag or hat.`;
+      list.innerHTML = elsewhere.map(hitHtml).join('');
+      more.hidden = elsewhere.length === 0;
+      if (pager) pager.hidden = true;
+    };
+
+    input.addEventListener('input', () => run(input.value));
+    input.addEventListener('focus', () => void loadSearch().catch(() => undefined), { once: true });
+    warmSearch();
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      run(input.value);
+      input.blur();
+    });
+    const start = new URLSearchParams(location.search).get('q');
+    if (start) {
+      input.value = start;
+      run(start);
+    }
+  }
 </script>
 
 <style>

@@ -573,7 +573,7 @@ test.describe('patterns', () => {
             return [css.color, css.backgroundColor, css.borderTopColor].map(sample);
           });
           expect(contrast(colors[0]!, colors[1]!)).toBeGreaterThanOrEqual(4.5);
-          expect(contrast(colors[2]!, [251, 248, 242])).toBeGreaterThanOrEqual(3);
+          expect(contrast(colors[2]!, [255, 254, 252])).toBeGreaterThanOrEqual(3);
         }
       }
     });
@@ -608,7 +608,7 @@ test.describe('patterns', () => {
     await expect
       .poll(() => button.evaluate((element) => getComputedStyle(element).boxShadow))
       .not.toBe(shadow);
-    await expect(button).toHaveCSS('color', 'rgb(42, 41, 37)');
+    await expect(button).toHaveCSS('color', 'rgb(255, 255, 255)');
   });
 
   test('lists six per page with numbered pages', async ({ page }) => {

@@ -37,6 +37,19 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
   </nav>
 </div>
 
+<script>
+  const bar = document.querySelector<HTMLElement>('.filters');
+  if (bar) {
+    new IntersectionObserver(([e]) => bar.classList.toggle('stuck', e!.intersectionRatio < 1), {
+      threshold: [1],
+      rootMargin: '-1px 0px 0px 0px',
+    }).observe(bar);
+    const row = bar.querySelector<HTMLElement>('.chips')!;
+    const on = row.querySelector<HTMLElement>('[aria-current="page"]');
+    if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
+  }
+</script>
+
 <style>
   .filters {
     position: sticky;
@@ -44,9 +57,7 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
     z-index: 5;
     margin: 22px calc(var(--gutter) * -1) 0;
     padding: 12px 0;
-    background: rgb(239 230 214 / 0.92);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: var(--paper);
     transition: box-shadow 0.2s;
   }
   .filters.stuck {

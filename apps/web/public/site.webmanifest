@@ -3,8 +3,8 @@
   "short_name": "Crochet",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#efe6d6",
-  "theme_color": "#efe6d6",
+  "background_color": "#fcf8f5",
+  "theme_color": "#fcf8f5",
   "icons": [
     {
       "src": "/icon-192.png",

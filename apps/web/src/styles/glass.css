@@ -46,8 +46,13 @@ html:root.glass body {
 html:root.glass body::before {
   display: none;
 }
-html:root.glass .tint {
+/* the soft colours get their own still layer, so the homepage colour fade never repaints them */
+html:root.glass .tint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background-image: var(--orbs);
+  transform: translateZ(0);
 }
 html:root.glass h1,
 html:root.glass h2 {
@@ -765,8 +770,8 @@ html:root.glass .story:not(.ready) .photo {
   html:root.glass .filters.stuck {
     background: var(--paper);
   }
-  html:root.glass .tint {
-    background-image: none;
+  html:root.glass .tint::after {
+    display: none;
   }
   html:root.glass .chips {
     mask-image: none;

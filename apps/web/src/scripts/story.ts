@@ -24,7 +24,6 @@ const STYLES: readonly ConnectorStyle[] = [
   'loop',
 ];
 const TIP = '#ff2f83';
-const TIP_HAT = '#1f4c9c';
 const clamp = (v: number): number => Math.min(1, Math.max(0, v));
 const ease = (t: number): number => 1 - Math.pow(1 - t, 3);
 
@@ -169,9 +168,6 @@ async function build(
     topInset: 0,
     storyTop: pageTop,
   });
-  const hatSeg = route.segments.find((s) => s.kind === 'drawing' && s.chapter === 'hat')!;
-  const hatA = poly.commandEnds[hatSeg.startCommand - 1]!;
-  const hatB = poly.commandEnds[hatSeg.endCommand - 1]!;
 
   if (!(await step(stale))) return null;
   const pieces = splitIntoPieces(poly);
@@ -221,7 +217,6 @@ async function build(
   reveal.reset(0, apply);
 
   let tipShown = false;
-  let tipColour = TIP;
   const near = (m: Moving, y: number): boolean => m.bottom > y - vh * 0.5 && m.top < y + vh * 1.5;
 
   return {
@@ -235,8 +230,6 @@ async function build(
         tipShown = L > 0;
         tip.setAttribute('visibility', tipShown ? 'visible' : 'hidden');
       }
-      const colour = L > hatA && L <= hatB ? TIP_HAT : TIP;
-      if (colour !== tipColour) dot.setAttribute('fill', (tipColour = colour));
       if (reduced) return;
 
       for (const { frame, img } of photos) {

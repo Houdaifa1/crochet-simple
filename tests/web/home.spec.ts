@@ -138,6 +138,23 @@ for (const [name, size] of Object.entries(SIZES)) {
       expect(Math.max(...errors)).toBeLessThan(0.75);
     });
 
+    test('keeps the tip the same pink through every drawing, the bucket hat included', async ({
+      page,
+    }) => {
+      await open(page);
+      const [top, bottom] = await page.locator('.chapter[data-id="hat"]').evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return [r.top + scrollY - innerHeight, r.bottom + scrollY];
+      });
+      const fills = new Set<string>();
+      for (let i = 0; i <= 12; i++) {
+        await page.evaluate((y) => window.scrollTo(0, y), top + ((bottom - top) * i) / 12);
+        await settle(page);
+        fills.add((await page.locator('.tip circle').last().getAttribute('fill')) ?? '');
+      }
+      expect([...fills]).toEqual(['#ff2f83']);
+    });
+
     test('finishes the whole line at the knot above the ending', async ({ page }) => {
       await open(page);
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));

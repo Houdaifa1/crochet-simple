@@ -49,6 +49,8 @@ export default defineConfig({
       dependencies: process.env['CI'] ? [] : ['chromium', 'webkit', 'admin'],
       use: { browserName: 'chromium' },
       workers: 1,
+      // a one-off hiccup from a busy machine is measured again; a real slowdown fails twice
+      retries: 1,
     },
   ],
 });

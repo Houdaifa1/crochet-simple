@@ -58,6 +58,21 @@ test('nothing on the page blurs what is behind it, so phones scroll smoothly', a
   }
 });
 
+test('the homepage colour fade stays plain so phones never repaint the soft colours', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await visit(page, '/');
+  const layers = await page.locator('.tint').evaluate((tint) => ({
+    fade: getComputedStyle(tint).backgroundImage,
+    colours: getComputedStyle(tint, '::after').backgroundImage,
+    own: getComputedStyle(tint, '::after').transform,
+  }));
+  expect(layers.fade).toBe('none');
+  expect(layers.colours).toContain('radial-gradient');
+  expect(layers.own).not.toBe('none');
+});
+
 test('the menu stays still when moving between pages', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await visit(page, '/');

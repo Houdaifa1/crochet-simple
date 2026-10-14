@@ -155,3 +155,137 @@ test('the category row and patterns scroll smoothly on a 4× slower CPU (phone, 
   expect(summary.overflow).toBe(false);
   await context.close();
 });
+
+// every kind of page, so a slow or jumpy page can never slip through unnoticed
+const EVERY_PAGE = [
+  '/',
+  '/patterns/',
+  '/patterns/category/bags/',
+  '/patterns/blue-market-bag/',
+  '/patterns/laptop-sleeve/',
+  '/journal/',
+  '/journal/how-to-read-a-crochet-pattern/',
+  '/about/',
+  '/privacy/',
+  '/terms/',
+  '/search/?q=bag',
+  '/no-such-page/',
+];
+const DEVICES = {
+  phone: {
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    isMobile: true,
+    hasTouch: true,
+  },
+  desktop: { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 },
+};
+// only moving and fading are cheap for phones to animate over a large area
+const CHEAP = new Set(['transform', 'translate', 'scale', 'rotate', 'opacity', 'offsetDistance']);
+
+for (const [device, options] of Object.entries(DEVICES)) {
+  for (const path of EVERY_PAGE) {
+    test(`${path} loads without jumps and scrolls smoothly on a 4× slower CPU (${device})`, async ({
+      browser,
+    }) => {
+      const context = await browser.newContext(options);
+      const page = await context.newPage();
+      await page.route(/googlesyndication|cloudflareinsights|pinterest\.com|etsy\.com/, (r) =>
+        r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
+      );
+      await page.addInitScript(() => {
+        const w = window as unknown as { __shift: number };
+        w.__shift = 0;
+        new PerformanceObserver((list) =>
+          list.getEntries().forEach((e) => {
+            const shift = e as PerformanceEntry & { value: number; hadRecentInput: boolean };
+            if (!shift.hadRecentInput) w.__shift += shift.value;
+          }),
+        ).observe({ type: 'layout-shift', buffered: true });
+      });
+      const cdp = await context.newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+      await page.goto(path, { waitUntil: 'networkidle' });
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(1200);
+      await page.evaluate(() => {
+        const w = window as unknown as { __frames: number[]; __long: number[] };
+        w.__frames = [];
+        w.__long = [];
+        new PerformanceObserver((l) =>
+          l.getEntries().forEach((e) => w.__long.push(Math.round(e.duration))),
+        ).observe({ type: 'longtask' });
+        let last = performance.now();
+        const tick = (t: number) => {
+          w.__frames.push(t - last);
+          last = t;
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      await page.mouse.move(options.viewport.width / 2, options.viewport.height / 2);
+      for (let i = 0; i < 70; i++) {
+        await page.mouse.wheel(0, 60);
+        await page.waitForTimeout(16);
+      }
+      for (let i = 0; i < 20; i++) {
+        await page.mouse.wheel(0, -150);
+        await page.waitForTimeout(16);
+      }
+      await page.waitForTimeout(400);
+      const result = await page.evaluate(
+        (cheap) => {
+          const w = window as unknown as { __frames: number[]; __long: number[]; __shift: number };
+          const frames = w.__frames.slice(1).sort((a, b) => a - b);
+          const area = innerWidth * innerHeight;
+          const costly = document
+            .getAnimations()
+            .filter((a) => a.playState === 'running')
+            .flatMap((a) => {
+              const effect = a.effect as KeyframeEffect | null;
+              const el = effect?.target as Element | null;
+              if (!effect || !el) return [];
+              const box = el.getBoundingClientRect();
+              if (box.width * box.height < area * 0.1) return [];
+              const props = effect
+                .getKeyframes()
+                .flatMap((k) => Object.keys(k))
+                .filter((k) => !['offset', 'easing', 'composite', 'computedOffset'].includes(k));
+              const css = getComputedStyle(el);
+              // a large colour fade is only cheap on a plain layer with nothing painted on it
+              const plain = css.backgroundImage === 'none' && css.boxShadow === 'none';
+              return props
+                .filter((p) => !cheap.includes(p) && !(p === 'backgroundColor' && plain))
+                .map((p) => `${el.className}: ${p}`);
+            });
+          const blurred = [...document.querySelectorAll('*')]
+            .filter((e) => {
+              const s = getComputedStyle(e);
+              return (
+                (s.backdropFilter !== '' && s.backdropFilter !== 'none') ||
+                /blur|drop-shadow/.test(s.filter)
+              );
+            })
+            .map((e) => e.className || e.tagName);
+          return {
+            p95: frames[Math.floor(frames.length * 0.95)] ?? 0,
+            longTasks: w.__long.filter((d) => d > 50),
+            shift: +w.__shift.toFixed(3),
+            costly,
+            blurred,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+          };
+        },
+        [...CHEAP],
+      );
+      await context.close();
+      console.info(`${device} ${path} ${JSON.stringify(result)}`);
+      expect(result.p95, 'frame time p95 in ms').toBeLessThan(20);
+      expect(result.longTasks, 'tasks over 50 ms').toEqual([]);
+      expect(result.shift, 'layout shift').toBeLessThan(0.02);
+      expect(result.costly, 'large animations that repaint').toEqual([]);
+      expect(result.blurred, 'blurred layers').toEqual([]);
+      expect(result.overflow, 'wider than the screen').toBe(false);
+    });
+  }
+}

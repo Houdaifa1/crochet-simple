@@ -78,10 +78,8 @@ test('the next page of patterns opens at the list', async ({ page }) => {
   await page.locator('.pager a[aria-label="Page 2"]').click();
   await expect(page).toHaveURL(/\/patterns\/page\/2\/$/);
   expect(
-    await page.evaluate(() =>
-      Math.round(document.querySelector('.filters')!.getBoundingClientRect().top),
-    ),
-  ).toBe(0);
+    await page.evaluate(() => document.querySelector('.filters')!.getBoundingClientRect().top),
+  ).toBeCloseTo(0, 0);
 });
 
 test('categories load ahead at once and patterns once seen, only where the browser reuses them', async ({

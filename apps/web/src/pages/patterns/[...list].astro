@@ -180,13 +180,17 @@ const jsonLd = site
             freePages={freePages}
           />
         )}
-        <div class="bar">
+        <div class="bar" id={chips.length > 1 ? undefined : 'patterns'}>
           <p class="count" aria-live="polite">
             {total} {total === 1 ? 'pattern' : 'patterns'}
             {pages > 1 && ` · page ${page} of ${pages}`}
           </p>
           {freeHere && (
-            <a class:list={['toggle', { on: free }]} href={toggleHref}>
+            <a
+              class:list={['toggle', { on: free }]}
+              href={`${toggleHref}#patterns`}
+              data-ahead="load"
+            >
               <span class="switch" aria-hidden="true" />
               Free only<span class="visually-hidden">{free ? ' (on, show all)' : ' (off)'}</span>
             </a>
@@ -208,13 +212,22 @@ const jsonLd = site
           <h2 id="more-title">More results</h2>
           <ol class="results" />
         </section>
-        <Pager base={base} current={page} total={pages} />
+        <Pager base={base} current={page} total={pages} anchor="patterns" />
       </>
     )}
   </div>
 </Base>
 
 <script>
+  // the address is tidied only after the browser has finished opening the page at the list
+  addEventListener(
+    'load',
+    () => {
+      if (location.hash === '#patterns')
+        history.replaceState(history.state, '', location.pathname + location.search);
+    },
+    { once: true },
+  );
   const io = new IntersectionObserver(
     (entries) =>
       entries.forEach(

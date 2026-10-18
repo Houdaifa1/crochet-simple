@@ -12,25 +12,93 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
       <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"></path>
     </svg>
   </a>
-  <a href="/patterns/" aria-current={at('patterns')}>
+  <a href="/patterns/" aria-current={at('patterns')} data-tab="patterns">
     Patterns
   </a>
-  <a href="/journal/" aria-current={at('journal')}>
+  <a href="/journal/" aria-current={at('journal')} data-tab="journal">
     Journal
   </a>
-  <a href="/about/" aria-current={at('about')}>
+  <a href="/about/" aria-current={at('about')} data-tab="about">
     About
   </a>
 </nav>
 
 <script>
-  import { prefetch } from 'astro:prefetch';
+  // Patterns and Journal remember the page and the spot they were left at, like tabs in a phone app
+  const KEEP = ['patterns', 'journal'];
+  const where = () => location.pathname + location.search;
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.dock a[data-tab]')];
+  const here = links.find((a) => a.getAttribute('aria-current') === 'page')?.dataset['tab'];
+  const plain = (e: MouseEvent) =>
+    e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+  if (here && KEEP.includes(here))
+    addEventListener('pagehide', () => {
+      try {
+        sessionStorage.setItem(
+          `tab:${here}`,
+          JSON.stringify({ url: where(), y: Math.round(scrollY) }),
+        );
+      } catch {}
+    });
+  for (const a of links) {
+    const tab = a.dataset['tab']!;
+    if (tab === here) {
+      // tapping the open section again goes back to its start; on its first page, without reloading
+      a.addEventListener('click', (e) => {
+        if (where() !== a.pathname || !plain(e)) return;
+        e.preventDefault();
+        const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
+      });
+      continue;
+    }
+    if (!KEEP.includes(tab)) continue;
+    let saved: { url: string; y: number } | null = null;
+    try {
+      saved = JSON.parse(sessionStorage.getItem(`tab:${tab}`) ?? 'null');
+    } catch {}
+    if (!saved?.url?.startsWith('/')) continue;
+    const back = saved;
+    a.href = back.url;
+    a.addEventListener('click', (e) => {
+      if (!plain(e)) return;
+      try {
+        sessionStorage.setItem('tab-restore', JSON.stringify(back));
+      } catch {}
+    });
+  }
 
-  // the menu's pages load in the background only once this page has fully loaded
-  const ahead = () =>
-    document
-      .querySelectorAll<HTMLAnchorElement>('.dock a:not([aria-current])')
-      .forEach((a) => prefetch(a.href));
-  if (document.readyState === 'complete') ahead();
-  else addEventListener('load', ahead, { once: true });
+  // pages load ahead only where the browser opens them from what it loaded; Safari would fetch them twice
+  const net = (
+    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
+  const able =
+    document.createElement('link').relList.supports('prefetch') &&
+    !net?.saveData &&
+    !/2g/.test(net?.effectiveType ?? '');
+  const loaded = new Set([where()]);
+  const ahead = (a: HTMLAnchorElement) => {
+    const url = a.pathname + a.search;
+    if (a.origin !== location.origin || loaded.has(url)) return;
+    loaded.add(url);
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = url;
+    document.head.append(link);
+  };
+  const start = () => {
+    document.querySelectorAll<HTMLAnchorElement>('.dock a, a[data-ahead="load"]').forEach(ahead);
+    const seen = new IntersectionObserver((entries) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        seen.unobserve(e.target);
+        ahead(e.target as HTMLAnchorElement);
+      }),
+    );
+    document.querySelectorAll('a[data-ahead=""]').forEach((a) => seen.observe(a));
+  };
+  if (able) {
+    if (document.readyState === 'complete') start();
+    else addEventListener('load', start, { once: true });
+  }
 </script>

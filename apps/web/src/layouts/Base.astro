@@ -103,6 +103,20 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
         if (sessionStorage.getItem('dock')) document.documentElement.classList.add('dock-seen');
         else sessionStorage.setItem('dock', '1');
       } catch {}
+      // a page opened at a spot (a category, or a section from the menu) is shown only once it is there
+      try {
+        const back = JSON.parse(sessionStorage.getItem('tab-restore') || 'null');
+        if (
+          location.hash === '#patterns' ||
+          (back && back.url === location.pathname + location.search)
+        ) {
+          const wait = document.createElement('link');
+          wait.rel = 'expect';
+          wait.href = '#page-end';
+          wait.setAttribute('blocking', 'render');
+          document.head.append(wait);
+        }
+      } catch {}
     </script>
     {adClient && (
       <script
@@ -169,5 +183,19 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
         </nav>
       </div>
     </footer>
+    <script is:inline>
+      // moved into place while the page is still hidden, so the first frame is already the right spot
+      try {
+        const back = JSON.parse(sessionStorage.getItem('tab-restore') || 'null');
+        sessionStorage.removeItem('tab-restore');
+        if (back && back.url === location.pathname + location.search)
+          scrollTo({ top: back.y, behavior: 'instant' });
+        else if (location.hash === '#patterns')
+          document
+            .getElementById('patterns')
+            ?.scrollIntoView({ block: 'start', behavior: 'instant' });
+      } catch {}
+    </script>
+    <span id="page-end" hidden></span>
   </body>
 </html>

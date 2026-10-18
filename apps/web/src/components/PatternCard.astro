@@ -25,7 +25,7 @@ const free = isFree(pattern);
 const H = `h${headingLevel}` as 'h2' | 'h3';
 ---
 
-<a class="card rise" href={`/patterns/${pattern.id}/`} data-free={free ? '' : undefined}>
+<a class="card rise" href={`/patterns/${pattern.id}/`} data-free={free ? '' : undefined} data-ahead>
   <div class="media">
     <Picture
       src={d.cover}

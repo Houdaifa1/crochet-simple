@@ -3,25 +3,32 @@ interface Props {
   base: string;
   current: number;
   total: number;
+  // where the new page opens, so it starts at the list instead of the top
+  anchor?: string;
 }
-const { base, current, total } = Astro.props;
-const href = (n: number) => (n === 1 ? base : `${base}page/${n}/`);
+const { base, current, total, anchor } = Astro.props;
+const href = (n: number) => `${n === 1 ? base : `${base}page/${n}/`}${anchor ? `#${anchor}` : ''}`;
 ---
 
 {total > 1 && (
   <nav class="pager" aria-label="Pages">
     {current > 1 && (
-      <a class="step" href={href(current - 1)} rel="prev">
+      <a class="step" href={href(current - 1)} rel="prev" data-ahead>
         Previous
       </a>
     )}
     {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
-      <a href={href(n)} aria-current={n === current ? 'page' : undefined} aria-label={`Page ${n}`}>
+      <a
+        href={href(n)}
+        aria-current={n === current ? 'page' : undefined}
+        aria-label={`Page ${n}`}
+        data-ahead
+      >
         {n}
       </a>
     ))}
     {current < total && (
-      <a class="step" href={href(current + 1)} rel="next">
+      <a class="step" href={href(current + 1)} rel="next" data-ahead>
         Next
       </a>
     )}

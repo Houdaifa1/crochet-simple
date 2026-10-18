@@ -189,7 +189,7 @@ test.describe('search engines and Pinterest', () => {
   }) => {
     // the full list mixes free and paid patterns, so its free page is real and has its switch
     await visit(page, '/patterns/');
-    await expect(page.locator('a.toggle')).toHaveAttribute('href', '/patterns/free/');
+    await expect(page.locator('a.toggle')).toHaveAttribute('href', '/patterns/free/#patterns');
     await visit(page, '/patterns/free/');
     expect(await page.locator('link[rel=canonical]').getAttribute('href')).toBe(
       `${SITE}/patterns/free/`,
@@ -197,7 +197,7 @@ test.describe('search engines and Pinterest', () => {
     // every bag pattern is free: no copy of its page, no switch, and the chip leads to the real page
     await expect(page.locator('.chips a', { hasText: 'Bags' })).toHaveAttribute(
       'href',
-      '/patterns/category/bags/',
+      '/patterns/category/bags/#patterns',
     );
     expect((await request.get('/patterns/category/bags/free/')).status()).toBe(404);
     await visit(page, '/patterns/category/bags/');
@@ -936,8 +936,11 @@ test.describe('touch and links', () => {
   test('the Journal link is in the menu and the footer on every page', async ({ page }) => {
     for (const path of PAGES) {
       await visit(page, path);
-      await expect(page.locator('.dock a[href="/journal/"]'), path).toBeVisible();
-      await expect(page.locator('.dock a[href="/journal/"]'), path).toHaveText('Journal');
+      // the menu link may point to the story last read there; it always leads into the journal
+      const menu = page.locator('.dock a[data-tab="journal"]');
+      await expect(menu, path).toBeVisible();
+      await expect(menu, path).toHaveText('Journal');
+      await expect(menu, path).toHaveAttribute('href', /^\/journal\//);
       await expect(page.locator('footer a[href="/journal/"]'), path).toHaveText('Journal');
     }
     await visit(page, '/');

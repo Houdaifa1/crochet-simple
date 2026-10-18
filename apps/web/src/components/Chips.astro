@@ -11,14 +11,21 @@ interface Props {
 }
 const { items, total, current, free, freePages } = Astro.props;
 const suffix = free ? 'free/' : '';
+// every choice opens with this row at the top and its first patterns right under it
 const href = (id: string) =>
-  `/patterns/category/${id}/${free && freePages.includes(id) ? 'free/' : ''}`;
+  `/patterns/category/${id}/${free && freePages.includes(id) ? 'free/' : ''}#patterns`;
 const at = (id: string | null) => (id === current ? 'page' : undefined);
 ---
 
-<div class="filters">
+<div class="filters" id="patterns">
   <nav class="chips" aria-label="Categories">
-    <a class="chip" href={`/patterns/${suffix}`} aria-current={at(null)} data-category="all">
+    <a
+      class="chip"
+      href={`/patterns/${suffix}#patterns`}
+      aria-current={at(null)}
+      data-category="all"
+      data-ahead="load"
+    >
       <span class="icon all" aria-hidden="true"></span>All <span class="n">{total}</span>
     </a>
     {items.map(({ category, count }) => (
@@ -27,6 +34,7 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
         href={href(category.id)}
         aria-current={at(category.id)}
         data-category={category.id}
+        data-ahead="load"
       >
         {category.data.icon && (
           <span class="icon" aria-hidden="true" style={`--icon:url(${category.data.icon.src})`} />
@@ -40,9 +48,11 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
 <script>
   const bar = document.querySelector<HTMLElement>('.filters');
   if (bar) {
+    // stuck means pressed against its sticking line: the top on phones, under the menu on wide screens
+    const top = parseFloat(getComputedStyle(bar).top) || 0;
     new IntersectionObserver(([e]) => bar.classList.toggle('stuck', e!.intersectionRatio < 1), {
       threshold: [1],
-      rootMargin: '-1px 0px 0px 0px',
+      rootMargin: `-${top + 1}px 0px 0px 0px`,
     }).observe(bar);
     const row = bar.querySelector<HTMLElement>('.chips')!;
     const on = row.querySelector<HTMLElement>('[aria-current="page"]');

@@ -243,6 +243,10 @@ html:root.glass .filters {
   box-shadow: none;
   overflow-anchor: none;
 }
+/* a chosen category opens with this row at the very top, where it stays while scrolling */
+html:root.glass #patterns {
+  scroll-margin-top: -104px;
+}
 html:root.glass .filters.stuck {
   background: var(--paper);
   box-shadow: 0 1px 0 var(--edge);
@@ -640,6 +644,9 @@ html:root.glass .story:not(.ready) .photo {
   }
   html:root.glass .filters {
     top: 94px;
+  }
+  html:root.glass #patterns {
+    scroll-margin-top: -10px;
   }
   html:root.glass .chips {
     mask-image: none;

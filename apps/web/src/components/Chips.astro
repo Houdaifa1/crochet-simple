@@ -48,12 +48,6 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
 <script>
   const bar = document.querySelector<HTMLElement>('.filters');
   if (bar) {
-    // stuck means pressed against its sticking line: the top on phones, under the menu on wide screens
-    const top = parseFloat(getComputedStyle(bar).top) || 0;
-    new IntersectionObserver(([e]) => bar.classList.toggle('stuck', e!.intersectionRatio < 1), {
-      threshold: [1],
-      rootMargin: `-${top + 1}px 0px 0px 0px`,
-    }).observe(bar);
     const row = bar.querySelector<HTMLElement>('.chips')!;
     const on = row.querySelector<HTMLElement>('[aria-current="page"]');
     if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
@@ -62,16 +56,9 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
 
 <style>
   .filters {
-    position: sticky;
-    top: 0;
-    z-index: 5;
     margin: 22px calc(var(--gutter) * -1) 0;
     padding: 12px 0;
     background: var(--paper);
-    transition: box-shadow 0.2s;
-  }
-  .filters.stuck {
-    box-shadow: 0 1px 0 rgb(42 41 37 / 0.12);
   }
   .chips {
     display: flex;

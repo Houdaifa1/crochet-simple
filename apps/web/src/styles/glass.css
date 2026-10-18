@@ -234,7 +234,7 @@ html:root.glass .search svg {
   z-index: 1;
   pointer-events: none;
 }
-/* the category row stays in one line and gets a quiet strip once it sticks to the top */
+/* the category row stays in one line and scrolls away with the page */
 html:root.glass .filters {
   padding-block: 14px;
   border: 0;
@@ -243,13 +243,9 @@ html:root.glass .filters {
   box-shadow: none;
   overflow-anchor: none;
 }
-/* a chosen category opens with this row at the very top, where it stays while scrolling */
+/* a chosen category opens with this row at the top and its first patterns right under it */
 html:root.glass #patterns {
   scroll-margin-top: -104px;
-}
-html:root.glass .filters.stuck {
-  background: var(--paper);
-  box-shadow: 0 1px 0 var(--edge);
 }
 html:root.glass .chips {
   flex-wrap: nowrap;
@@ -642,9 +638,6 @@ html:root.glass .story:not(.ready) .photo {
   html:root.glass .page-head {
     padding-block: 48px 20px;
   }
-  html:root.glass .filters {
-    top: 94px;
-  }
   html:root.glass #patterns {
     scroll-margin-top: -10px;
   }
@@ -773,8 +766,7 @@ html:root.glass .story:not(.ready) .photo {
   }
 }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  html:root.glass body,
-  html:root.glass .filters.stuck {
+  html:root.glass body {
     background: var(--paper);
   }
   html:root.glass .tint::after {

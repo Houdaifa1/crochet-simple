@@ -12,7 +12,7 @@ const category = (page: Page, id: string) =>
   page.locator(`.filters .chips a[data-category="${id}"]`);
 
 for (const width of [360, 375, 430]) {
-  test(`categories sit side by side in one row and stick to the top at ${width} px`, async ({
+  test(`categories sit side by side in one row and stay in their place while scrolling at ${width} px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 800 });
@@ -27,9 +27,13 @@ for (const width of [360, 375, 430]) {
     for (const control of [page.locator('.header-search'), chips.first()]) {
       expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
+    // the row moves up with the page instead of staying on screen
+    const before = (await page.locator('.filters').boundingBox())!.y;
     await page.evaluate(() => window.scrollTo(0, 900));
-    await expect(page.locator('.filters')).toHaveClass(/stuck/);
-    expect(Math.round((await page.locator('.filters').boundingBox())!.y)).toBe(0);
+    await expect(page.locator('.filters')).toHaveCSS('position', 'static');
+    expect(Math.round((await page.locator('.filters').boundingBox())!.y)).toBe(
+      Math.round(before - 900),
+    );
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       width,
     );

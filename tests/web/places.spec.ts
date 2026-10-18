@@ -40,7 +40,18 @@ for (const [device, width, rowTop] of [
     expect(at.title).toBeLessThanOrEqual(at.row + 1);
     expect(at.card).toBeGreaterThan(at.row);
     expect(at.card).toBeLessThan(at.height * 0.5);
-    await expect(page.locator('.filters')).toHaveClass(/stuck/);
+    // then it scrolls away with the patterns, it does not stay on screen
+    const moved = await page.evaluate(() => {
+      const y = scrollY;
+      window.scrollBy(0, 200);
+      return scrollY - y;
+    });
+    expect(moved).toBeGreaterThan(0);
+    expect(
+      Math.round(
+        await page.evaluate(() => document.querySelector('.filters')!.getBoundingClientRect().top),
+      ),
+    ).toBe(Math.round(at.row - moved));
   });
 }
 
@@ -55,11 +66,9 @@ test('categories open at their patterns even without JavaScript', async ({ brows
   await expect(page).toHaveURL(/\/patterns\/category\/hats\/#patterns$/);
   await expect
     .poll(() =>
-      page.evaluate(() =>
-        Math.round(document.querySelector('.filters')!.getBoundingClientRect().top),
-      ),
+      page.evaluate(() => document.querySelector('.filters')!.getBoundingClientRect().top),
     )
-    .toBe(0);
+    .toBeCloseTo(0, 0);
   await context.close();
 });
 

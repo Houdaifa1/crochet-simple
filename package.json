@@ -10,6 +10,7 @@
   "scripts": {
     "check": "pnpm check:assets && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm build:test && pnpm build:admin && pnpm test:browser",
     "check:assets": "shasum -a 256 -c --quiet packages/artwork/approved-assets.sha256",
+    "check:quick": "pnpm check:assets && pnpm format:check && pnpm typecheck && pnpm test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck && tsc -p tsconfig.json",

@@ -280,6 +280,18 @@ export interface Category {
    */
   icon?: (number | null) | Media;
   /**
+   * 1600 x 960 px, the crochet piece on the right and one calm colour on the left, where the name goes. Make it with the prompt below.
+   */
+  cardPicture?: (number | null) | Media;
+  /**
+   * Optional, like #B3122E. Leave empty to take the colour from the left side of the picture.
+   */
+  cardColour?: string | null;
+  /**
+   * Copy this into the picture tool, then upload the result above. Written for you when the category is saved; empty it and save to write it again.
+   */
+  cardPrompt?: string | null;
+  /**
    * Lower numbers come first.
    */
   order?: number | null;
@@ -538,6 +550,9 @@ export interface CategoriesSelect<T extends boolean = true> {
   seoTitle?: T;
   seoDescription?: T;
   icon?: T;
+  cardPicture?: T;
+  cardColour?: T;
+  cardPrompt?: T;
   order?: T;
   updatedAt?: T;
   createdAt?: T;

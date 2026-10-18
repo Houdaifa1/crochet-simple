@@ -94,6 +94,11 @@ const categories = defineCollection({
       name: text,
       description: z.string().optional(),
       icon: image().optional(),
+      cardPicture: image().optional(),
+      cardColour: z
+        .string()
+        .regex(/^#[0-9a-f]{6}$/i)
+        .optional(),
       order: z.number().int().default(0),
       ...seo,
     }),

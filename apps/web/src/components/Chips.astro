@@ -1,48 +1,89 @@
 ---
+import { Image } from 'astro:assets';
+import type { CardLook } from '../lib/cards';
 import type { Category } from '../lib/content';
 
 interface Props {
-  items: { category: Category; count: number }[];
+  items: { category: Category; count: number; look: CardLook }[];
+  all: CardLook;
   total: number;
   current: string | null;
   free: boolean;
   // categories that have a "free only" page of their own
   freePages: string[];
 }
-const { items, total, current, free, freePages } = Astro.props;
+const { items, all, total, current, free, freePages } = Astro.props;
 const suffix = free ? 'free/' : '';
 // every choice opens with this row at the top and its first patterns right under it
 const href = (id: string) =>
   `/patterns/category/${id}/${free && freePages.includes(id) ? 'free/' : ''}#patterns`;
 const at = (id: string | null) => (id === current ? 'page' : undefined);
+const cards = [
+  {
+    id: 'all',
+    name: 'All',
+    count: total,
+    look: all,
+    url: `/patterns/${suffix}#patterns`,
+    icon: null,
+  },
+  ...items.map(({ category, count, look }) => ({
+    id: category.id,
+    name: category.data.name,
+    count,
+    look,
+    url: href(category.id),
+    icon: category.data.icon?.src ?? null,
+  })),
+];
 ---
 
 <div class="filters" id="patterns">
   <nav class="chips" aria-label="Categories">
-    <a
-      class="chip"
-      href={`/patterns/${suffix}#patterns`}
-      aria-current={at(null)}
-      data-category="all"
-      data-ahead="load"
-    >
-      <span class="icon all" aria-hidden="true"></span>All <span class="n">{total}</span>
-    </a>
-    {items.map(({ category, count }) => (
+    {cards.map((c, i) => (
       <a
-        class="chip"
-        href={href(category.id)}
-        aria-current={at(category.id)}
-        data-category={category.id}
+        class:list={['chip', c.look.scene ? 'scene' : 'photo']}
+        href={c.url}
+        aria-current={at(c.id === 'all' ? null : c.id)}
+        data-category={c.id}
         data-ahead="load"
+        style={`--c:${c.look.colour}`}
       >
-        {category.data.icon && (
-          <span class="icon" aria-hidden="true" style={`--icon:url(${category.data.icon.src})`} />
-        )}
-        {category.data.name} <span class="n">{count}</span>
+        <Image
+          class="pic"
+          src={c.look.picture}
+          alt=""
+          widths={[280, 560, 840]}
+          sizes="280px"
+          loading={i < 4 ? 'eager' : 'lazy'}
+          decoding="async"
+        />
+        <span class="badge" aria-hidden="true">
+          {c.icon ? (
+            <span class="icon" style={`--icon:url(${c.icon})`} />
+          ) : (
+            <span class:list={['icon', { all: c.id === 'all' }]} />
+          )}
+        </span>
+        <span class="txt">
+          <span class="name">{c.name}</span>
+          <span class="sum">
+            <span class="n">{c.count}</span> {c.count === 1 ? 'pattern' : 'patterns'}
+          </span>
+        </span>
       </a>
     ))}
   </nav>
+  <button class="slide prev" type="button" aria-label="Earlier categories" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7"></path>
+    </svg>
+  </button>
+  <button class="slide next" type="button" aria-label="More categories" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 5l7 7-7 7"></path>
+    </svg>
+  </button>
 </div>
 
 <script>
@@ -51,75 +92,227 @@ const at = (id: string | null) => (id === current ? 'page' : undefined);
     const row = bar.querySelector<HTMLElement>('.chips')!;
     const on = row.querySelector<HTMLElement>('[aria-current="page"]');
     if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
+    // arrows for a mouse; fingers simply swipe the row
+    const prev = bar.querySelector<HTMLButtonElement>('.prev')!;
+    const next = bar.querySelector<HTMLButtonElement>('.next')!;
+    const show = () => {
+      prev.hidden = row.scrollLeft < 8;
+      next.hidden = row.scrollLeft + row.clientWidth > row.scrollWidth - 8;
+    };
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    const slide = (dir: number) =>
+      row.scrollBy({
+        left: dir * row.clientWidth * 0.8,
+        behavior: still.matches ? 'auto' : 'smooth',
+      });
+    prev.addEventListener('click', () => slide(-1));
+    next.addEventListener('click', () => slide(1));
+    row.addEventListener('scroll', show, { passive: true });
+    addEventListener('resize', show, { passive: true });
+    show();
   }
 </script>
 
 <style>
   .filters {
+    --h: 128px;
+    position: relative;
     margin: 22px calc(var(--gutter) * -1) 0;
-    padding: 12px 0;
-    background: var(--paper);
+    padding: 0;
   }
+  /* one row that slides; the last card fades at the edge so it reads as more to come */
   .chips {
     display: flex;
-    gap: 24px;
+    gap: 12px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
     scroll-padding-inline: var(--gutter);
-    padding: 2px var(--gutter);
+    padding: 8px var(--gutter) 18px;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
   }
   .chips::-webkit-scrollbar {
     display: none;
   }
   .chip {
+    --c: #1f4c9c;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     flex: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    min-height: 44px;
-    padding: 0 0 4px;
-    color: var(--muted);
-    font: 500 15px/1 var(--sans);
+    display: flex;
+    align-items: flex-end;
+    width: 264px;
+    height: var(--h);
+    padding: 14px 16px;
+    border-radius: 20px;
+    background: var(--c);
+    color: #fff;
     text-decoration: none;
     scroll-snap-align: start;
+    box-shadow: 0 12px 26px -16px color-mix(in srgb, var(--c) 80%, #000);
     transition:
-      background-color 0.2s,
-      color 0.2s;
+      transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.2s;
   }
-  /* the chosen category sits on a short run of thread */
-  .chip[aria-current='page'] {
-    color: var(--ink);
-    font-weight: 600;
-    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='6'><path d='M0 3 Q 3 0 6 3 T 12 3' fill='none' stroke='%231f4c9c' stroke-width='1.6'/></svg>")
-      left bottom 6px / 12px 6px repeat-x;
+  .chip :global(.pic) {
+    position: absolute;
+    z-index: -2;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: auto;
+    max-width: none;
   }
-  .n {
-    position: relative;
-    top: -6px;
-    margin-left: -3px;
-    font: 500 12px/1 var(--sans);
-    color: var(--muted);
+  /* a made scene keeps its whole picture on the right, blending into its own colour */
+  .chip.scene::before,
+  .chip.photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
   }
-  /* uploaded icons are used as a mask, so they take the chip's colour */
+  .chip.scene::before {
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.3) 40%, transparent 66%),
+      linear-gradient(
+        90deg,
+        var(--c) calc(100% - var(--h) * 5 / 3),
+        transparent calc(100% - var(--h) * 5 / 3 + 58px)
+      );
+  }
+  /* a pattern photo fills the card, washed with the colour where the name sits */
+  .chip.photo :global(.pic) {
+    width: 100%;
+    object-fit: cover;
+  }
+  .chip.photo::before {
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 0.3), transparent 60%),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--c) 92%, #000),
+        color-mix(in srgb, var(--c) 70%, transparent) 48%,
+        transparent 82%
+      );
+  }
+  .badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: rgb(255 255 255 / 0.94);
+    box-shadow: 0 4px 10px -4px rgb(0 0 0 / 0.35);
+  }
+  /* uploaded icons are used as a mask, so they take the card's colour */
   .icon {
     width: 18px;
     height: 18px;
-    background: currentColor;
+    background: var(--c);
     mask: var(--icon) center / contain no-repeat;
   }
   .icon.all {
-    --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'><rect x='4' y='4' width='6.5' height='6.5' rx='1.6'/><rect x='13.5' y='4' width='6.5' height='6.5' rx='1.6'/><rect x='4' y='13.5' width='6.5' height='6.5' rx='1.6'/><rect x='13.5' y='13.5' width='6.5' height='6.5' rx='1.6'/></svg>");
+    --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8'><rect x='4' y='4' width='6.5' height='6.5' rx='1.6'/><rect x='13.5' y='4' width='6.5' height='6.5' rx='1.6'/><rect x='4' y='13.5' width='6.5' height='6.5' rx='1.6'/><rect x='13.5' y='13.5' width='6.5' height='6.5' rx='1.6'/></svg>");
   }
-  @media (min-width: 1100px) {
+  .txt {
+    display: grid;
+    gap: 4px;
+    max-width: 150px;
+    text-shadow:
+      0 1px 2px rgb(0 0 0 / 0.35),
+      0 2px 12px rgb(0 0 0 / 0.3);
+  }
+  .name {
+    font: 700 16px/1.15 var(--sans);
+    letter-spacing: -0.01em;
+  }
+  .sum {
+    font: 600 12px/1 var(--sans);
+    opacity: 0.92;
+  }
+  @media (hover: hover) {
+    .chip:hover {
+      transform: translateY(-3px);
+    }
+  }
+  .chip:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+  }
+  /* the open category: a white ring inside, a check mark, and a little lift */
+  .chip[aria-current='page'] {
+    transform: translateY(-3px);
+    box-shadow:
+      inset 0 0 0 3px #fff,
+      inset 0 0 0 6px var(--c),
+      0 18px 32px -14px color-mix(in srgb, var(--c) 80%, #000);
+  }
+  .chip[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a2925' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 12l4 4 8-8'/></svg>")
+      center / 14px no-repeat;
+  }
+  .slide {
+    position: absolute;
+    top: calc(50% - 5px);
+    z-index: 2;
+    display: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    border: 1px solid rgb(42 41 37 / 0.1);
+    border-radius: 50%;
+    background: #fffefc;
+    color: var(--ink);
+    box-shadow: 0 8px 20px -10px rgb(42 41 37 / 0.4);
+    cursor: pointer;
+  }
+  .slide svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .prev {
+    left: -10px;
+  }
+  .next {
+    right: -10px;
+  }
+  @media (min-width: 900px) {
     .filters {
-      margin-left: 0;
-      margin-right: 0;
+      margin-inline: 0;
     }
     .chips {
-      padding-left: 0;
-      padding-right: 0;
-      flex-wrap: wrap;
+      padding-inline: 0;
+      scroll-padding-inline: 0;
+    }
+    .slide:not([hidden]) {
+      display: grid;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chip {
+      transition: none;
+    }
+    .chip:hover,
+    .chip[aria-current='page'] {
+      transform: none;
     }
   }
 </style>

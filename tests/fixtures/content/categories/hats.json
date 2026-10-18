@@ -2,5 +2,6 @@
   "name": "Hats",
   "description": "Test category: hats patterns.",
   "icon": "./icons/hats.svg",
-  "order": 4
+  "order": 4,
+  "cardPicture": "./cards/hats.jpg"
 }

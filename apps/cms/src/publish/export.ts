@@ -258,6 +258,10 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         seoTitle: text(c['seoTitle']),
         seoDescription: text(c['seoDescription']),
         icon: c['icon'] ? rel(file(c['icon'], where, 'icon'), 1) : undefined,
+        cardPicture: c['cardPicture']
+          ? rel(file(c['cardPicture'], `${where} (card picture)`, 'photo'), 1)
+          : undefined,
+        cardColour: text(c['cardColour']),
         order: Number(c['order'] ?? 0),
       }),
     );

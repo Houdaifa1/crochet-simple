@@ -124,6 +124,11 @@ test('a category is created from the admin, with its web address filled in', asy
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page).toHaveURL(/\/admin\/collections\/categories\/\d+/);
   await expect(page.locator('#field-slug')).toHaveValue('home-and-kitchen');
+  // a ready picture prompt is written for every new category, in the shared style
+  const prompt = page.locator('#field-cardPrompt');
+  await expect(prompt).toHaveValue(/File name: home-and-kitchen\.jpg/);
+  await expect(prompt).toHaveValue(/1600 x 960 px/);
+  await expect(prompt).toHaveValue(/soft sage green \(#8AAE8C\)/);
 });
 
 test('homepage words are edited from the admin', async () => {

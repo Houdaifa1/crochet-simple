@@ -217,3 +217,60 @@ test.describe('the menu remembers where each section was left', () => {
     expect(await page.evaluate(() => scrollY)).toBe(0);
   });
 });
+
+test.describe('category cards', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('every card has a picture, a name, a count and its own colour', async ({ page }) => {
+    await visit(page, '/patterns/');
+    const cards = await page.locator('.chips a.chip').evaluateAll((all) =>
+      all.map((a) => ({
+        id: (a as HTMLElement).dataset['category'],
+        picture: a.querySelector('img.pic')?.getAttribute('src') ?? '',
+        name: a.querySelector('.name')?.textContent?.trim() ?? '',
+        count: a.querySelector('.sum')?.textContent?.trim() ?? '',
+        colour: getComputedStyle(a).getPropertyValue('--c').trim(),
+        alt: a.querySelector('img.pic')?.getAttribute('alt'),
+      })),
+    );
+    expect(cards.length).toBeGreaterThan(2);
+    for (const c of cards) {
+      expect(c.picture, c.id).not.toBe('');
+      expect(c.name, c.id).not.toBe('');
+      expect(c.count, c.id).toMatch(/^\d+ patterns?$/);
+      expect(c.colour, c.id).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(c.alt, c.id).toBe('');
+    }
+    // a category with its own picture shows it whole; one without uses a pattern photo
+    await expect(page.locator('.chip[data-category="hats"]')).toHaveClass(/scene/);
+    await expect(page.locator('.chip[data-category="bags"]')).toHaveClass(/photo/);
+  });
+
+  test('the cards slide sideways in one row and the open one is marked', async ({ page }) => {
+    await visit(page, '/patterns/category/bags/');
+    const row = page.locator('.chips');
+    expect(await row.evaluate((r) => r.scrollWidth > r.clientWidth)).toBe(true);
+    const tops = await page
+      .locator('.chips a.chip')
+      .evaluateAll((all) => all.map((a) => a.getBoundingClientRect().top));
+    expect(Math.max(...tops) - Math.min(...tops)).toBeLessThanOrEqual(4);
+    const open = page.locator('.chip[aria-current="page"]');
+    await expect(open).toHaveAttribute('data-category', 'bags');
+    const box = (await open.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(375);
+  });
+
+  test('on a wide screen the arrows slide the row', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await visit(page, '/patterns/');
+    const next = page.locator('.slide.next');
+    await expect(next).toBeVisible();
+    await expect(page.locator('.slide.prev')).toBeHidden();
+    await next.click();
+    await expect
+      .poll(() => page.locator('.chips').evaluate((r) => r.scrollLeft))
+      .toBeGreaterThan(100);
+    await expect(page.locator('.slide.prev')).toBeVisible();
+  });
+});

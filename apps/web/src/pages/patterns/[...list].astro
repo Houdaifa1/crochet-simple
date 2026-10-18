@@ -5,6 +5,7 @@ import PageHead from '../../components/PageHead.astro';
 import Pager from '../../components/Pager.astro';
 import PatternCard from '../../components/PatternCard.astro';
 import Base from '../../layouts/Base.astro';
+import { allCard, cardLook } from '../../lib/cards';
 import { freeHeading, listTitle, needsFreePage } from '../../lib/seo';
 import {
   PAGE_SIZE,
@@ -26,6 +27,11 @@ export async function getStaticPaths() {
     ...cats.map((c) => ({ category: c.category, list: c.patterns })),
   ];
   const names = new Map(cats.map((c) => [c.category.id, c.category.data.name]));
+  const looks = new Map(
+    await Promise.all(
+      cats.map(async (c) => [c.category.id, await cardLook(c.category, c.patterns)] as const),
+    ),
+  );
   const hasFreePage = (list: Pattern[]) => needsFreePage(list.map(isFree));
   // categories whose "free only" page exists, for the chips on the free pages
   const freePages = cats.filter((c) => hasFreePage(c.patterns)).map((c) => c.category.id);
@@ -38,6 +44,7 @@ export async function getStaticPaths() {
         .map((c) => ({
           category: c.category,
           count: (free ? c.patterns.filter(isFree) : c.patterns).length,
+          look: looks.get(c.category.id)!,
         }))
         .filter((c) => c.count > 0);
       const freeHere = hasFreePage(list);
@@ -174,6 +181,7 @@ const jsonLd = site
         {chips.length > 1 && (
           <Chips
             items={chips}
+            all={allCard}
             total={chipTotal}
             current={category?.id ?? null}
             free={free}

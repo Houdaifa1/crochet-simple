@@ -18,19 +18,18 @@ for (const width of [360, 375, 430]) {
     await page.setViewportSize({ width, height: 800 });
     await visit(page);
     const chips = page.locator('.filters .chip');
-    const tops = await chips.evaluateAll((all) =>
-      all.map((c) => Math.round(c.getBoundingClientRect().top)),
-    );
-    expect(new Set(tops).size).toBe(1);
-    // the row is only as tall as one chip, so it never pushes the patterns down
-    expect((await page.locator('.filters').boundingBox())!.height).toBeLessThan(90);
+    // the open card lifts a little, so the row is level within a few pixels
+    const tops = await chips.evaluateAll((all) => all.map((c) => c.getBoundingClientRect().top));
+    expect(Math.max(...tops) - Math.min(...tops)).toBeLessThanOrEqual(4);
+    // one row of cards, so it never pushes the patterns far down
+    expect((await page.locator('.filters').boundingBox())!.height).toBeLessThan(180);
     for (const control of [page.locator('.header-search'), chips.first()]) {
       expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
     // the row moves up with the page instead of staying on screen
     const before = (await page.locator('.filters').boundingBox())!.y;
     await page.evaluate(() => window.scrollTo(0, 900));
-    await expect(page.locator('.filters')).toHaveCSS('position', 'static');
+    await expect(page.locator('.filters')).not.toHaveCSS('position', 'sticky');
     expect(Math.round((await page.locator('.filters').boundingBox())!.y)).toBe(
       Math.round(before - 900),
     );

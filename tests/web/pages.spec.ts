@@ -60,6 +60,15 @@ for (const [name, size] of Object.entries(SIZES)) {
           document.querySelectorAll('.rise').forEach((e) => e.classList.add('in')),
         );
         await page.waitForTimeout(1000);
+        // a slow machine may still be mid fade; wait until every one-off animation has really ended
+        await page.evaluate(() =>
+          Promise.all(
+            document
+              .getAnimations()
+              .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+              .map((a) => a.finished.catch(() => undefined)),
+          ),
+        );
         const axe = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
           .analyze();

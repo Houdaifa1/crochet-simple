@@ -176,12 +176,13 @@ test.describe('the menu remembers where each section was left', () => {
     await visit(page, '/patterns/');
     await page.locator('.chips a[data-category="bags"]').click();
     await expect(page).toHaveURL(/\/patterns\/category\/bags\/$/);
-    const y = await page.evaluate(() => Math.round(scrollY));
+    const y = await page.evaluate(() => scrollY);
     await tab(page, 'about').click();
     await expect(page).toHaveURL(/\/about\/$/);
     await tab(page, 'patterns').click();
     await expect(page).toHaveURL(/\/patterns\/category\/bags\/$/);
-    expect(await page.evaluate(() => Math.round(scrollY))).toBe(y);
+    // this spot comes from the page layout, so other fonts can leave it between two pixels
+    expect(Math.abs((await page.evaluate(() => scrollY)) - y)).toBeLessThanOrEqual(1);
   });
 
   test('Journal comes back to the same story at the same spot', async ({ page }) => {

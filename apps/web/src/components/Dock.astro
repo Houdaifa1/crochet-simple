@@ -34,10 +34,7 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
   if (here && KEEP.includes(here))
     addEventListener('pagehide', () => {
       try {
-        sessionStorage.setItem(
-          `tab:${here}`,
-          JSON.stringify({ url: where(), y: Math.round(scrollY) }),
-        );
+        sessionStorage.setItem(`tab:${here}`, JSON.stringify({ url: where(), y: scrollY }));
       } catch {}
     });
   for (const a of links) {

@@ -201,8 +201,12 @@ test.describe('the menu remembers where each section was left', () => {
     await scrollTo(page, 700);
     await tab(page, 'patterns').click();
     await expect(page).toHaveURL(/\/patterns\/$/);
-    await page.locator('.dock a.home').click();
-    await expect(page).toHaveURL(/\/$/);
+    // the home address itself, not just any address ending in a slash
+    await Promise.all([
+      page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 }),
+      page.locator('.dock a.home').click(),
+    ]);
+    await page.waitForLoadState('domcontentloaded');
     expect(await page.evaluate(() => scrollY)).toBe(0);
   });
 });

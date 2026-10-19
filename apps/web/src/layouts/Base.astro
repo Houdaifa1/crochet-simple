@@ -188,8 +188,15 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
       try {
         const back = JSON.parse(sessionStorage.getItem('tab-restore') || 'null');
         sessionStorage.removeItem('tab-restore');
+        const row = document.getElementById('patterns');
         if (back && back.url === location.pathname + location.search)
-          scrollTo({ top: back.y, behavior: 'instant' });
+          scrollTo({
+            top:
+              typeof back.row === 'number' && row
+                ? row.getBoundingClientRect().top + scrollY - back.row
+                : back.y,
+            behavior: 'instant',
+          });
         else if (location.hash === '#patterns')
           document
             .getElementById('patterns')

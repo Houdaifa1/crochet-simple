@@ -102,7 +102,7 @@ test('categories are complete ordinary links without JavaScript', async ({ brows
   const page = await context.newPage();
   await page.goto('/patterns/');
   await category(page, 'bags').click();
-  await expect(page).toHaveURL(/category\/bags\/#patterns$/);
+  await expect(page).toHaveURL(/category\/bags\/$/);
   await expect(page.locator('h1')).toHaveText('Bags');
   await expect(page.locator('.grid .card')).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(

@@ -14,48 +14,31 @@ const scrollTo = async (page: Page, y: number) => {
 };
 const tab = (page: Page, name: string) => page.locator(`.dock a[data-tab="${name}"]`);
 
-// the row sits at the very top on phones and just under the menu on wide screens
-for (const [device, width, rowTop] of [
-  ['phone', 375, 0],
-  ['desktop', 1280, 94],
+for (const [device, width] of [
+  ['phone', 375],
+  ['desktop', 1280],
 ] as const) {
-  test(`a chosen category opens at its first patterns, not the top of the page (${device})`, async ({
-    page,
-  }) => {
+  test(`tapping a category keeps the page exactly where it is (${device})`, async ({ page }) => {
     await page.setViewportSize({ width, height: 812 });
     await visit(page, '/patterns/');
-    await page.locator('.chips a[data-category="bags"]').click();
+    await page.evaluate(() => window.scrollTo(0, 180));
+    const card = page.locator('.chips a[data-category="bags"]');
+    await card.evaluate((a) => a.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
+    const before = { box: (await card.boundingBox())! };
+    await card.click();
     await expect(page).toHaveURL(/\/patterns\/category\/bags\/$/);
     await expect(page.locator('.chips a[data-category="bags"]')).toHaveAttribute(
       'aria-current',
       'page',
     );
-    const at = await page.evaluate(() => ({
-      row: Math.round(document.querySelector('.filters')!.getBoundingClientRect().top),
-      title: document.querySelector('h1')!.getBoundingClientRect().bottom,
-      card: document.querySelector('.grid .card')!.getBoundingClientRect().top,
-      height: innerHeight,
-    }));
-    expect(Math.abs(at.row - rowTop)).toBeLessThanOrEqual(2);
-    expect(at.title).toBeLessThanOrEqual(at.row + 1);
-    expect(at.card).toBeGreaterThan(at.row);
-    expect(at.card).toBeLessThan(at.height * 0.5);
-    // then it scrolls away with the patterns, it does not stay on screen
-    const moved = await page.evaluate(() => {
-      const y = scrollY;
-      window.scrollBy(0, 200);
-      return scrollY - y;
-    });
-    expect(moved).toBeGreaterThan(0);
-    expect(
-      Math.round(
-        await page.evaluate(() => document.querySelector('.filters')!.getBoundingClientRect().top),
-      ),
-    ).toBe(Math.round(at.row - moved));
+    const after = (await page.locator('.chips a[data-category="bags"]').boundingBox())!;
+    expect(Math.abs(after.x - before.box.x)).toBeLessThanOrEqual(1);
+    // the open card lifts a few pixels; otherwise it is in the same place
+    expect(Math.abs(after.y - before.box.y)).toBeLessThanOrEqual(4);
   });
 }
 
-test('categories open at their patterns even without JavaScript', async ({ browser }) => {
+test('categories are plain links that work without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({
     javaScriptEnabled: false,
     viewport: { width: 375, height: 812 },
@@ -63,12 +46,8 @@ test('categories open at their patterns even without JavaScript', async ({ brows
   const page = await context.newPage();
   await page.goto('/patterns/');
   await page.locator('.chips a[data-category="hats"]').click();
-  await expect(page).toHaveURL(/\/patterns\/category\/hats\/#patterns$/);
-  await expect
-    .poll(() =>
-      page.evaluate(() => document.querySelector('.filters')!.getBoundingClientRect().top),
-    )
-    .toBeCloseTo(0, 0);
+  await expect(page).toHaveURL(/\/patterns\/category\/hats\/$/);
+  await expect(page.locator('h1')).toHaveText('Hats');
   await context.close();
 });
 
@@ -181,7 +160,17 @@ test.describe('the menu remembers where each section was left', () => {
 
   test('a chosen category is remembered too', async ({ page }) => {
     await visit(page, '/patterns/');
-    await page.locator('.chips a[data-category="bags"]').click();
+    // slide the row like a finger would, let it settle, then tap the card that is showing
+    const card = page.locator('.chips a[data-category="bags"]');
+    await card.evaluate((a) => a.scrollIntoView({ block: 'nearest', inline: 'center' }));
+    await expect
+      .poll(async () => {
+        const a = await page.locator('.chips').evaluate((r) => r.scrollLeft);
+        await page.waitForTimeout(120);
+        return a === (await page.locator('.chips').evaluate((r) => r.scrollLeft));
+      })
+      .toBe(true);
+    await card.click();
     await expect(page).toHaveURL(/\/patterns\/category\/bags\/$/);
     const y = await page.evaluate(() => scrollY);
     await tab(page, 'about').click();

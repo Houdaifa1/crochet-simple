@@ -206,7 +206,7 @@ test.describe('search engines and Pinterest', () => {
     // every bag pattern is free: no copy of its page, no switch, and the chip leads to the real page
     await expect(page.locator('.chips a', { hasText: 'Bags' })).toHaveAttribute(
       'href',
-      '/patterns/category/bags/#patterns',
+      '/patterns/category/bags/',
     );
     expect((await request.get('/patterns/category/bags/free/')).status()).toBe(404);
     await visit(page, '/patterns/category/bags/');

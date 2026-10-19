@@ -15,9 +15,9 @@ interface Props {
 }
 const { items, all, total, current, free, freePages } = Astro.props;
 const suffix = free ? 'free/' : '';
-// every choice opens with this row at the top and its first patterns right under it
+// a choice keeps the page exactly where it is; only the patterns below change
 const href = (id: string) =>
-  `/patterns/category/${id}/${free && freePages.includes(id) ? 'free/' : ''}#patterns`;
+  `/patterns/category/${id}/${free && freePages.includes(id) ? 'free/' : ''}`;
 const at = (id: string | null) => (id === current ? 'page' : undefined);
 const cards = [
   {
@@ -25,7 +25,7 @@ const cards = [
     name: 'All',
     count: total,
     look: all,
-    url: `/patterns/${suffix}#patterns`,
+    url: `/patterns/${suffix}`,
     icon: null,
   },
   ...items.map(({ category, count, look }) => ({
@@ -77,6 +77,18 @@ const cards = [
       </a>
     ))}
   </nav>
+  <script is:inline>
+    // after a tap on a card the row is put back where it was before the page is shown
+    try {
+      const x = JSON.parse(sessionStorage.getItem('chips-x') || 'null');
+      sessionStorage.removeItem('chips-x');
+      if (typeof x === 'number') {
+        const row = document.currentScript.previousElementSibling;
+        row.scrollLeft = x;
+        row.dataset.kept = String(x);
+      }
+    } catch {}
+  </script>
   <button class="slide prev" type="button" aria-label="Earlier categories" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M15 5l-7 7 7 7"></path>
@@ -93,19 +105,21 @@ const cards = [
   const bar = document.querySelector<HTMLElement>('.filters');
   if (bar) {
     const row = bar.querySelector<HTMLElement>('.chips')!;
-    // after a tap on a card the row stays exactly where it was; from anywhere else it shows the open card
-    let kept: number | null = null;
-    try {
-      kept = JSON.parse(sessionStorage.getItem('chips-x') ?? 'null');
-      sessionStorage.removeItem('chips-x');
-    } catch {}
+    // after a tap the row stays where it was (set just after the row); from anywhere else it shows the open card
+    const kept = row.dataset['kept'];
     const on = row.querySelector<HTMLElement>('[aria-current="page"]');
-    if (typeof kept === 'number') row.scrollLeft = kept;
+    if (kept) row.scrollLeft = Number(kept);
     else if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
     row.addEventListener('click', (e) => {
-      if (!(e.target as Element).closest('a.chip')) return;
+      const a = (e.target as Element).closest<HTMLAnchorElement>('a.chip');
+      if (!a) return;
       try {
         sessionStorage.setItem('chips-x', JSON.stringify(Math.round(row.scrollLeft)));
+        // the next page opens with this row at the same spot on screen, before it is shown
+        sessionStorage.setItem(
+          'tab-restore',
+          JSON.stringify({ url: a.pathname, y: scrollY, row: bar.getBoundingClientRect().top }),
+        );
       } catch {}
     });
     // arrows for a mouse; fingers simply swipe the row

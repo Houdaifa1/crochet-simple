@@ -93,8 +93,21 @@ const cards = [
   const bar = document.querySelector<HTMLElement>('.filters');
   if (bar) {
     const row = bar.querySelector<HTMLElement>('.chips')!;
+    // after a tap on a card the row stays exactly where it was; from anywhere else it shows the open card
+    let kept: number | null = null;
+    try {
+      kept = JSON.parse(sessionStorage.getItem('chips-x') ?? 'null');
+      sessionStorage.removeItem('chips-x');
+    } catch {}
     const on = row.querySelector<HTMLElement>('[aria-current="page"]');
-    if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
+    if (typeof kept === 'number') row.scrollLeft = kept;
+    else if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
+    row.addEventListener('click', (e) => {
+      if (!(e.target as Element).closest('a.chip')) return;
+      try {
+        sessionStorage.setItem('chips-x', JSON.stringify(Math.round(row.scrollLeft)));
+      } catch {}
+    });
     // arrows for a mouse; fingers simply swipe the row
     const prev = bar.querySelector<HTMLButtonElement>('.prev')!;
     const next = bar.querySelector<HTMLButtonElement>('.next')!;

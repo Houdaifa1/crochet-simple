@@ -365,3 +365,27 @@ test.describe('the menu', () => {
     await expect(journal).toHaveAttribute('aria-current', 'page');
   });
 });
+
+test('tapping a category keeps the row exactly where it was', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visit(page, '/patterns/');
+  const row = page.locator('.chips');
+  await row.evaluate((r) => (r.scrollLeft = 300));
+  const before = await row.evaluate((r) => r.scrollLeft);
+  const card = page.locator('.chip[data-category="bags"]');
+  await card.scrollIntoViewIfNeeded();
+  const x = await row.evaluate((r) => r.scrollLeft);
+  const left = (await card.boundingBox())!.x;
+  await card.click();
+  await expect(page).toHaveURL(/\/category\/bags\/$/);
+  expect(await page.locator('.chips').evaluate((r) => r.scrollLeft)).toBe(x);
+  expect(
+    Math.abs((await page.locator('.chip[data-category="bags"]').boundingBox())!.x - left),
+  ).toBeLessThanOrEqual(1);
+  expect(before).toBeGreaterThan(0);
+  // arriving from a link elsewhere still shows the open card
+  await visit(page, '/patterns/category/tech-cases/');
+  const open = (await page.locator('.chip[aria-current="page"]').boundingBox())!;
+  expect(open.x).toBeGreaterThanOrEqual(0);
+  expect(open.x + open.width).toBeLessThanOrEqual(390);
+});

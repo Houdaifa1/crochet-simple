@@ -327,3 +327,41 @@ test.describe('pictures are ready before they are needed', () => {
     await context.close();
   });
 });
+
+test.describe('the menu', () => {
+  for (const [device, width] of [
+    ['phone', 390],
+    ['desktop', 1440],
+  ] as const) {
+    test(`sits in the middle of the screen (${device})`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await visit(page, '/patterns/');
+      const box = (await page.locator('.dock').boundingBox())!;
+      expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThanOrEqual(1);
+      if (device === 'phone') expect(box.y).toBeGreaterThan(700);
+      else expect(box.y).toBeLessThan(40);
+    });
+  }
+
+  test('the touched item lights up at once, even when the next page is slow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await visit(page, '/patterns/');
+    await page.route('**/journal/', async (route) => {
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue();
+    });
+    const journal = page.locator('.dock a[data-tab="journal"]');
+    const box = (await journal.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(journal).toHaveClass(/going/, { timeout: 200 });
+    await expect(journal).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(page.locator('.dock a[data-tab="patterns"]')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0)',
+    );
+    await page.mouse.up();
+    await expect(page).toHaveURL(/\/journal\/$/);
+    await expect(journal).toHaveAttribute('aria-current', 'page');
+  });
+});

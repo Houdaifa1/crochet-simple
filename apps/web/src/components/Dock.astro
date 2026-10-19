@@ -24,6 +24,28 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
 </nav>
 
 <script>
+  // the touched item lights up at once, before the next page has even started to load
+  const dock = document.querySelector<HTMLElement>('.dock')!;
+  const going = (a: HTMLAnchorElement | null) => {
+    dock.querySelector('.going')?.classList.remove('going');
+    if (a) (a.classList.add('going'), (dock.dataset['going'] = ''));
+    else delete dock.dataset['going'];
+  };
+  dock.addEventListener('pointerdown', (e) => {
+    if (e.button === 0) going((e.target as Element).closest('a'));
+  });
+  dock.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') going((e.target as Element).closest('a'));
+  });
+  // a press that slides off, or a tap on the page already open, puts the highlight back
+  dock.addEventListener('pointercancel', () => going(null));
+  dock.addEventListener('click', (e) => {
+    const a = (e.target as Element).closest('a');
+    if (!a || e.defaultPrevented || a.getAttribute('aria-current') === 'page')
+      setTimeout(() => going(null), 250);
+  });
+  addEventListener('pageshow', () => going(null));
+
   // Patterns and Journal remember the page and the spot they were left at, like tabs in a phone app
   const KEEP = ['patterns', 'journal'];
   const where = () => location.pathname + location.search;

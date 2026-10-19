@@ -93,44 +93,59 @@ html:root.glass .head-download {
   margin-top: 20px;
 }
 
-/* the menu: one solid white bar with a thin edge, it never moves */
+/* the menu: the brand blue bar, centred; the chosen page is a white pill that moves the moment it is touched */
 html:root.glass .dock {
   gap: 2px;
   padding: 5px;
-  border-radius: 16px;
-  border: 1px solid var(--edge);
-  background: var(--sheet);
+  border: 0;
+  border-radius: 999px;
+  background: var(--blue);
   box-shadow:
-    0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent),
-    0 14px 32px -14px color-mix(in srgb, var(--ink) 34%, transparent);
+    0 14px 30px -14px rgb(31 76 156 / 0.7),
+    0 2px 8px rgb(31 76 156 / 0.18);
   animation: none;
 }
 html:root.glass .dock a {
   min-height: 48px;
   height: auto;
-  padding-inline: 16px;
-  border-radius: 11px;
-  color: var(--ink);
-  font-size: 14px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  color: #fff;
+  font: 600 15px/1 var(--sans);
   transition:
-    background-color 120ms,
-    color 120ms,
-    transform 100ms var(--press);
+    background-color 80ms,
+    color 80ms,
+    transform 80ms var(--press);
 }
 html:root.glass .dock .home {
   width: 48px;
   padding: 0;
 }
-html:root.glass .dock a:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+@media (hover: hover) {
+  html:root.glass .dock a:hover {
+    background: rgb(255 255 255 / 0.14);
+  }
 }
-html:root.glass .dock a[aria-current='page'] {
-  background: color-mix(in srgb, var(--blue) 10%, var(--sheet));
+html:root.glass .dock a:active {
+  background: rgb(255 255 255 / 0.26);
+  transform: scale(0.94);
+  transition-duration: 0ms;
+}
+html:root.glass .dock a[aria-current='page'],
+html:root.glass .dock a.going {
+  background: #fff;
   color: var(--blue);
 }
+html:root.glass .dock[data-going] a[aria-current='page']:not(.going) {
+  background: transparent;
+  color: #fff;
+}
 html:root.glass .dock :focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: -2px;
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+html:root.glass .dock :is([aria-current='page'], .going):focus-visible {
+  outline-color: var(--blue);
 }
 
 /* controls: respond the moment they are pressed */
@@ -590,9 +605,6 @@ html:root.glass .story:not(.ready) .photo {
   html:root.glass .dock {
     top: 13px;
     bottom: auto;
-    left: auto;
-    right: max(120px, calc((100vw - 1240px) / 2 + 72px));
-    transform: none;
   }
   html:root.glass .header-search {
     margin-left: auto;
@@ -745,6 +757,9 @@ html:root.glass .story:not(.ready) .photo {
       .button.quiet
     ) {
     border: 1px solid var(--ink);
+  }
+  html:root.glass .dock {
+    background: var(--sheet);
   }
   html:root.glass .dock a,
   html:root.glass :is(.dock a, .pager a)[aria-current='page'] {

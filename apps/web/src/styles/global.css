@@ -147,16 +147,8 @@ h3 {
   color: var(--blue);
 }
 
-/* pages cross-fade while the header and menu stay where they are */
-@view-transition {
-  navigation: auto;
-}
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.18s;
-}
+/* pages switch at once, like tabs in a phone app */
 .dock {
-  view-transition-name: dock;
   position: fixed;
   z-index: 10;
   left: 50%;
@@ -572,9 +564,6 @@ html.js .rise:not(.in) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @view-transition {
-    navigation: none;
-  }
   .dock {
     animation: none;
   }

@@ -56,8 +56,8 @@ test('nothing on the page blurs what is behind it, so phones scroll smoothly', a
     );
     expect(blurred, path).toBe(0);
     expect(await page.locator('filter').count(), path).toBe(0);
-    // the menu is solid, so nothing behind it shows through its labels
-    await expect(page.locator('.dock')).toHaveCSS('background-color', 'rgb(255, 254, 252)');
+    // the menu is solid brand blue, so nothing behind it shows through its labels
+    await expect(page.locator('.dock')).toHaveCSS('background-color', 'rgb(31, 76, 156)');
   }
 });
 

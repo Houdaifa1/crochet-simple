@@ -394,8 +394,13 @@ test.describe('information pages and journal guides', () => {
     await expect(page.locator('.hero picture source[type="image/avif"]')).toHaveCount(3);
     await expect(page.locator('.main-photo img')).toHaveAttribute('fetchpriority', 'high');
     await expect(page.locator('.small-photo img')).toHaveCount(2);
-    for (const image of await page.locator('.small-photo img, .work-photo img').all())
-      await expect(image).toHaveAttribute('loading', 'lazy');
+    // sent as "later", so they never compete with the first photo; the page starts them once it is up
+    const sent = await (await page.request.get('/about/')).text();
+    const later = [...sent.matchAll(/<img[^>]*>/g)].filter(
+      (m) => !/fetchpriority="high"/.test(m[0]),
+    );
+    expect(later.length).toBeGreaterThanOrEqual(4);
+    for (const m of later) expect(m[0]).toContain('loading="lazy"');
     await expect(page.locator('.work-photo figcaption')).toHaveText(['Cup cozy', 'Pouch']);
   });
 
@@ -463,7 +468,11 @@ test.describe('patterns', () => {
       const picture = card.locator('picture');
       const photo = picture.locator('img');
       await expect(photo).toHaveAttribute('alt', '');
-      await expect(photo).toHaveAttribute('loading', 'lazy');
+      const sent = await (await page.request.get(`/patterns/${slug}/`)).text();
+      const tag =
+        sent.slice(sent.indexOf('data-get')).match(new RegExp(`<img[^>]*${filename}[^>]*>`))?.[0] ??
+        '';
+      expect(tag).toContain('loading="lazy"');
       await expect(photo).toHaveAttribute('src', new RegExp(filename!));
       await expect(picture.locator('source[type="image/avif"]')).toHaveAttribute('srcset', /1600w/);
       await expect(picture.locator('source[type="image/webp"]')).toHaveAttribute('srcset', /480w/);

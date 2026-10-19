@@ -274,3 +274,56 @@ test.describe('category cards', () => {
     await expect(page.locator('.slide.prev')).toBeVisible();
   });
 });
+
+test.describe('pictures are ready before they are needed', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('sliding rows and nearby photos start loading once the page is up', async ({ page }) => {
+    await visit(page, '/patterns/');
+    // every card in the sliding category row, even those still off to the side
+    await expect
+      .poll(() =>
+        page
+          .locator('.chips img.pic')
+          .evaluateAll(
+            (all) => all.filter((i) => (i as HTMLImageElement).loading === 'lazy').length,
+          ),
+      )
+      .toBe(0);
+    // photos a screen below are already on their way, the far end of the page is not
+    const states = await page.locator('.grid .card img').evaluateAll((all) =>
+      all.map((i) => ({
+        top: i.getBoundingClientRect().top,
+        lazy: (i as HTMLImageElement).loading === 'lazy',
+      })),
+    );
+    for (const s of states.filter((x) => x.top < 844 * 2)) expect(s.lazy).toBe(false);
+    await visit(page, '/patterns/blue-market-bag/');
+    await expect
+      .poll(() =>
+        page
+          .locator('.gallery .track img')
+          .evaluateAll(
+            (all) => all.filter((i) => (i as HTMLImageElement).loading === 'lazy').length,
+          ),
+      )
+      .toBe(0);
+  });
+
+  test('a phone that asks to save data keeps loading pictures only when they are seen', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript(() =>
+      Object.defineProperty(navigator, 'connection', { value: { saveData: true } }),
+    );
+    const page = await context.newPage();
+    await visit(page, '/patterns/');
+    await page.waitForTimeout(1500);
+    const lazy = await page
+      .locator('.chips img.pic')
+      .evaluateAll((all) => all.filter((i) => (i as HTMLImageElement).loading === 'lazy').length);
+    expect(lazy).toBeGreaterThan(0);
+    await context.close();
+  });
+});

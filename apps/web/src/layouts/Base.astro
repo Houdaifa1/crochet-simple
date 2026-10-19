@@ -197,5 +197,37 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
       } catch {}
     </script>
     <span id="page-end" hidden></span>
+    <script>
+      // Safari starts a picture only when it is almost on screen; once the page is up, start them
+      // about a screen and a half ahead, and whole sliding rows as soon as the row comes near
+      const net = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+      const ahead = () => {
+        const near = new IntersectionObserver(
+          (entries) =>
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return;
+              near.unobserve(e.target);
+              const imgs = e.target.matches('img')
+                ? [e.target as HTMLImageElement]
+                : [...e.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')];
+              for (const img of imgs) img.loading = 'eager';
+            }),
+          { rootMargin: '150% 0px' },
+        );
+        const watched = new Set<Element>();
+        for (const img of document.querySelectorAll('img[loading="lazy"]')) {
+          const target = img.closest('[data-strip]') ?? img;
+          if (!watched.has(target)) (watched.add(target), near.observe(target));
+        }
+      };
+      if (!net?.saveData) {
+        const idle = () =>
+          'requestIdleCallback' in window
+            ? requestIdleCallback(ahead, { timeout: 1200 })
+            : setTimeout(ahead, 300);
+        if (document.readyState === 'complete') idle();
+        else addEventListener('load', idle, { once: true });
+      }
+    </script>
   </body>
 </html>

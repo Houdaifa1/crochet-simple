@@ -14,7 +14,12 @@ const many = photos.length > 1;
 
 <div class="gallery" data-pagefind-ignore>
   <div class="frame">
-    <div class="track" tabindex={many ? 0 : undefined} aria-label={many ? 'Photos' : undefined}>
+    <div
+      class="track"
+      data-strip
+      tabindex={many ? 0 : undefined}
+      aria-label={many ? 'Photos' : undefined}
+    >
       {photos.map((p, i) => (
         <figure>
           <Picture
@@ -51,7 +56,7 @@ const many = photos.length > 1;
     )}
   </div>
   {many && (
-    <div class="thumbs">
+    <div class="thumbs" data-strip>
       {photos.map((p, i) => (
         <button
           type="button"

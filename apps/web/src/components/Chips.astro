@@ -1,5 +1,6 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
+import { sharpCapped } from '../lib/sizes';
 import type { CardLook } from '../lib/cards';
 import type { Category } from '../lib/content';
 
@@ -39,7 +40,7 @@ const cards = [
 ---
 
 <div class="filters" id="patterns">
-  <nav class="chips" aria-label="Categories">
+  <nav class="chips" aria-label="Categories" data-strip>
     {cards.map((c, i) => (
       <a
         class:list={['chip', c.look.scene ? 'scene' : 'photo']}
@@ -49,12 +50,14 @@ const cards = [
         data-ahead="load"
         style={`--c:${c.look.colour}`}
       >
-        <Image
+        <Picture
           class="pic"
           src={c.look.picture}
           alt=""
-          widths={[280, 560, 840]}
-          sizes="280px"
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          widths={[320, 440, 560, 720]}
+          sizes={sharpCapped(c.look.scene ? '214px' : '264px')}
           loading={i < 4 ? 'eager' : 'lazy'}
           decoding="async"
         />

@@ -130,7 +130,42 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
         ahead(e.target as HTMLAnchorElement);
       }),
     );
-    document.querySelectorAll('a[data-ahead=""]').forEach((a) => seen.observe(a));
+    const watch = () =>
+      document.querySelectorAll('a[data-ahead=""]').forEach((a) => seen.observe(a));
+    watch();
+    // patterns swapped in by a category tap are watched the same way
+    document.addEventListener('patterns:swap', watch);
+    // a finger on a pattern or story also starts its big photo, so the page opens with it in place:
+    // a copy that is never shown picks exactly the size this screen will ask for, and a load ahead of
+    // that file carries on while the next page opens
+    const started = new Set<string>();
+    document.addEventListener(
+      'pointerdown',
+      (e) => {
+        const a = (e.target as Element).closest<HTMLAnchorElement>('a[data-ahead=""]');
+        if (!a || a.origin !== location.origin || started.has(a.pathname)) return;
+        started.add(a.pathname);
+        fetch(a.pathname, { priority: 'high' })
+          .then((r) => (r.ok ? r.text() : ''))
+          .then((html) => {
+            const big = new DOMParser()
+              .parseFromString(html, 'text/html')
+              .querySelector('img[fetchpriority="high"]');
+            if (!big) return;
+            const copy = document.importNode(big.closest('picture') ?? big, true);
+            const img = copy instanceof HTMLImageElement ? copy : copy.querySelector('img')!;
+            setTimeout(() => {
+              if (!img.currentSrc) return;
+              const link = document.createElement('link');
+              link.rel = 'prefetch';
+              link.href = img.currentSrc;
+              document.head.append(link);
+            });
+          })
+          .catch(() => undefined);
+      },
+      { passive: true },
+    );
   };
   if (able) {
     if (document.readyState === 'complete') start();

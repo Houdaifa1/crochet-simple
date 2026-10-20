@@ -55,6 +55,7 @@ const many = photos.length > 1;
       </a>
     )}
   </div>
+  {/* the thumbnails sit right under the photo, so they come with the page, after the big photo */}
   {many && (
     <div class="thumbs" data-strip>
       {photos.map((p, i) => (
@@ -70,7 +71,9 @@ const many = photos.length > 1;
             fallbackFormat="jpg"
             widths={[128, 192]}
             sizes="64px"
-            loading="lazy"
+            loading="eager"
+            decoding="auto"
+            fetchpriority="low"
           />
         </button>
       ))}

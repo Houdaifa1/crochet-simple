@@ -61,7 +61,7 @@ test('the next page of patterns opens at the list', async ({ page }) => {
   ).toBeCloseTo(0, 0);
 });
 
-test('categories load ahead at once and patterns once seen, only where the browser reuses them', async ({
+test('categories are fetched ahead in every browser, other pages only where the browser reuses them', async ({
   page,
   browserName,
 }) => {
@@ -72,26 +72,31 @@ test('categories load ahead at once and patterns once seen, only where the brows
   });
   await page.setViewportSize({ width: 375, height: 812 });
   await visit(page, '/patterns/');
-  await page.waitForTimeout(500);
+  const categories = await page
+    .locator('.chips a, .bar a.toggle')
+    .evaluateAll((all) =>
+      all
+        .map((a) => new URL((a as HTMLAnchorElement).href).pathname)
+        .filter((u) => u !== '/patterns/'),
+    );
+  // a category or the free switch shows the patterns in place, so each is fetched once the page is up
+  for (const url of categories) await expect.poll(() => pages).toContain(url);
   const ahead = await page.evaluate(() =>
     [...document.querySelectorAll<HTMLLinkElement>('link[rel=prefetch]')].map(
       (l) => new URL(l.href).pathname,
     ),
   );
+  for (const url of categories) expect(ahead).not.toContain(url);
   const reusable = await page.evaluate(() =>
     document.createElement('link').relList.supports('prefetch'),
   );
   if (!reusable) {
-    // Safari opens a page from its own loads only, so nothing is fetched ahead to be thrown away
+    // Safari opens a page from its own loads only, so no other page is fetched ahead to be thrown away
     expect(browserName).toBe('webkit');
     expect(ahead).toEqual([]);
-    expect(pages.filter((p) => p !== '/patterns/')).toEqual([]);
+    expect(pages.filter((p) => p !== '/patterns/' && !categories.includes(p))).toEqual([]);
     return;
   }
-  const categories = await page
-    .locator('.chips a')
-    .evaluateAll((all) => all.map((a) => new URL((a as HTMLAnchorElement).href).pathname));
-  for (const url of categories.filter((u) => u !== '/patterns/')) expect(ahead).toContain(url);
   for (const url of ['/journal/', '/about/']) expect(ahead).toContain(url);
   const first = new URL(
     await page
@@ -117,6 +122,211 @@ test('categories load ahead at once and patterns once seen, only where the brows
       ),
     )
     .toContain(last);
+});
+
+test.describe('categories change in place', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  // the category pages are fetched once the page is up; a tap is measured once they are here
+  const ready = async (page: Page, path = '/patterns/') => {
+    const fetched = page.waitForResponse((r) => r.url().endsWith('/patterns/category/hats/'));
+    await visit(page, path);
+    await fetched;
+  };
+
+  test('a tap shows the category in the very next frame, without loading a new page', async ({
+    page,
+    request,
+  }) => {
+    await ready(page);
+    await page.evaluate(() => ((window as unknown as { stay: boolean }).stay = true));
+    const chip = page.locator('.chips a[data-category="bags"]');
+    await chip.evaluate((a) => a.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
+    // what the screen holds in the first frame after the tap
+    const next = page.evaluate(
+      () =>
+        new Promise<object>((done) =>
+          addEventListener(
+            'click',
+            () =>
+              requestAnimationFrame(() =>
+                done({
+                  heading: document.querySelector('h1')!.textContent!.trim(),
+                  cards: document.querySelectorAll('.grid a.card').length,
+                  open: document
+                    .querySelector('.chip[aria-current="page"]')
+                    ?.getAttribute('data-category'),
+                  address: location.pathname,
+                }),
+              ),
+            { once: true },
+          ),
+        ),
+    );
+    const box = (await chip.boundingBox())!;
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    expect(await next).toEqual({
+      heading: 'Bags',
+      cards: 1,
+      open: 'bags',
+      address: '/patterns/category/bags/',
+    });
+    // the same title, description and address for sharing as the real category page
+    const real = await (await request.get('/patterns/category/bags/')).text();
+    expect(await page.title()).toBe(
+      real.match(/<title>([^<]*)<\/title>/)![1]!.replace(/&amp;/g, '&'),
+    );
+    await expect(page.locator('link[rel=canonical]')).toHaveAttribute(
+      'href',
+      'https://example.com/patterns/category/bags/',
+    );
+    await expect(page.locator('.count')).toHaveText('1 pattern');
+    // Back and Forward step through the categories, still without loading a page
+    await page.goBack();
+    await expect(page).toHaveURL(/\/patterns\/$/);
+    await expect(page.locator('h1')).toHaveText('Patterns');
+    await expect(page.locator('.grid a.card')).toHaveCount(6);
+    await expect(page.locator('.chip[aria-current="page"]')).toHaveAttribute(
+      'data-category',
+      'all',
+    );
+    await page.goForward();
+    await expect(page.locator('h1')).toHaveText('Bags');
+    expect(await page.evaluate(() => (window as unknown as { stay?: boolean }).stay)).toBe(true);
+  });
+
+  test('a card keeps its size under the finger', async ({ page }) => {
+    await ready(page);
+    const chip = page.locator('.chips a[data-category="bags"]');
+    await chip.evaluate((a) => a.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
+    const box = (await chip.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(chip).toHaveCSS('transform', 'none');
+    await page.mouse.up();
+    await expect(page.locator('h1')).toHaveText('Bags');
+  });
+
+  test('the last tap wins when a category is slow to arrive', async ({ page }) => {
+    // a phone saving data fetches a category only once it is touched
+    await page.addInitScript(() =>
+      Object.defineProperty(navigator, 'connection', { value: { saveData: true } }),
+    );
+    await page.route('**/patterns/category/tech-cases/', async (route) => {
+      await new Promise((r) => setTimeout(r, 1200));
+      await route.continue().catch(() => undefined);
+    });
+    await visit(page, '/patterns/');
+    const tap = async (id: string) => {
+      const chip = page.locator(`.chips a[data-category="${id}"]`);
+      await chip.evaluate((a) => a.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
+      const box = (await chip.boundingBox())!;
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    };
+    await tap('tech-cases');
+    // marked at once while its patterns are still on the way
+    await expect(page.locator('.chip[aria-current="page"]')).toHaveAttribute(
+      'data-category',
+      'tech-cases',
+    );
+    await expect(page.locator('.grid')).toHaveAttribute('aria-busy', 'true');
+    await tap('hats');
+    await expect(page.locator('h1')).toHaveText('Hats');
+    await page.waitForTimeout(1500);
+    await expect(page.locator('h1')).toHaveText('Hats');
+    await expect(page).toHaveURL(/\/category\/hats\/$/);
+    await expect(page.locator('.grid')).not.toHaveAttribute('aria-busy', 'true');
+  });
+
+  test('the free switch and the search keep working after a category changes in place', async ({
+    page,
+  }) => {
+    await ready(page);
+    await page.locator('.chips a[data-category="bags"]').click();
+    await expect(page.locator('h1')).toHaveText('Bags');
+    await page.locator('.chips a[data-category="all"]').click();
+    await expect(page.locator('h1')).toHaveText('Patterns');
+    await page.locator('a.toggle').click();
+    await expect(page).toHaveURL(/\/patterns\/free\/$/);
+    await expect(page.locator('a.toggle')).toHaveClass(/on/);
+    await expect(page.locator('.grid .card')).toHaveCount(4);
+    expect(await page.locator('.grid .card .badge').allTextContents()).toEqual(
+      Array(4).fill('Free PDF'),
+    );
+    // the category cards now lead to the free pages where they have one
+    await expect(page.locator('.chips a[data-category="all"]')).toHaveAttribute(
+      'href',
+      '/patterns/free/',
+    );
+    const input = page.locator('#q');
+    await input.click();
+    await input.pressSequentially('ba');
+    await expect(page.locator('.count')).toHaveText('1 pattern for “ba”');
+    await expect(page.locator('.grid a.card:visible')).toHaveCount(1);
+    await input.fill('');
+    await expect(page.locator('.grid a.card:visible')).toHaveCount(4);
+  });
+});
+
+test.describe('opening a pattern or a story', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test('a finger on a pattern starts its big photo, so the page opens with it in place', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/');
+    const reusable = await page.evaluate(() =>
+      document.createElement('link').relList.supports('prefetch'),
+    );
+    test.skip(
+      !reusable,
+      'Safari loads pages only when they are opened, so nothing is started early',
+    );
+    const card = page.locator('.grid a.card').nth(1);
+    const photos: string[] = [];
+    page.on('request', (r) => r.resourceType() === 'image' && photos.push(r.url()));
+    const box = (await card.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + 40);
+    await page.mouse.down();
+    await expect.poll(() => photos.length).toBeGreaterThan(0);
+    const early = [...photos];
+    await page.mouse.up();
+    await expect(page).toHaveURL(/\/patterns\/daisy-clip\/$/);
+    const shown = await page
+      .locator('img[fetchpriority="high"]')
+      .evaluate((i) => (i as HTMLImageElement).currentSrc);
+    expect(early).toContain(shown);
+  });
+
+  test('cards answer a touch at once, with no leftover delay from an old fade-in', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/');
+    const delays = await page
+      .locator('.grid a.card')
+      .evaluateAll((all) => all.map((a) => getComputedStyle(a).transitionDelay));
+    for (const d of delays) expect(d.split(', ').every((x) => x === '0s')).toBe(true);
+  });
+
+  test('stories in the journal are loaded ahead once seen, like patterns', async ({ page }) => {
+    await visit(page, '/journal/');
+    const reusable = await page.evaluate(() =>
+      document.createElement('link').relList.supports('prefetch'),
+    );
+    test.skip(!reusable, 'Safari loads pages only when they are opened');
+    const story = new URL(
+      await page.locator('a.featured').evaluate((a) => (a as HTMLAnchorElement).href),
+    ).pathname;
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll<HTMLLinkElement>('link[rel=prefetch]')].map(
+            (l) => new URL(l.href).pathname,
+          ),
+        ),
+      )
+      .toContain(story);
+  });
 });
 
 test.describe('the menu remembers where each section was left', () => {

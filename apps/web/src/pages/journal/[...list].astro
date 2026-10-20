@@ -82,7 +82,7 @@ const jsonLd =
       </section>
     )}
     {first && (
-      <a class="featured rise" href={`/journal/${first.id}/`}>
+      <a class="featured rise" href={`/journal/${first.id}/`} data-ahead>
         <div class="media">
           <Picture
             src={first.data.cover}
@@ -113,7 +113,7 @@ const jsonLd =
       <div class="list">
         {rest.map((a, i) => (
           <>
-            <a class="post rise" href={`/journal/${a!.id}/`}>
+            <a class="post rise" href={`/journal/${a!.id}/`} data-ahead>
               <div>
                 {a!.data.topic && <p class="kicker">{a!.data.topic}</p>}
                 <h2>{a!.data.title}</h2>

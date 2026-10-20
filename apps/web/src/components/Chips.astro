@@ -47,7 +47,6 @@ const cards = [
         href={c.url}
         aria-current={at(c.id === 'all' ? null : c.id)}
         data-category={c.id}
-        data-ahead="load"
         style={`--c:${c.look.colour}`}
       >
         <Picture
@@ -112,7 +111,8 @@ const cards = [
     else if (on) row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
     row.addEventListener('click', (e) => {
       const a = (e.target as Element).closest<HTMLAnchorElement>('a.chip');
-      if (!a) return;
+      // a tap the list answered in place opens no new page, so there is nothing to carry over
+      if (!a || e.defaultPrevented) return;
       try {
         sessionStorage.setItem('chips-x', JSON.stringify(Math.round(row.scrollLeft)));
         // the next page opens with this row at the same spot on screen, before it is shown

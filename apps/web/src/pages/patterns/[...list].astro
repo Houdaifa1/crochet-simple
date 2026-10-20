@@ -194,11 +194,7 @@ const jsonLd = site
             {pages > 1 && ` · page ${page} of ${pages}`}
           </p>
           {freeHere && (
-            <a
-              class:list={['toggle', { on: free }]}
-              href={`${toggleHref}#patterns`}
-              data-ahead="load"
-            >
+            <a class:list={['toggle', { on: free }]} href={`${toggleHref}#patterns`}>
               <span class="switch" aria-hidden="true" />
               Free only<span class="visually-hidden">{free ? ' (on, show all)' : ' (off)'}</span>
             </a>
@@ -243,10 +239,205 @@ const jsonLd = site
       ),
     { rootMargin: '0px 0px -6% 0px' },
   );
-  document.querySelectorAll('.rise').forEach((el, i) => {
-    (el as HTMLElement).style.transitionDelay = `${(i % 4) * 60}ms`;
-    io.observe(el);
-  });
+  document.querySelectorAll('.rise').forEach((el) => io.observe(el));
+</script>
+
+<script>
+  // a category or the free switch changes the patterns in place, at once, like on a fast computer:
+  // the page, the category row and its sideways spot stay put, and only what differs is swapped in
+  const filters = document.querySelector<HTMLElement>('.filters');
+  const grid = document.querySelector<HTMLElement>('.grid');
+  if (filters && grid) {
+    // each page's words are fetched once; they are read into a page only when one is about to be shown
+    const sources = new Map<string, Promise<string>>();
+    const pages = new Map<string, Promise<Document>>();
+    const fetchPage = (path: string, priority: RequestPriority) => {
+      let html = sources.get(path);
+      if (!html) {
+        html = fetch(path, { priority }).then((r) =>
+          r.ok ? r.text() : Promise.reject(new Error(String(r.status))),
+        );
+        // a failed download is tried again on the next tap
+        html.catch(() => sources.delete(path));
+        sources.set(path, html);
+      }
+      return html;
+    };
+    const load = (path: string) => {
+      let doc = pages.get(path);
+      if (!doc) {
+        doc = fetchPage(path, 'high').then((html) =>
+          new DOMParser().parseFromString(html, 'text/html'),
+        );
+        doc.catch(() => pages.delete(path));
+        pages.set(path, doc);
+      }
+      return doc;
+    };
+    const switches = () => [
+      ...document.querySelectorAll<HTMLAnchorElement>('.chips a.chip, .bar a.toggle'),
+    ];
+    const plain = (e: MouseEvent) =>
+      e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+    const ads = () =>
+      (window as unknown as { adsbygoogle?: object[] }).adsbygoogle ??
+      ((window as unknown as { adsbygoogle: object[] }).adsbygoogle = []);
+
+    const show = (doc: Document) => {
+      const row = filters.getBoundingClientRect().top;
+      // one piece of the page for its counterpart on the other page, added or removed as needed
+      const put = (selector: string, place: (el: Element) => void = () => undefined) => {
+        const now = document.querySelector(selector);
+        const next = doc.querySelector(selector);
+        const copy = next && document.importNode(next, true);
+        if (now && copy) now.replaceWith(copy);
+        else if (copy) place(copy);
+        else now?.remove();
+      };
+      document.title = doc.title;
+      for (const tag of [
+        'meta[name="description"]',
+        'meta[name="robots"]',
+        'link[rel="canonical"]',
+        'meta[property="og:url"]',
+        'meta[property="og:title"]',
+        'meta[property="og:description"]',
+      ])
+        put(tag);
+      document.head
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((s) => s.remove());
+      doc.head
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((s) => document.head.append(document.importNode(s, true)));
+      // the heading keeps its drawn loop; only its words change
+      const words = (h: Element | null) =>
+        [...(h?.childNodes ?? [])].find(
+          (n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim(),
+        );
+      const heading = words(document.querySelector('.page-head h1'));
+      const title = words(doc.querySelector('.page-head h1'));
+      if (heading && title) heading.textContent = title.textContent;
+      put('.page-head .eyebrow');
+      put('.page-head .intro');
+      // the row keeps its cards and where it was slid to; their links, counts and the open one follow
+      const chips = filters.querySelector<HTMLElement>('.chips')!;
+      const own = [...chips.querySelectorAll<HTMLAnchorElement>('a.chip')];
+      const next = [...doc.querySelectorAll<HTMLAnchorElement>('.chips a.chip')];
+      const ids = (all: HTMLElement[]) => all.map((c) => c.dataset['category']).join();
+      if (ids(own) === ids(next))
+        own.forEach((c, i) => {
+          const n = next[i]!;
+          c.setAttribute('href', n.getAttribute('href')!);
+          if (n.hasAttribute('aria-current')) c.setAttribute('aria-current', 'page');
+          else c.removeAttribute('aria-current');
+          c.querySelector('.sum')!.innerHTML = n.querySelector('.sum')!.innerHTML;
+        });
+      else {
+        const x = chips.scrollLeft;
+        chips.replaceChildren(...next.map((c) => document.importNode(c, true)));
+        chips.scrollLeft = x;
+      }
+      // the count is changed in place, so screen readers hear the new number
+      const bar = document.querySelector('.bar')!;
+      bar.querySelector('.count')!.textContent =
+        doc.querySelector('.bar .count')?.textContent ?? '';
+      put('.bar a.toggle', (el) => bar.append(el));
+      // the ad already shown stays where it is instead of being asked for again
+      const patterns = document.importNode(doc.querySelector('.grid')!, true);
+      const ad = grid.querySelector('.feed-ad');
+      if (ad) patterns.querySelector('.feed-ad')?.replaceWith(ad);
+      grid.classList.remove('searching');
+      grid.replaceChildren(...patterns.childNodes);
+      grid.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(() => {
+        try {
+          ads().push({});
+        } catch {}
+      });
+      const more = document.querySelector<HTMLElement>('.more');
+      if (more) ((more.hidden = true), more.querySelector('ol')?.replaceChildren());
+      put('.pager', (el) => (more ?? grid).after(el));
+      // a heading of another length above the row is made up for, so the row does not move
+      scrollBy(0, filters.getBoundingClientRect().top - row);
+      document.dispatchEvent(new Event('patterns:swap'));
+    };
+
+    let shown = location.pathname;
+    let turn = 0;
+    const open = async (path: string, push: boolean) => {
+      const mine = ++turn;
+      grid.setAttribute('aria-busy', 'true');
+      let doc: Document;
+      try {
+        doc = await load(path);
+      } catch {
+        // without a connection the address opens the ordinary way and says what is wrong
+        location.assign(path);
+        return;
+      }
+      if (mine !== turn) return;
+      // a page without the list (no patterns yet) is opened the ordinary way
+      if (!doc.querySelector('.filters .chips') || !doc.querySelector('.grid')) {
+        location.assign(path);
+        return;
+      }
+      grid.removeAttribute('aria-busy');
+      show(doc);
+      shown = path;
+      if (push) history.pushState(null, '', path);
+    };
+
+    // the touched card is marked in the same frame, before anything else happens
+    document.addEventListener(
+      'click',
+      (e) => {
+        const a = (e.target as Element).closest<HTMLAnchorElement>('a');
+        if (!a || !plain(e) || !switches().includes(a) || a.origin !== location.origin) return;
+        e.preventDefault();
+        if (a.matches('.chip')) {
+          filters.querySelectorAll('a.chip').forEach((c) => c.removeAttribute('aria-current'));
+          a.setAttribute('aria-current', 'page');
+        } else a.classList.toggle('on', a.pathname.endsWith('/free/'));
+        // the open category tapped again calls off one that is still on its way
+        if (a.pathname === shown) {
+          turn++;
+          grid.removeAttribute('aria-busy');
+          return;
+        }
+        open(a.pathname, true);
+      },
+      true,
+    );
+    // Back and Forward step through the categories the same way
+    addEventListener('popstate', () => {
+      if (location.pathname !== shown) open(location.pathname, false);
+    });
+    // a touch starts the download a moment before the tap ends, in case it is not here yet
+    filters.addEventListener(
+      'pointerdown',
+      (e) => {
+        const a = (e.target as Element).closest<HTMLAnchorElement>('a.chip');
+        if (a) load(a.pathname).catch(() => undefined);
+      },
+      { passive: true },
+    );
+    // every category is fetched once the page is up, so a tap has it at hand
+    const net = (
+      navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+    ).connection;
+    if (!net?.saveData && !/2g/.test(net?.effectiveType ?? '')) {
+      const ahead = () =>
+        switches()
+          .filter((a) => a.pathname !== shown)
+          .forEach((a) => fetchPage(a.pathname, 'low').catch(() => undefined));
+      const idle = () =>
+        'requestIdleCallback' in window
+          ? requestIdleCallback(ahead, { timeout: 1500 })
+          : setTimeout(ahead, 300);
+      if (document.readyState === 'complete') idle();
+      else addEventListener('load', idle, { once: true });
+    }
+  }
 </script>
 
 <script>
@@ -268,16 +459,29 @@ const jsonLd = site
   const more = document.querySelector<HTMLElement>('.more');
   if (form && input && grid && count && more) {
     const list = more.querySelector('ol')!;
-    const pager = document.querySelector<HTMLElement>('.pager');
-    const original = [...grid.children];
-    const cards = new Map(
-      [...grid.querySelectorAll<HTMLAnchorElement>('a.card')].map((c) => [
-        c.getAttribute('href'),
-        c,
-      ]),
-    );
-    const allText = count.textContent;
+    let pager: HTMLElement | null;
+    let original: Element[];
+    let cards: Map<string | null, HTMLAnchorElement>;
+    let allText: string | null;
     let current = '';
+    // what the list shows without a search; read again when a category is swapped in
+    const take = () => {
+      pager = document.querySelector<HTMLElement>('.pager');
+      original = [...grid.children];
+      cards = new Map(
+        [...grid.querySelectorAll<HTMLAnchorElement>('a.card')].map((c) => [
+          c.getAttribute('href'),
+          c,
+        ]),
+      );
+      allText = count.textContent;
+    };
+    take();
+    document.addEventListener('patterns:swap', () => {
+      input.value = '';
+      current = '';
+      take();
+    });
 
     const restore = () => {
       grid.classList.remove('searching');
@@ -421,6 +625,16 @@ const jsonLd = site
   }
   .grid.searching .feed-ad {
     display: none;
+  }
+  /* a category still on its way dims the old patterns, only if it takes more than a moment */
+  .grid[aria-busy='true'] {
+    opacity: 0.55;
+    transition: opacity 0.2s 0.12s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .grid[aria-busy='true'] {
+      transition: none;
+    }
   }
   .more {
     margin: 40px 0 0;

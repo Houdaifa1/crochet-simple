@@ -236,6 +236,7 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
             : setTimeout(ahead, 300);
         if (document.readyState === 'complete') idle();
         else addEventListener('load', idle, { once: true });
+        document.addEventListener('patterns:swap', ahead);
       }
     </script>
   </body>

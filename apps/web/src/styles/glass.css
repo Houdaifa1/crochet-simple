@@ -173,7 +173,8 @@ html:root.glass
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-html:root.glass :is(.btn, .button, .play, .chip, .thumbs button, .header-search, .pager a):active {
+/* category cards stay their size under the finger: the tap marks them open at once instead */
+html:root.glass :is(.btn, .button, .play, .thumbs button, .header-search, .pager a):active {
   transform: scale(0.97);
   transition-duration: 0ms;
 }
@@ -746,7 +747,7 @@ html:root.glass .story:not(.ready) .photo {
     transition: none !important;
     animation: none !important;
   }
-  html:root.glass :is(.btn, .button, .play, .chip, .thumbs button, .header-search, .pager a):active,
+  html:root.glass :is(.btn, .button, .play, .thumbs button, .header-search, .pager a):active,
   html:root.glass a.card:active {
     transform: none !important;
   }

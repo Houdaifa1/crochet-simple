@@ -104,6 +104,10 @@ import Base from '../layouts/Base.astro';
     -webkit-appearance: none;
     appearance: none;
   }
+  /* an empty box keeps no room for the clear button, so the end of the hint is not cut off */
+  .search input:placeholder-shown::-webkit-search-cancel-button {
+    display: none;
+  }
   .search svg {
     position: absolute;
     left: 18px;
@@ -115,6 +119,16 @@ import Base from '../layouts/Base.astro';
     stroke: var(--muted);
     stroke-width: 2;
     stroke-linecap: round;
+  }
+  /* the whole hint fits on the narrowest phones; 16px, so a phone does not zoom in on the tap */
+  @media (max-width: 359px) {
+    .search input {
+      padding: 0 12px 0 44px;
+      font-size: 16px;
+    }
+    .search svg {
+      left: 14px;
+    }
   }
   .status {
     min-height: 1.5em;

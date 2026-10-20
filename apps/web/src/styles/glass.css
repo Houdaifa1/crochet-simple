@@ -165,6 +165,12 @@ html:root.glass .edge {
   );
   pointer-events: none;
 }
+/* a phone on its side has little height to spare: the fade then covers only the menu's own strip */
+@media (max-height: 500px) {
+  html:root.glass .edge {
+    height: calc(76px + max(env(safe-area-inset-bottom), env(safe-area-max-inset-bottom, 0px)));
+  }
+}
 
 /* controls: respond the moment they are pressed, with their own rounded feedback instead of the phone's
    square tint */

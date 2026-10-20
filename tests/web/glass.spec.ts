@@ -168,40 +168,25 @@ test('photos are drawn with the page and are already at rest when they come into
   await expect(page.locator('.featured img')).toHaveCSS('transform', 'none');
 });
 
-test('small things on phones: a finger-sized video link, a whole search hint, a short fade on its side', async ({
+test('small things on phones: a finger-sized video link, a search hint with no hidden gap, a short fade on its side', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await visit(page, '/patterns/blue-market-bag/');
   const youtube = (await page.locator('.video .caption a').boundingBox())!;
   expect(youtube.height).toBeGreaterThanOrEqual(44);
-  // the hint in the search box is drawn to its last letter, read from the screen itself
+  // an empty search box keeps no hidden room for its clear button, which cut the hint short: forcing the
+  // button away changes nothing on screen
   await visit(page, '/search/');
   const box = page.locator('#q');
   await box.blur();
-  const hint = await box.evaluate((i) => {
-    const s = getComputedStyle(i);
-    const c = document.createElement('canvas').getContext('2d')!;
-    c.font = `${s.fontSize} ${s.fontFamily}`;
-    return {
-      end:
-        i.clientLeft +
-        parseFloat(s.paddingLeft) +
-        c.measureText((i as HTMLInputElement).placeholder).width,
-      size: s.fontSize,
-    };
-  });
-  const shot = PNG.sync.read(await box.screenshot({ scale: 'css' }));
-  let drawn = 0;
-  for (let x = 0; x < shot.width - 3; x++) {
-    for (let y = Math.round(shot.height * 0.3); y < shot.height * 0.7; y++) {
-      const i = (y * shot.width + x) * 4;
-      if (shot.data[i]! + shot.data[i + 1]! + shot.data[i + 2]! < 600) drawn = x;
-    }
-  }
-  expect(drawn).toBeGreaterThan(hint.end - 4);
+  const shown = await box.screenshot({ animations: 'disabled' });
+  await page.addStyleTag({ content: '#q::-webkit-search-cancel-button { display: none }' });
+  expect((await box.screenshot({ animations: 'disabled' })).equals(shown)).toBe(true);
   // 16 px or more, so a phone does not zoom in when the box is tapped
-  expect(parseFloat(hint.size)).toBeGreaterThanOrEqual(16);
+  expect(
+    parseFloat(await box.evaluate((i) => getComputedStyle(i).fontSize)),
+  ).toBeGreaterThanOrEqual(16);
   // a phone on its side keeps most of its little height for the page
   await page.setViewportSize({ width: 844, height: 390 });
   await visit(page, '/patterns/');

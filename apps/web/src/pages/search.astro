@@ -101,10 +101,12 @@ import Base from '../layouts/Base.astro';
     background: var(--sheet);
     font: 17px var(--sans);
     color: var(--ink);
+    text-overflow: ellipsis;
     -webkit-appearance: none;
     appearance: none;
   }
-  /* an empty box keeps no room for the clear button, so the end of the hint is not cut off */
+  /* an empty box keeps no room for the clear button, so the end of the hint is not cut off; on a screen
+     too narrow for the whole hint it ends in dots rather than half a letter */
   .search input:placeholder-shown::-webkit-search-cancel-button {
     display: none;
   }
@@ -120,7 +122,7 @@ import Base from '../layouts/Base.astro';
     stroke-width: 2;
     stroke-linecap: round;
   }
-  /* the whole hint fits on the narrowest phones; 16px, so a phone does not zoom in on the tap */
+  /* the whole hint fits on small phones; 16px, so a phone does not zoom in on the tap */
   @media (max-width: 359px) {
     .search input {
       padding: 0 12px 0 44px;

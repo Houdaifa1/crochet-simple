@@ -32,7 +32,7 @@ const many = photos.length > 1;
               '(min-width: 1236px) 760px, (min-width: 1000px) calc(100vw - 476px), (min-width: 900px) calc(100vw - 112px), calc(100vw - 48px)',
             )}
             loading={i === 0 ? 'eager' : 'lazy'}
-            decoding="async"
+            decoding={i === 0 ? 'auto' : 'async'}
             fetchpriority={i === 0 ? 'high' : undefined}
           />
         </figure>

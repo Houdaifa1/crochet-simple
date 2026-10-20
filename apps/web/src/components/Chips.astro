@@ -59,7 +59,7 @@ const cards = [
           widths={[320, 440, 560, 720]}
           sizes={sharpCapped(c.look.scene ? '214px' : '264px')}
           loading={i < 4 ? 'eager' : 'lazy'}
-          decoding="async"
+          decoding={i < 4 ? 'auto' : 'async'}
         />
         <span class="badge" aria-hidden="true">
           {c.icon ? (

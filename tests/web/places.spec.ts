@@ -353,6 +353,154 @@ test.describe('the menu', () => {
     await expect(page).toHaveURL(/\/journal\/$/);
     await expect(journal).toHaveAttribute('aria-current', 'page');
   });
+
+  test('a touch moves the white pill in one frame, with no fade, no shrink and no square highlight', async ({
+    browser,
+  }) => {
+    // a touch screen, so the styles phones get are the ones measured
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    await visit(page, '/patterns/');
+    await page.route('**/journal/', async (route) => {
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue().catch(() => undefined);
+    });
+    // a touch screen keeps the last touched spot as hovered, which must not leave a tint behind
+    const about = (await tab(page, 'about').boundingBox())!;
+    await page.mouse.move(about.x + about.width / 2, about.y + about.height / 2);
+    await expect(tab(page, 'about')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    const box = (await tab(page, 'journal').boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    const pressed = await page.evaluate(() => ({
+      fading: document.querySelector('.dock')!.getAnimations({ subtree: true }).length,
+      tabs: [...document.querySelectorAll<HTMLElement>('.dock a[data-tab]')].map((a) => {
+        const s = getComputedStyle(a);
+        return { name: a.dataset['tab'], background: s.backgroundColor, transform: s.transform };
+      }),
+      // phones draw their own square tint over a touched link unless it is switched off
+      highlight: CSS.supports('-webkit-tap-highlight-color', 'red')
+        ? getComputedStyle(document.querySelector('.dock a')!).getPropertyValue(
+            '-webkit-tap-highlight-color',
+          )
+        : 'rgba(0, 0, 0, 0)',
+    }));
+    expect(pressed.fading).toBe(0);
+    expect(pressed.highlight).toBe('rgba(0, 0, 0, 0)');
+    for (const t of pressed.tabs) {
+      expect(t.transform, t.name).toBe('none');
+      expect(t.background, t.name).toBe(
+        t.name === 'journal' ? 'rgb(255, 255, 255)' : 'rgba(0, 0, 0, 0)',
+      );
+    }
+    await page.mouse.up();
+    await expect(page).toHaveURL(/\/journal\/$/);
+    await context.close();
+  });
+
+  test('tapping the open section while another page is on its way stays on the open section', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await visit(page, '/patterns/');
+    let asked = false;
+    await page.route('**/journal/', async (route) => {
+      asked = true;
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue().catch(() => undefined);
+    });
+    // plain taps at spots measured beforehand, so nothing waits for the journal to arrive
+    const spots = new Map<string, { x: number; y: number }>();
+    for (const name of ['journal', 'patterns']) {
+      const box = (await tab(page, name).boundingBox())!;
+      spots.set(name, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+    }
+    const tap = (name: string) => page.mouse.click(spots.get(name)!.x, spots.get(name)!.y);
+    await tap('journal');
+    await expect.poll(() => asked).toBe(true);
+    // a change of mind before the journal has arrived: the last tap wins
+    expect(new URL(page.url()).pathname).toBe('/patterns/');
+    await tap('patterns');
+    await page.waitForTimeout(2500);
+    await expect(page).toHaveURL(/\/patterns\/$/);
+    await expect(tab(page, 'patterns')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(tab(page, 'journal')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    // and the journal opens normally afterwards
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+    await tab(page, 'journal').click();
+    await expect(page).toHaveURL(/\/journal\/$/);
+  });
+
+  test('tapping Home on the homepage goes back to the start without reloading', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await visit(page, '/');
+    await scrollTo(page, 900);
+    await page.evaluate(() => ((window as unknown as { stay: boolean }).stay = true));
+    await page.locator('.dock a.home').click();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+    expect(await page.evaluate(() => (window as unknown as { stay?: boolean }).stay)).toBe(true);
+  });
+
+  for (const width of [320, 360]) {
+    test(`fits whole on a narrow phone, with every item still easy to tap (${width} px)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 640 });
+      await visit(page, '/patterns/');
+      const box = (await page.locator('.dock').boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThanOrEqual(1);
+      for (const a of await page.locator('.dock a').all()) {
+        const item = (await a.boundingBox())!;
+        expect(item.height).toBeGreaterThanOrEqual(44);
+        expect(item.width).toBeGreaterThanOrEqual(44);
+        // the word is never cut short
+        expect(await a.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      }
+    });
+  }
+
+  test('going back shows the open page in the menu, never the item tapped before leaving', async ({
+    browserName,
+    playwright,
+    launchOptions,
+    baseURL,
+  }) => {
+    test.skip(browserName !== 'chromium', 'only Chromium can be told to keep pages for going back');
+    const browser = await playwright.chromium.launch({
+      ...launchOptions,
+      ignoreDefaultArgs: ['--disable-back-forward-cache'],
+    });
+    const page = await browser.newPage({
+      baseURL: baseURL!,
+      viewport: { width: 390, height: 844 },
+    });
+    // what the kept page shows the moment it comes back, before any of its own code has run
+    await page.addInitScript(() =>
+      addEventListener('pageshow', (e) => {
+        (window as unknown as { back: object }).back = {
+          kept: e.persisted,
+          lit: document.querySelector('.dock .going')?.textContent?.trim() ?? null,
+        };
+      }),
+    );
+    await visit(page, '/patterns/');
+    await tab(page, 'journal').click();
+    await expect(page).toHaveURL(/\/journal\/$/);
+    await page.goBack({ waitUntil: 'commit' });
+    await expect(page).toHaveURL(/\/patterns\/$/);
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { back?: object }).back))
+      .toEqual({ kept: true, lit: null });
+    await expect(tab(page, 'patterns')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await browser.close();
+  });
 });
 
 test('tapping a category keeps the row exactly where it was', async ({ page }) => {

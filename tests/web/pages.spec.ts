@@ -733,10 +733,11 @@ test.describe('patterns', () => {
     const floating = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>('body *')]
         .filter(
+          // the menu, and the fade it sits on, are the only things fixed to the screen
           (el) =>
             getComputedStyle(el).position === 'fixed' &&
             el.getBoundingClientRect().height > 1 &&
-            !el.closest('.dock'),
+            !el.closest('.dock, .edge'),
         )
         .map((el) => el.className),
     );

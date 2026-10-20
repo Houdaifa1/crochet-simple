@@ -165,6 +165,8 @@ const ld = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
         </svg>
       </a>
     </header>
+    {/* the page fades out just above the menu on phones; the homepage drawing stays whole */}
+    {current !== 'home' && <div class="edge" aria-hidden="true" />}
     <Dock current={current} />
     <main id="main">
       <slot />

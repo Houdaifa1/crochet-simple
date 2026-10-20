@@ -7,7 +7,7 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
 ---
 
 <nav class="dock" aria-label="Main">
-  <a class="home" href="/" aria-current={at('home')} aria-label="Home">
+  <a class="home" href="/" aria-current={at('home')} aria-label="Home" data-tab="home">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"></path>
     </svg>
@@ -24,35 +24,43 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
 </nav>
 
 <script>
-  // the touched item lights up at once, before the next page has even started to load
   const dock = document.querySelector<HTMLElement>('.dock')!;
+  const where = () => location.pathname + location.search;
+  const plain = (e: MouseEvent) =>
+    e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+
+  // the touched item lights up at once, before the next page has even started to load
   const going = (a: HTMLAnchorElement | null) => {
     dock.querySelector('.going')?.classList.remove('going');
     if (a) (a.classList.add('going'), (dock.dataset['going'] = ''));
     else delete dock.dataset['going'];
   };
+  // when a page was last asked for from the menu, so a quick tap on the open section can call it off
+  let leaving = -Infinity;
   dock.addEventListener('pointerdown', (e) => {
     if (e.button === 0) going((e.target as Element).closest('a'));
   });
   dock.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') going((e.target as Element).closest('a'));
   });
-  // a press that slides off, or a tap on the page already open, puts the highlight back
+  // a press that slides off or holds for the link menu, a tap on the page already open, or a link
+  // opened in a new tab puts the highlight back
   dock.addEventListener('pointercancel', () => going(null));
+  dock.addEventListener('contextmenu', () => going(null));
   dock.addEventListener('click', (e) => {
     const a = (e.target as Element).closest('a');
-    if (!a || e.defaultPrevented || a.getAttribute('aria-current') === 'page')
-      setTimeout(() => going(null), 250);
+    if (a && !e.defaultPrevented && plain(e)) leaving = e.timeStamp;
+    if (!a || e.defaultPrevented || !plain(e) || a.getAttribute('aria-current') === 'page')
+      going(null);
   });
+  // the page is put away looking as it did before the tap, so going back never shows the old touch
+  addEventListener('pagehide', () => (going(null), (leaving = -Infinity)));
   addEventListener('pageshow', () => going(null));
 
   // Patterns and Journal remember the page and the spot they were left at, like tabs in a phone app
   const KEEP = ['patterns', 'journal'];
-  const where = () => location.pathname + location.search;
   const links = [...document.querySelectorAll<HTMLAnchorElement>('.dock a[data-tab]')];
   const here = links.find((a) => a.getAttribute('aria-current') === 'page')?.dataset['tab'];
-  const plain = (e: MouseEvent) =>
-    e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
   if (here && KEEP.includes(here))
     addEventListener('pagehide', () => {
       try {
@@ -62,10 +70,18 @@ const at = (name: Props['current']) => (name === current ? 'page' : undefined);
   for (const a of links) {
     const tab = a.dataset['tab']!;
     if (tab === here) {
-      // tapping the open section again goes back to its start; on its first page, without reloading
+      // tapping the open section again goes back to its start; on its first page, without reloading,
+      // and a page tapped just before that is still on its way is called off
       a.addEventListener('click', (e) => {
         if (where() !== a.pathname || !plain(e)) return;
         e.preventDefault();
+        if (e.timeStamp - leaving < 3000) {
+          stop();
+          try {
+            sessionStorage.removeItem('tab-restore');
+          } catch {}
+        }
+        leaving = -Infinity;
         const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
         scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
       });

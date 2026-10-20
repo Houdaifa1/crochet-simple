@@ -1,6 +1,7 @@
 /* calm surfaces: a warm white page with a few soft colour orbs, white controls with crisp hairline edges, nothing blurred */
 html:root.glass {
-  scroll-padding-block: 104px 112px;
+  /* a control reached with the keyboard never ends up under the menu, above the home bar too */
+  scroll-padding-block: 104px calc(112px + env(safe-area-inset-bottom));
   --paper: #fcf8f5;
   --sheet: #fffefc;
   --rose: 255 47 131;
@@ -93,7 +94,8 @@ html:root.glass .head-download {
   margin-top: 20px;
 }
 
-/* the menu: the brand blue bar, centred; the chosen page is a white pill that moves the moment it is touched */
+/* the menu: the brand blue bar, centred; the chosen page is a white pill that moves the moment it is touched,
+   in one frame, with no fade, no shrinking and no square tint from the phone around it */
 html:root.glass .dock {
   gap: 2px;
   padding: 5px;
@@ -108,28 +110,30 @@ html:root.glass .dock {
 html:root.glass .dock a {
   min-height: 48px;
   height: auto;
-  padding-inline: 18px;
+  /* narrower sides on the smallest phones, so the whole bar always fits on the screen */
+  padding-inline: clamp(8px, 15vw - 36px, 18px);
   border-radius: 999px;
   color: #fff;
   font: 600 15px/1 var(--sans);
-  transition:
-    background-color 80ms,
-    color 80ms,
-    transform 80ms var(--press);
+  /* phones keep the last touched item hovered, so the hover tint is for a mouse only */
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+  transition: none;
 }
 html:root.glass .dock .home {
   width: 48px;
   padding: 0;
 }
 @media (hover: hover) {
+  html:root.glass .dock a {
+    transition: background-color 80ms;
+  }
   html:root.glass .dock a:hover {
     background: rgb(255 255 255 / 0.14);
   }
-}
-html:root.glass .dock a:active {
-  background: rgb(255 255 255 / 0.26);
-  transform: scale(0.94);
-  transition-duration: 0ms;
+  html:root.glass .dock[data-going] a {
+    transition: none;
+  }
 }
 html:root.glass .dock a[aria-current='page'],
 html:root.glass .dock a.going {
@@ -148,13 +152,28 @@ html:root.glass .dock :is([aria-current='page'], .going):focus-visible {
   outline-color: var(--blue);
 }
 
-/* controls: respond the moment they are pressed */
-html:root.glass
-  :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a) {
-  touch-action: manipulation;
+/* phones: the page fades into the paper just above the menu, so nothing peeks out around or under it */
+html:root.glass .edge {
+  position: fixed;
+  z-index: 9;
+  inset: auto 0 0;
+  height: calc(100px + max(env(safe-area-inset-bottom), env(safe-area-max-inset-bottom, 0px)));
+  background: linear-gradient(
+    color-mix(in srgb, var(--paper) 0%, transparent),
+    color-mix(in srgb, var(--paper) 72%, transparent) 34%,
+    var(--paper) 58%
+  );
+  pointer-events: none;
 }
+
+/* controls: respond the moment they are pressed, with their own rounded feedback instead of the phone's
+   square tint */
 html:root.glass
-  :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a):active {
+  :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a, a.card) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+html:root.glass :is(.btn, .button, .play, .chip, .thumbs button, .header-search, .pager a):active {
   transform: scale(0.97);
   transition-duration: 0ms;
 }
@@ -283,6 +302,10 @@ html:root.glass a.card:active {
 }
 html:root.glass a.card .media {
   border-radius: 9px;
+}
+/* photos are already in place when they come into view; nothing zooms or settles after a page opens */
+html:root.glass.js :is(a.card, .featured):not(.in) .media img {
+  transform: none;
 }
 html:root.glass a.card .badge {
   padding: 6px 9px;
@@ -451,6 +474,7 @@ html:root.glass .featured {
 }
 html:root.glass .featured .media {
   border-radius: 10px;
+  background: #e6dccd;
 }
 html:root.glass .featured .text {
   padding: 8px 10px 14px;
@@ -606,6 +630,9 @@ html:root.glass .story:not(.ready) .photo {
     top: 13px;
     bottom: auto;
   }
+  html:root.glass .edge {
+    display: none;
+  }
   html:root.glass .header-search {
     margin-left: auto;
   }
@@ -719,8 +746,7 @@ html:root.glass .story:not(.ready) .photo {
     transition: none !important;
     animation: none !important;
   }
-  html:root.glass
-    :is(.btn, .button, .play, .chip, .dock a, .thumbs button, .header-search, .pager a):active,
+  html:root.glass :is(.btn, .button, .play, .chip, .thumbs button, .header-search, .pager a):active,
   html:root.glass a.card:active {
     transform: none !important;
   }
@@ -765,9 +791,16 @@ html:root.glass .story:not(.ready) .photo {
   html:root.glass :is(.dock a, .pager a)[aria-current='page'] {
     color: var(--ink);
   }
-  html:root.glass :is(.dock a, .pager a)[aria-current='page'] {
+  html:root.glass :is(.dock a, .pager a)[aria-current='page'],
+  html:root.glass .dock a.going {
     border-color: var(--ink);
     background: var(--paper);
+    color: var(--ink);
     box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  html:root.glass .dock[data-going] a[aria-current='page']:not(.going) {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: none;
   }
 }

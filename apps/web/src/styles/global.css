@@ -147,22 +147,24 @@ h3 {
   color: var(--blue);
 }
 
-/* pages switch at once, like tabs in a phone app */
+/* pages switch at once, like tabs in a phone app; the menu is centred by the layout rather than
+   shifted by half its width, so it is drawn like the page around it */
 .dock {
   position: fixed;
   z-index: 10;
-  left: 50%;
+  inset-inline: 0;
   bottom: calc(14px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 2px;
+  width: max-content;
+  margin-inline: auto;
   padding: 5px;
   border-radius: 999px;
   background: var(--blue);
   box-shadow:
     0 14px 30px -14px rgb(31 76 156 / 0.7),
     0 2px 8px rgb(31 76 156 / 0.18);
-  transform: translateX(-50%);
   animation: dock-in 0.7s var(--ease-out) 0.5s backwards;
 }
 .dock-seen .dock {
@@ -170,7 +172,7 @@ h3 {
 }
 @keyframes dock-in {
   from {
-    transform: translate(-50%, 160%);
+    transform: translateY(160%);
   }
 }
 .dock a {
@@ -237,7 +239,9 @@ h3 {
   display: grid;
   gap: 24px;
   margin-top: 96px;
-  padding: 28px var(--gutter) calc(100px + env(safe-area-inset-bottom));
+  /* the largest inset the phone will use, so the page height stays put while the address bar slides */
+  padding: 28px var(--gutter)
+    calc(100px + max(env(safe-area-inset-bottom), env(safe-area-max-inset-bottom, 0px)));
   border-top: 1px solid rgb(42 41 37 / 0.12);
   font-size: 15px;
   color: var(--muted);

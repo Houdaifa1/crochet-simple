@@ -473,8 +473,10 @@ test.describe('the menu', () => {
     baseURL,
   }) => {
     test.skip(browserName !== 'chromium', 'only Chromium can be told to keep pages for going back');
+    // the full browser: the lighter headless one never keeps pages for going back
     const browser = await playwright.chromium.launch({
       ...launchOptions,
+      channel: 'chromium',
       ignoreDefaultArgs: ['--disable-back-forward-cache'],
     });
     const page = await browser.newPage({

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { PNG } from 'pngjs';
 
 const THIRD_PARTY = /googlesyndication|cloudflareinsights|pinterest\.com|etsy\.com/;
 async function visit(page: Page, path = '/patterns/') {
@@ -97,6 +98,76 @@ test('the menu stays still when moving between pages', async ({ page }) => {
   expect(Math.abs(after.x + after.width / 2 - (before.x + before.width / 2))).toBeLessThan(1);
 });
 
+test('on phones the page fades out above the menu, so nothing shows around or under it', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visit(page, '/journal/');
+  const dock = (await page.locator('.dock').boundingBox())!;
+  // a photo slides right under the menu
+  const photo = page.locator('.post img').first();
+  await photo.evaluate(
+    (img, middle) => {
+      const r = img.getBoundingClientRect();
+      window.scrollTo(0, window.scrollY + r.top + r.height / 2 - middle);
+    },
+    dock.y + dock.height / 2,
+  );
+  await expect
+    .poll(() => photo.evaluate((i) => (i as HTMLImageElement).complete && i.clientHeight > 0))
+    .toBe(true);
+  const shoot = async () => PNG.sync.read(await page.screenshot({ scale: 'css' }));
+  const shown = await shoot();
+  await page.addStyleTag({ content: 'main, .site-footer { visibility: hidden !important; }' });
+  const empty = await shoot();
+  // in the gap under the menu the screen looks the same with or without the page behind it
+  const below = dock.y + dock.height;
+  for (const [x, y] of [
+    [120, below + 7],
+    [195, below + 4],
+    [195, below + 10],
+    [270, below + 7],
+  ] as const) {
+    const i = (Math.round(y) * shown.width + x) * 4;
+    for (let c = 0; c < 3; c++)
+      expect(Math.abs(shown.data[i + c]! - empty.data[i + c]!), `${x},${y}`).toBeLessThanOrEqual(6);
+  }
+  await page.reload();
+  // the fade never takes a tap, and the end of the page stays clear of it
+  const edge = page.locator('.edge');
+  await expect(edge).toHaveCSS('pointer-events', 'none');
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const footer = (await page.locator('.site-footer .footer-row').boundingBox())!;
+  expect(footer.y + footer.height).toBeLessThanOrEqual((await edge.boundingBox())!.y + 1);
+  // the homepage drawing stays whole, and wide screens have the menu at the top instead
+  await visit(page, '/');
+  await expect(page.locator('.edge')).toHaveCount(0);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await visit(page, '/journal/');
+  await expect(page.locator('.edge')).toBeHidden();
+});
+
+test('photos are drawn with the page and are already at rest when they come into view', async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  // the pictures on screen when a page opens are drawn with it once they are at hand, not a frame later
+  for (const path of ['/', '/patterns/', '/journal/', '/about/', '/patterns/blue-market-bag/']) {
+    const html = await (await request.get(path)).text();
+    const first = html.match(/<img [^>]*loading="eager"[^>]*>/g) ?? [];
+    expect(first.length, path).toBeGreaterThan(0);
+    for (const img of first) expect(img, path).toContain('decoding="auto"');
+  }
+  // a photo further down is not zoomed in, waiting to settle once it is seen
+  await visit(page, '/patterns/');
+  const waiting = page.locator('.grid a.card:not(.in) img').last();
+  await expect(waiting).toHaveCSS('transform', 'none');
+  await visit(page, '/journal/');
+  await page.locator('.featured').evaluate((f) => f.classList.remove('in'));
+  await expect(page.locator('.featured img')).toHaveCSS('transform', 'none');
+});
+
 test('categories are complete ordinary links without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
@@ -149,6 +220,20 @@ test('reduced motion and increased contrast keep content and controls visible', 
   await expect(page.locator('.hero .bead')).toHaveCSS('animation-name', 'none');
   await expect(page.locator('.dock')).toHaveCSS('backdrop-filter', 'none');
   await expect(page.locator('.dock a').first()).toHaveCSS('color', 'rgb(42, 41, 37)');
+  // a touched item takes the outlined pill at once and the open page keeps readable words
+  await visit(page, '/patterns/');
+  await page.route('**/journal/', () => undefined);
+  const box = (await page.locator('.dock a[data-tab="journal"]').boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  for (const name of ['journal', 'patterns']) {
+    await expect(page.locator(`.dock a[data-tab="${name}"]`)).toHaveCSS('color', 'rgb(42, 41, 37)');
+  }
+  await expect(page.locator('.dock a[data-tab="journal"]')).toHaveCSS(
+    'box-shadow',
+    /rgb\(42, 41, 37\) 0px 0px 0px 1\.5px inset/,
+  );
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
   for (const path of ['/journal/', '/about/', '/journal/how-to-read-a-crochet-pattern/']) {
     await visit(page, path);
     for (const content of await page

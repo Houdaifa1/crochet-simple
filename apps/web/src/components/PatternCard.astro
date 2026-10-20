@@ -6,6 +6,7 @@ import { isFree, SKILL, type Pattern } from '../lib/content';
 interface Props {
   pattern: Pattern;
   category: string;
+  // on screen when the page opens: loaded at once, and drawn with the page instead of a moment later
   eager?: boolean;
   // the first card is usually the largest thing on screen, so it downloads first
   priority?: boolean;
@@ -35,7 +36,7 @@ const H = `h${headingLevel}` as 'h2' | 'h3';
       widths={[192, 288, 384, 576, 768]}
       sizes={sharpCapped(imageSizes)}
       loading={eager ? 'eager' : 'lazy'}
-      decoding="async"
+      decoding={eager ? 'auto' : 'async'}
       fetchpriority={priority ? 'high' : undefined}
     />
     {free && <span class="badge free">Free PDF</span>}

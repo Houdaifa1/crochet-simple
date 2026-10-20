@@ -168,6 +168,64 @@ test('photos are drawn with the page and are already at rest when they come into
   await expect(page.locator('.featured img')).toHaveCSS('transform', 'none');
 });
 
+test('small things on phones: a finger-sized video link, a whole search hint, a short fade on its side', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await visit(page, '/patterns/blue-market-bag/');
+  const youtube = (await page.locator('.video .caption a').boundingBox())!;
+  expect(youtube.height).toBeGreaterThanOrEqual(44);
+  // the hint in the search box is drawn to its last letter, read from the screen itself
+  await visit(page, '/search/');
+  const box = page.locator('#q');
+  await box.blur();
+  const hint = await box.evaluate((i) => {
+    const s = getComputedStyle(i);
+    const c = document.createElement('canvas').getContext('2d')!;
+    c.font = `${s.fontSize} ${s.fontFamily}`;
+    return {
+      end:
+        i.clientLeft +
+        parseFloat(s.paddingLeft) +
+        c.measureText((i as HTMLInputElement).placeholder).width,
+      size: s.fontSize,
+    };
+  });
+  const shot = PNG.sync.read(await box.screenshot({ scale: 'css' }));
+  let drawn = 0;
+  for (let x = 0; x < shot.width - 3; x++) {
+    for (let y = Math.round(shot.height * 0.3); y < shot.height * 0.7; y++) {
+      const i = (y * shot.width + x) * 4;
+      if (shot.data[i]! + shot.data[i + 1]! + shot.data[i + 2]! < 600) drawn = x;
+    }
+  }
+  expect(drawn).toBeGreaterThan(hint.end - 4);
+  // 16 px or more, so a phone does not zoom in when the box is tapped
+  expect(parseFloat(hint.size)).toBeGreaterThanOrEqual(16);
+  // a phone on its side keeps most of its little height for the page
+  await page.setViewportSize({ width: 844, height: 390 });
+  await visit(page, '/patterns/');
+  expect((await page.locator('.edge').boundingBox())!.height).toBeLessThanOrEqual(80);
+});
+
+test('the arrows beside the category row are for a mouse; a wide touch screen slides the row by finger', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 1024, height: 768 },
+    hasTouch: true,
+  });
+  const page = await context.newPage();
+  await visit(page);
+  const finger = await page.evaluate(() => matchMedia('(pointer: coarse)').matches);
+  if (!finger) await context.close();
+  test.skip(!finger, 'this browser cannot pretend to have a touch screen');
+  expect(await page.locator('.chips').evaluate((r) => r.scrollWidth > r.clientWidth)).toBe(true);
+  await expect(page.locator('.slide.next')).toBeHidden();
+  await expect(page.locator('.slide.prev')).toBeHidden();
+  await context.close();
+});
+
 test('categories are complete ordinary links without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

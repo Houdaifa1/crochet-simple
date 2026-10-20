@@ -336,6 +336,12 @@ const cards = [
       display: grid;
     }
   }
+  /* a finger slides the row itself, so on a wide touch screen the arrows would only sit over its cards */
+  @media (pointer: coarse) {
+    .slide:not([hidden]) {
+      display: none;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .chip {
       transition: none;

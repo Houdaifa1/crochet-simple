@@ -107,7 +107,11 @@ const { video } = Astro.props;
     font-size: 15px;
     color: var(--muted);
   }
+  /* a finger-sized spot to tap, without moving the caption */
   .caption a {
+    display: inline-block;
+    padding: 12px 0;
+    margin: -12px 0;
     color: var(--blue);
     font-weight: 600;
   }

@@ -185,6 +185,12 @@ const cards = [
       transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
       box-shadow 0.2s;
   }
+  /* a finger marks the card open in one frame, lifted and ringed at once; a mouse lifts it on the way in */
+  @media (hover: none) {
+    .chip {
+      transition: none;
+    }
+  }
   .chip :global(.pic) {
     position: absolute;
     z-index: -2;

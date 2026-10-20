@@ -285,6 +285,7 @@ const jsonLd = site
 
     const show = (doc: Document) => {
       const row = filters.getBoundingClientRect().top;
+      document.querySelector<HTMLElement>('.page-head')?.style.removeProperty('min-height');
       // one piece of the page for its counterpart on the other page, added or removed as needed
       const put = (selector: string, place: (el: Element) => void = () => undefined) => {
         const now = document.querySelector(selector);
@@ -357,7 +358,14 @@ const jsonLd = site
       const more = document.querySelector<HTMLElement>('.more');
       if (more) ((more.hidden = true), more.querySelector('ol')?.replaceChildren());
       put('.pager', (el) => (more ?? grid).after(el));
-      // a heading of another length above the row is made up for, so the row does not move
+      // a heading of another length above the row is made up for, so the row does not move; near the top
+      // of the page there is no room to scroll up, so a shorter one keeps the old height there instead
+      const short = row - filters.getBoundingClientRect().top - scrollY;
+      const room =
+        document.querySelector<HTMLElement>('.page-head .intro') ??
+        document.querySelector<HTMLElement>('.page-head');
+      if (short > 0 && room)
+        room.style.minHeight = `${room.getBoundingClientRect().height + short}px`;
       scrollBy(0, filters.getBoundingClientRect().top - row);
       document.dispatchEvent(new Event('patterns:swap'));
     };

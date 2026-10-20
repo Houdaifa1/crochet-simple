@@ -715,6 +715,61 @@ test.describe('the menu', () => {
   });
 });
 
+test.describe('a category tap on a phone, at the very top of the list', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test('the row stays put even when the description above it is shorter or longer', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/');
+    const top = () => page.locator('.chips').evaluate((r) => r.getBoundingClientRect().top);
+    const lines = () =>
+      page
+        .locator('.page-head .intro')
+        .evaluate((p) =>
+          Math.round(p.getBoundingClientRect().height / parseFloat(getComputedStyle(p).lineHeight)),
+        );
+    const start = await top();
+    const long = await lines();
+    for (const [id, path] of [
+      ['bags', /\/category\/bags\/$/],
+      ['all', /\/patterns\/$/],
+      ['tech-cases', /\/category\/tech-cases\/$/],
+    ] as const) {
+      await page.locator(`.chip[data-category="${id}"]`).click();
+      await expect(page).toHaveURL(path);
+      await expect(page.locator(`.chip[data-category="${id}"]`)).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+      expect(Math.abs((await top()) - start)).toBeLessThanOrEqual(1);
+    }
+    // the descriptions really are of different lengths here, and the page did not scroll away
+    await page.locator('.chip[data-category="bags"]').click();
+    await expect(page).toHaveURL(/\/category\/bags\/$/);
+    expect(await page.locator('.page-head .intro').textContent()).toContain('bags');
+    expect(long).toBeGreaterThan(1);
+    expect(Math.abs((await top()) - start)).toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+  });
+
+  test('the touched card is marked in one frame, with no slow lift', async ({ page }) => {
+    await visit(page, '/patterns/');
+    const card = page.locator('.chip[data-category="bags"]');
+    // a mouse has already lifted the card on the way in; a finger gets the whole mark at once
+    test.skip(
+      await page.evaluate(() => matchMedia('(hover: hover)').matches),
+      'this browser cannot pretend to have a touch screen',
+    );
+    await expect(card).toHaveCSS('transition-duration', '0s');
+    const marked = await card.evaluate((a) => {
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+      return getComputedStyle(a).transform;
+    });
+    expect(marked).toBe('matrix(1, 0, 0, 1, 0, -3)');
+  });
+});
+
 test('tapping a category keeps the row exactly where it was', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await visit(page, '/patterns/');

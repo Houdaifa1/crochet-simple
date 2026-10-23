@@ -46,7 +46,13 @@ const refuse = (what: string, places: Set<string>) => {
 export const categoryInUse: CollectionBeforeDeleteHook = async ({ req, id }) => {
   const places = new Set<string>();
   for (const p of await everyVersion(req, 'patterns'))
-    if (idOf(p['category']) === String(id)) places.add(`pattern "${String(p['title'])}"`);
+    if (
+      idOf(p['category']) === String(id) ||
+      ((p['additionalCategories'] as unknown[] | undefined) ?? []).some(
+        (c) => idOf(c) === String(id),
+      )
+    )
+      places.add(`pattern "${String(p['title'])}"`);
   refuse('This category', places);
 };
 

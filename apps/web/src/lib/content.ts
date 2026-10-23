@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { categoryIds, sharesCategory } from './category-membership';
 
 export type Pattern = CollectionEntry<'patterns'>;
 export type Article = CollectionEntry<'articles'>;
@@ -55,7 +56,7 @@ export async function categories(): Promise<{ category: Category; patterns: Patt
     .sort((a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name))
     .map((category) => ({
       category,
-      patterns: all.filter((p) => p.data.category.id === category.id),
+      patterns: all.filter((p) => categoryIds(p).includes(category.id)),
     }))
     .filter((c) => c.patterns.length > 0);
 }
@@ -65,6 +66,17 @@ export async function categoryOf(p: Pattern): Promise<Category> {
   if (!c)
     throw new Error(`Pattern "${p.id}" uses a category that does not exist: ${p.data.category.id}`);
   return c;
+}
+
+export async function categoriesOf(p: Pattern): Promise<Category[]> {
+  return Promise.all(
+    categoryIds(p).map(async (id) => {
+      const category = await getEntry('categories', id);
+      if (!category)
+        throw new Error(`Pattern "${p.id}" uses a category that does not exist: ${id}`);
+      return category;
+    }),
+  );
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -94,7 +106,7 @@ export const isFree = (p: Pattern): boolean => Boolean(p.data.pdf);
 
 export function related(p: Pattern, all: Pattern[], count = 4): Pattern[] {
   const others = all.filter((o) => o.id !== p.id);
-  const same = others.filter((o) => o.data.category.id === p.data.category.id);
+  const same = others.filter((o) => sharesCategory(p, o));
   return [...same, ...others.filter((o) => !same.includes(o))].slice(0, count);
 }
 

@@ -272,6 +272,15 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
     const where = `Pattern "${p['title']}"`;
     const category = catSlug.get(idOf(p['category']));
     if (!category) throw new PublishError(`${where}: its category was deleted. Choose a category.`);
+    const additionalCategories = [
+      ...new Set(
+        ((p['additionalCategories'] as unknown[] | undefined) ?? []).map((value) => {
+          const slug = catSlug.get(idOf(value));
+          if (!slug) throw new PublishError(`${where}: an additional category was deleted.`);
+          return slug;
+        }),
+      ),
+    ].filter((slug) => slug !== category);
     const cover = file(p['cover'], `${where} (cover)`, 'photo');
     const details = (p['details'] ?? {}) as Record<string, unknown>;
     const pdf = p['pdf'] ? file(p['pdf'], `${where} (PDF)`, 'pdf') : undefined;
@@ -284,6 +293,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         seoTitle: text(p['seoTitle']),
         seoDescription: text(p['seoDescription']),
         category,
+        additionalCategories,
         cover: rel(cover, 1),
         coverAlt: text(cover.alt),
         downloadPicture: p['downloadPicture']

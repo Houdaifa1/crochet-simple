@@ -113,6 +113,7 @@ const patterns = defineCollection({
       summary: text.max(220),
       ...seo,
       category: reference('categories'),
+      additionalCategories: z.array(reference('categories')).default([]),
       cover: ctx.image(),
       coverAlt: text,
       downloadPicture: ctx.image().optional(),

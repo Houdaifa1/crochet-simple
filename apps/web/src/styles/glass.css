@@ -369,6 +369,9 @@ html:root.glass .tag {
   font-size: 12px;
   color: var(--muted);
 }
+html:root.glass a.tag {
+  min-height: 44px;
+}
 html:root.glass .tag::before {
   display: none;
 }

@@ -150,6 +150,10 @@ export interface Pattern {
   summary: string;
   category: number | Category;
   /**
+   * Optional extra categories where this pattern belongs. The primary category above stays on its card and breadcrumb.
+   */
+  additionalCategories?: (number | Category)[] | null;
+  /**
    * The main photo: first in the gallery and on the pattern card.
    */
   cover: number | Media;
@@ -504,6 +508,7 @@ export interface PatternsSelect<T extends boolean = true> {
   title?: T;
   summary?: T;
   category?: T;
+  additionalCategories?: T;
   cover?: T;
   gallery?:
     | T

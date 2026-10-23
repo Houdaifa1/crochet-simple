@@ -31,6 +31,16 @@ export const Patterns: CollectionConfig = {
     },
     { name: 'category', type: 'relationship', relationTo: 'categories', required: true },
     {
+      name: 'additionalCategories',
+      type: 'relationship',
+      relationTo: 'categories',
+      hasMany: true,
+      admin: {
+        description:
+          'Optional extra categories where this pattern belongs. The primary category above stays on its card and breadcrumb.',
+      },
+    },
+    {
       type: 'tabs',
       tabs: [
         {

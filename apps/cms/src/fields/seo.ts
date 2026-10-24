@@ -13,7 +13,7 @@ export const headingField: Field = {
 };
 
 // what Google shows for the page; empty fields fall back to the site's automatic wording
-export function seoFields(fallback: string): Field[] {
+export function seoFields(fallback: string, counted = false): Field[] {
   return [
     {
       name: 'seoTitle',
@@ -21,8 +21,7 @@ export function seoFields(fallback: string): Field[] {
       label: 'Google title',
       maxLength: 70,
       admin: {
-        description:
-          'The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.',
+        description: `The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.${counted ? ' Write {count} where the number of patterns goes, for example "{count} Free Crochet Flower Patterns"; it stays right as patterns are added.' : ''}`,
       },
     },
     {

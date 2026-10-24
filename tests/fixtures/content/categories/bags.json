@@ -3,5 +3,40 @@
   "description": "Test category: bags patterns.",
   "seoTitle": "Free Crochet Bag Patterns: Totes and Market Bags",
   "icon": "./icons/bags.svg",
-  "order": 0
+  "order": 0,
+  "guide": [
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Test fixture: choosing a bag"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Start with the "
+        },
+        {
+          "text": "Blue market bag",
+          "href": "/patterns/blue-market-bag/"
+        },
+        {
+          "text": ", a sturdy cotton tote."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "text": "Is the bag pattern free?"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "Yes, with a printable PDF."
+        }
+      ]
+    }
+  ]
 }

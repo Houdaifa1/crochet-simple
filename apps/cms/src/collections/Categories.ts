@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { backGuard } from '../fields/back-guard.ts';
+import { guideEditor } from '../fields/body.ts';
 import { seoFields } from '../fields/seo.ts';
 import { slugField } from '../fields/slug.ts';
 import { cardPrompt, isHexColour } from '@crochet-simple/shared';
@@ -48,7 +49,17 @@ export const Categories: CollectionConfig = {
       type: 'collapsible',
       label: 'Google',
       admin: { initCollapsed: true },
-      fields: seoFields('the description'),
+      fields: seoFields('the description', true),
+    },
+    {
+      name: 'guide',
+      type: 'richText',
+      label: 'More about these patterns',
+      editor: guideEditor,
+      admin: {
+        description:
+          'Shown below the patterns on the category page. Start with a Heading 2, then a few short paragraphs; questions people ask work well as Heading 3 with the answer under each. Link pattern names to their patterns.',
+      },
     },
     {
       name: 'icon',

@@ -88,6 +88,19 @@ describe('page titles', () => {
     ).toBe('Free Amigurumi Crochet Patterns | Crochet Simplified');
   });
 
+  it('fills in the number of patterns where the admin title asks for it', () => {
+    const seoTitle = '{count} Free Crochet Flower Patterns (PDF)';
+    expect(
+      listTitle({ name: 'Flowers', seoTitle, allFree: true, freeOnly: false, page: 1, count: 12 }),
+    ).toBe('12 Free Crochet Flower Patterns (PDF) | Crochet Simplified');
+    expect(
+      listTitle({ name: 'Flowers', seoTitle, allFree: true, freeOnly: false, page: 2, count: 12 }),
+    ).toBe('12 Free Crochet Flower Patterns (PDF), Page 2');
+    expect(listTitle({ name: 'Flowers', seoTitle, allFree: true, freeOnly: false, page: 1 })).toBe(
+      'Free Crochet Flower Patterns (PDF) | Crochet Simplified',
+    );
+  });
+
   it('heads free only pages in plain words', () => {
     expect(freeHeading()).toBe('Free crochet patterns');
     expect(freeHeading('Baby shoes')).toBe('Free baby shoes crochet patterns');

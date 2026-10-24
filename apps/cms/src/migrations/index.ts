@@ -10,6 +10,7 @@ import * as migration_20261006_145424_pattern_pinterest_links from './20261006_1
 import * as migration_20261009_202401_glass_controls from './20261009_202401_glass_controls';
 import * as migration_20261018_222838_category_cards from './20261018_222838_category_cards';
 import * as migration_20261023_175816_additional_pattern_categories from './20261023_175816_additional_pattern_categories';
+import * as migration_20261024_182925_category_guide_and_terms from './20261024_182925_category_guide_and_terms';
 
 export const migrations = [
   {
@@ -70,6 +71,11 @@ export const migrations = [
   {
     up: migration_20261023_175816_additional_pattern_categories.up,
     down: migration_20261023_175816_additional_pattern_categories.down,
-    name: '20261023_175816_additional_pattern_categories'
+    name: '20261023_175816_additional_pattern_categories',
+  },
+  {
+    up: migration_20261024_182925_category_guide_and_terms.up,
+    down: migration_20261024_182925_category_guide_and_terms.down,
+    name: '20261024_182925_category_guide_and_terms'
   },
 ];

@@ -51,6 +51,18 @@ test('categories are plain links that work without JavaScript', async ({ browser
   await context.close();
 });
 
+test('a category tap brings in its own write-up and removes the one before', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await visit(page, '/patterns/category/hats/');
+  await expect(page.locator('.guide')).toHaveCount(0);
+  await page.locator('.chips a[data-category="bags"]').click();
+  await expect(page).toHaveURL(/\/patterns\/category\/bags\/$/);
+  await expect(page.locator('.guide h2')).toHaveText('Test fixture: choosing a bag');
+  await page.locator('.chips a[data-category="hats"]').click();
+  await expect(page).toHaveURL(/\/patterns\/category\/hats\/$/);
+  await expect(page.locator('.guide')).toHaveCount(0);
+});
+
 test('the next page of patterns opens at the list', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await visit(page, '/patterns/');

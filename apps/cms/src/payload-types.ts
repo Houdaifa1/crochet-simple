@@ -209,6 +209,10 @@ export interface Pattern {
      * e.g. 34 × 30 cm
      */
     size?: string | null;
+    /**
+     * The stitch names the pattern uses. In US terms a single crochet is "sc"; in UK terms the same stitch is "dc".
+     */
+    terms?: ('US' | 'UK') | null;
   };
   /**
    * Materials, abbreviations, rounds, photos and tips. Use Heading 2 for sections; a section called "Pattern" is where "Jump to pattern" lands.
@@ -272,13 +276,31 @@ export interface Category {
    */
   description?: string | null;
   /**
-   * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title.
+   * The title in Google, with the words people search first. About 50 to 60 characters. The site adds "| Crochet Simplified" when it fits. Leave empty for an automatic title. Write {count} where the number of patterns goes, for example "{count} Free Crochet Flower Patterns"; it stays right as patterns are added.
    */
   seoTitle?: string | null;
   /**
    * The two lines under the title in Google, about 150 characters. Leave empty to use the description.
    */
   seoDescription?: string | null;
+  /**
+   * Shown below the patterns on the category page. Start with a Heading 2, then a few short paragraphs; questions people ask work well as Heading 3 with the answer under each. Link pattern names to their patterns.
+   */
+  guide?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
    * A simple one-colour line icon, SVG (best) or PNG with a transparent background. It takes the chip colour automatically.
    */
@@ -531,6 +553,7 @@ export interface PatternsSelect<T extends boolean = true> {
         hook?: T;
         yarn?: T;
         size?: T;
+        terms?: T;
       };
   body?: T;
   heading?: T;
@@ -554,6 +577,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   description?: T;
   seoTitle?: T;
   seoDescription?: T;
+  guide?: T;
   icon?: T;
   cardPicture?: T;
   cardColour?: T;

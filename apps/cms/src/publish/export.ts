@@ -257,6 +257,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
         description: text(c['description']),
         seoTitle: text(c['seoTitle']),
         seoDescription: text(c['seoDescription']),
+        guide: await toBlocks(c['guide'], resolvers(where), (m) => warn(`${where}: ${m}`)),
         icon: c['icon'] ? rel(file(c['icon'], where, 'icon'), 1) : undefined,
         cardPicture: c['cardPicture']
           ? rel(file(c['cardPicture'], `${where} (card picture)`, 'photo'), 1)
@@ -313,6 +314,7 @@ export async function exportContent(o: ExportOptions): Promise<ExportResult> {
           hook: text(details['hook']),
           yarn: text(details['yarn']),
           size: text(details['size']),
+          terms: text(details['terms']),
         }),
         pdf: pdf
           ? drop({ file: rel(pdf, 1), pages: p['pdfPages'] ? Number(p['pdfPages']) : undefined })

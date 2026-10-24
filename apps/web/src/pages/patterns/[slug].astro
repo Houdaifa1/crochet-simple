@@ -68,6 +68,7 @@ const facts = [
   ['Hook', d.details.hook],
   ['Yarn', d.details.yarn],
   ['Finished size', d.details.size],
+  ['Crochet terms', d.details.terms],
 ].filter((f): f is [string, string] => Boolean(f[1]));
 const toc = sections(d.body);
 const patternHeading = toc.some((t) => t.id === 'pattern');

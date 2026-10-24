@@ -89,12 +89,14 @@ function blocks({ image }: SchemaContext) {
 
 const categories = defineCollection({
   loader: from('categories'),
-  schema: ({ image }) =>
+  schema: (ctx) =>
     z.object({
       name: text,
       description: z.string().optional(),
-      icon: image().optional(),
-      cardPicture: image().optional(),
+      // a longer write-up shown below the patterns on the category's first page
+      guide: blocks(ctx),
+      icon: ctx.image().optional(),
+      cardPicture: ctx.image().optional(),
       cardColour: z
         .string()
         .regex(/^#[0-9a-f]{6}$/i)
@@ -127,6 +129,7 @@ const patterns = defineCollection({
           hook: z.string().optional(),
           yarn: z.string().optional(),
           size: z.string().optional(),
+          terms: z.enum(['US', 'UK']).optional(),
         })
         .default({}),
       pdf: z

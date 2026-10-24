@@ -716,7 +716,33 @@ test.describe('patterns', () => {
       'Hook',
       'Yarn',
       'Finished size',
+      'Crochet terms',
     ]);
+    await expect(page.locator('dl.facts div').last()).toHaveText(/Crochet terms\s*US/);
+  });
+
+  test('a category has its longer write-up below its patterns, and only there', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/category/bags/');
+    const guide = page.locator('.guide');
+    await expect(guide.locator('h2')).toHaveText('Test fixture: choosing a bag');
+    await expect(guide.locator('h3')).toHaveText('Is the bag pattern free?');
+    await expect(guide.locator('a')).toHaveAttribute('href', '/patterns/blue-market-bag/');
+    // the patterns come first, the write-up follows them
+    expect(
+      await page.evaluate(
+        () =>
+          document
+            .querySelector('.grid')!
+            .compareDocumentPosition(document.querySelector('.guide')!) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBeTruthy();
+    await visit(page, '/patterns/category/hats/');
+    await expect(page.locator('.guide')).toHaveCount(0);
+    await visit(page, '/patterns/');
+    await expect(page.locator('.guide')).toHaveCount(0);
   });
 
   test('the free PDF downloads from a clean address', async ({ page, request }) => {

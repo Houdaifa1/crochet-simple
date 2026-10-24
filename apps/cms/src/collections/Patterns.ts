@@ -202,6 +202,19 @@ export const Patterns: CollectionConfig = {
                   maxLength: 30,
                   admin: { description: 'e.g. 34 × 30 cm' },
                 },
+                {
+                  name: 'terms',
+                  type: 'select',
+                  label: 'Crochet terms',
+                  options: [
+                    { label: 'US terms', value: 'US' },
+                    { label: 'UK terms', value: 'UK' },
+                  ],
+                  admin: {
+                    description:
+                      'The stitch names the pattern uses. In US terms a single crochet is "sc"; in UK terms the same stitch is "dc".',
+                  },
+                },
               ],
             },
           ],

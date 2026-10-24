@@ -43,6 +43,8 @@ export function listTitle(o: {
   allFree: boolean;
   freeOnly: boolean;
   page: number;
+  // fills "{count}" in the admin's title, so the number stays right as patterns are added
+  count?: number;
 }): string {
   const label = o.name
     ? saysCrochet(o.name)
@@ -50,7 +52,12 @@ export function listTitle(o: {
       : `${titleCase(o.name)} Crochet Patterns`
     : 'Crochet Patterns';
   const base =
-    o.seoTitle && !o.freeOnly ? o.seoTitle : `${o.allFree || o.freeOnly ? 'Free ' : ''}${label}`;
+    o.seoTitle && !o.freeOnly
+      ? o.seoTitle
+          .replace(/\{count\}/g, o.count ? String(o.count) : '')
+          .replace(/\s+/g, ' ')
+          .trim()
+      : `${o.allFree || o.freeOnly ? 'Free ' : ''}${label}`;
   return withBrand(`${base}${o.page > 1 ? `, Page ${o.page}` : ''}`);
 }
 

@@ -1,5 +1,6 @@
 ---
 import AdSlot from '../../components/AdSlot.astro';
+import Blocks from '../../components/Blocks.astro';
 import Chips from '../../components/Chips.astro';
 import PageHead from '../../components/PageHead.astro';
 import Pager from '../../components/Pager.astro';
@@ -103,7 +104,10 @@ const title = listTitle({
   allFree,
   freeOnly: free,
   page,
+  count: total,
 });
+// the category's longer write-up, on its first full page only so the numbered pages do not repeat it
+const guide = category && !free && page === 1 ? category.data.guide : [];
 // the admin's text when it is long enough to describe the page in search results
 const own = category?.data.description;
 const seoDescription = free
@@ -236,6 +240,11 @@ const jsonLd = site
         </section>
         <Pager base={base} current={page} total={pages} anchor="patterns" />
       </>
+    )}
+    {guide.length > 0 && (
+      <section class="guide prose">
+        <Blocks blocks={guide} />
+      </section>
     )}
   </div>
 </Base>
@@ -376,6 +385,7 @@ const jsonLd = site
       const more = document.querySelector<HTMLElement>('.more');
       if (more) ((more.hidden = true), more.querySelector('ol')?.replaceChildren());
       put('.pager', (el) => (more ?? grid).after(el));
+      put('.guide', (el) => (document.querySelector('.pager') ?? more ?? grid).after(el));
       // a heading of another length above the row is made up for, so the row does not move; near the top
       // of the page there is no room to scroll up, so a shorter one keeps the old height there instead
       const short = row - filters.getBoundingClientRect().top - scrollY;
@@ -569,6 +579,17 @@ const jsonLd = site
 </script>
 
 <style>
+  .guide {
+    margin: 56px 0 0;
+    padding-top: 36px;
+    border-top: 1px solid rgb(42 41 37 / 0.12);
+  }
+  @media (min-width: 900px) {
+    .guide {
+      margin-top: 80px;
+      padding-top: 48px;
+    }
+  }
   .search {
     position: relative;
     max-width: 560px;

@@ -52,6 +52,21 @@ export const bodyEditor = lexicalEditor({
   ],
 });
 
+// the longer text under a category's patterns: words, headings, lists and links, nothing else
+export const guideEditor = lexicalEditor({
+  features: () => [
+    ParagraphFeature(),
+    HeadingFeature({ enabledHeadingSizes: ['h2', 'h3'] }),
+    BoldFeature(),
+    ItalicFeature(),
+    LinkFeature({ enabledCollections: ['patterns', 'articles'] }),
+    UnorderedListFeature(),
+    OrderedListFeature(),
+    FixedToolbarFeature(),
+    InlineToolbarFeature(),
+  ],
+});
+
 export const bodyField = (description: string): Field => ({
   name: 'body',
   type: 'richText',

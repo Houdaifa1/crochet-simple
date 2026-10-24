@@ -8,6 +8,7 @@ import {
   hasItems,
   listTitle,
   needsFreePage,
+  pagedDescription,
   patternTitle,
   shareTitle,
   titleCase,
@@ -15,7 +16,7 @@ import {
 } from '../src/lib/seo.ts';
 
 describe('page titles', () => {
-  it('adds the site name only while the title fits in 70 characters', () => {
+  it('adds the site name only while the title fits in 60 characters', () => {
     expect(withBrand('Free Crochet Bat Pattern')).toBe(
       'Free Crochet Bat Pattern | Crochet Simplified',
     );
@@ -23,6 +24,16 @@ describe('page titles', () => {
     expect(withBrand(long)).toBe(long);
     expect(withBrand('Crochet Simplified | Free crochet PDFs')).toBe(
       'Crochet Simplified | Free crochet PDFs',
+    );
+    expect(withBrand('Free Panda Christmas Stocking Crochet Pattern PDF')).toBe(
+      'Free Panda Christmas Stocking Crochet Pattern PDF',
+    );
+  });
+
+  it('describes numbered list pages differently from the first', () => {
+    expect(pagedDescription('Free keychain patterns.', 1, 4)).toBe('Free keychain patterns.');
+    expect(pagedDescription('Free keychain patterns.', 3, 4)).toBe(
+      'Free keychain patterns. Page 3 of 4.',
     );
   });
 
@@ -71,7 +82,7 @@ describe('page titles', () => {
     const seoTitle = 'Free Amigurumi Patterns: Crochet Animals';
     expect(
       listTitle({ name: 'Amigurumi', seoTitle, allFree: true, freeOnly: false, page: 1 }),
-    ).toBe(`${seoTitle} | Crochet Simplified`);
+    ).toBe(seoTitle);
     expect(
       listTitle({ name: 'Amigurumi', seoTitle, allFree: false, freeOnly: true, page: 1 }),
     ).toBe('Free Amigurumi Crochet Patterns | Crochet Simplified');

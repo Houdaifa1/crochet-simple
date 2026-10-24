@@ -47,6 +47,12 @@ const og = await getImage({
   format: 'jpg',
   quality: 82,
 });
+// Google picks the article photo from square, 4:3 and wide versions of the cover
+const crops = await Promise.all(
+  [1200, 900].map((height) =>
+    getImage({ src: d.cover, width: 1200, height, fit: 'cover', format: 'webp', quality: 80 }),
+  ),
+);
 const pin = `/pins/${pattern.id}.jpg`;
 const pageUrl = absolute(path, site);
 const pinUrl = absolute(pin, site);
@@ -82,7 +88,7 @@ const jsonLd = site
         '@type': 'Article',
         headline: d.heading ?? d.title,
         description: d.summary,
-        image: [absolute(og.src, site), pinUrl],
+        image: [...crops.map((c) => absolute(c.src, site)), absolute(og.src, site), pinUrl],
         datePublished: isoDate(d.published),
         dateModified: isoDate(modified),
         author: { '@type': 'Organization', name: 'Crochet Simplified', url: absolute('/', site) },

@@ -146,7 +146,11 @@ test.describe('search engines and Pinterest', () => {
     const types = ld.map((t) => JSON.parse(t)['@type']);
     expect(types).toEqual(['Article', 'VideoObject', 'BreadcrumbList']);
     const article = JSON.parse(ld[0]!);
-    expect(article.image[1]).toBe(`${SITE}/pins/blue-market-bag.jpg`);
+    // square and 4:3 versions of the cover first, then the wide share photo and the pin
+    expect(article.image).toHaveLength(4);
+    expect(article.image[0]).toMatch(/^https:\/\/example\.com\/_astro\/.+\.webp$/);
+    expect(article.image[1]).toMatch(/^https:\/\/example\.com\/_astro\/.+\.webp$/);
+    expect(article.image[3]).toBe(`${SITE}/pins/blue-market-bag.jpg`);
     expect(article.educationalLevel).toBe('Easy');
     const video = JSON.parse(ld[1]!);
     expect(video).toMatchObject({
@@ -182,9 +186,8 @@ test.describe('search engines and Pinterest', () => {
       'Free Crochet Market Bag Pattern (PDF)',
     );
     await visit(page, '/patterns/category/bags/');
-    await expect(page).toHaveTitle(
-      'Free Crochet Bag Patterns: Totes and Market Bags | Crochet Simplified',
-    );
+    // a title too long to keep the site name in Google's 60 characters goes without it
+    await expect(page).toHaveTitle('Free Crochet Bag Patterns: Totes and Market Bags');
     // without an admin title a category is named once, with free first when every pattern is free
     await visit(page, '/patterns/category/hats/');
     await expect(page).toHaveTitle('Free Hats Crochet Patterns | Crochet Simplified');
@@ -333,14 +336,45 @@ test.describe('search engines and Pinterest', () => {
     expect(await page.locator('meta[name=robots]').getAttribute('content')).toBe('noindex, follow');
   });
 
+  test('list pages name their patterns, and numbered pages describe themselves', async ({
+    page,
+  }) => {
+    await visit(page, '/patterns/');
+    const first = await page.locator('meta[name=description]').getAttribute('content');
+    const ld = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(
+      (t) => JSON.parse(t),
+    );
+    expect(ld.map((o) => o['@type'])).toEqual(['CollectionPage', 'BreadcrumbList']);
+    const list = ld[0].mainEntity.itemListElement;
+    expect(list[0]).toMatchObject({
+      position: 1,
+      url: expect.stringMatching(/\/patterns\/[a-z0-9-]+\/$/),
+    });
+    await visit(page, '/patterns/page/2/');
+    const second = await page.locator('meta[name=description]').getAttribute('content');
+    // the test build shows 6 patterns a page
+    const pages = Math.ceil(ld[0].mainEntity.numberOfItems / 6);
+    expect(second).toBe(`${first} Page 2 of ${pages}.`);
+  });
+
   test('sitemap, robots, feed and ads.txt are published', async ({ request }) => {
     const sitemap = await (await request.get('/sitemap-0.xml')).text();
     expect(sitemap).toContain(`${SITE}/patterns/blue-market-bag/`);
     expect(sitemap).toContain(`${SITE}/journal/how-to-read-a-crochet-pattern/`);
     expect(sitemap).not.toContain('/search/');
+    // a pattern lists when it last changed and its own photos, not the cards of other patterns
+    const bag = sitemap.match(/<url><loc>[^<]*\/patterns\/blue-market-bag\/<\/loc>.*?<\/url>/)![0];
+    expect(bag).toContain('<lastmod>2026-09-29');
+    expect(bag.match(/<image:image>/g)!.length).toBeGreaterThan(0);
+    expect(bag).not.toMatch(/<image:loc>[^<]*(olive-cup-cozy|daisy-clip)/);
     expect(await (await request.get('/robots.txt')).text()).toContain(
       `Sitemap: ${SITE}/sitemap-index.xml`,
     );
+    // llms.txt is a plain map: categories, then each pattern with its summary
+    const llms = await (await request.get('/llms.txt')).text();
+    expect(llms.startsWith('# Crochet Simplified\n')).toBe(true);
+    expect(llms).toContain(`(${SITE}/patterns/blue-market-bag/): `);
+    expect(llms).not.toContain('/search/');
     const feed = await (await request.get('/rss.xml')).text();
     expect(feed.match(/<item>/g)).toHaveLength(12);
     expect(await (await request.get('/ads.txt')).text()).toBe(

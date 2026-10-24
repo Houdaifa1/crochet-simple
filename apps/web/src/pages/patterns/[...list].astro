@@ -6,7 +6,7 @@ import Pager from '../../components/Pager.astro';
 import PatternCard from '../../components/PatternCard.astro';
 import Base from '../../layouts/Base.astro';
 import { allCard, cardLook } from '../../lib/cards';
-import { freeHeading, listTitle, needsFreePage } from '../../lib/seo';
+import { freeHeading, listTitle, needsFreePage, pagedDescription } from '../../lib/seo';
 import {
   PAGE_SIZE,
   absolute,
@@ -109,7 +109,7 @@ const own = category?.data.description;
 const seoDescription = free
   ? undefined
   : (category?.data.seoDescription ?? (category ? undefined : words.seoDescription));
-const description =
+const firstDescription =
   seoDescription ??
   (own && own.length >= 70
     ? own
@@ -118,6 +118,7 @@ const description =
       : free
         ? 'Free crochet patterns with clear steps, good photos and a printable PDF you can download right away.'
         : 'Crochet patterns with clear steps and good photos: bags, accessories, home pieces, hats and more.');
+const description = pagedDescription(firstDescription, page, pages);
 const intro = free
   ? 'Download the PDF, print it and start. No account needed.'
   : (category?.data.description ??
@@ -134,6 +135,23 @@ const crumbs = [
 ];
 const jsonLd = site
   ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: h1,
+        description,
+        url: absolute(Astro.url.pathname, site),
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: total,
+          itemListElement: items.map(({ p }, i) => ({
+            '@type': 'ListItem',
+            position: (page - 1) * PAGE_SIZE + i + 1,
+            url: absolute(`/patterns/${p.id}/`, site),
+            name: p.data.title,
+          })),
+        },
+      },
       {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',

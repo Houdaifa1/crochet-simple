@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sitemap from '@astrojs/sitemap';
@@ -7,6 +7,7 @@ import type { AstroIntegration } from 'astro';
 import type { Plugin } from 'vite';
 import { encodeCommands, type PathCommand } from '@crochet-simple/artwork';
 import { freeRedirects, hasItems } from './src/lib/seo.ts';
+import { enrichSitemap, pageExtras } from './src/lib/sitemap.ts';
 
 // canonical urls, share images and the sitemap switch on once the domain is set
 const site = process.env.SITE_URL;
@@ -50,6 +51,25 @@ function redirects(): AstroIntegration {
   };
 }
 
+// runs after the sitemap is written: each page's last change and its photos are added from the built page
+function sitemapExtras(siteUrl: string): AstroIntegration {
+  return {
+    name: 'sitemap-extras',
+    hooks: {
+      'astro:build:done': ({ dir }) => {
+        for (const file of readdirSync(dir).filter((f) => /^sitemap-\d+\.xml$/.test(f))) {
+          const at = new URL(file, dir);
+          const extras = (loc: string) => {
+            const page = new URL(`.${new URL(loc).pathname}index.html`, dir);
+            return existsSync(page) ? pageExtras(readFileSync(page, 'utf8'), siteUrl) : undefined;
+          };
+          writeFileSync(at, enrichSitemap(readFileSync(at, 'utf8'), extras));
+        }
+      },
+    },
+  };
+}
+
 export default defineConfig({
   ...(site ? { site } : {}),
   outDir: process.env.OUT_DIR ?? 'dist',
@@ -62,6 +82,7 @@ export default defineConfig({
             filter: (page) =>
               !page.includes('/search/') && !(journalEmpty && page.includes('/journal/')),
           }),
+          sitemapExtras(site),
         ]
       : []),
   ],

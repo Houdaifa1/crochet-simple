@@ -3,8 +3,9 @@ import { existsSync, readdirSync } from 'node:fs';
 
 export const BRAND = 'Crochet Simplified';
 const SUFFIX = ` | ${BRAND}`;
-// Google shows about 60 characters; the site name is added only while the title still fits
-export const TITLE_MAX = 70;
+// Google shows about 60 characters and names the site above each result anyway,
+// so the site name is added only while the whole title still fits
+export const TITLE_MAX = 60;
 
 export function withBrand(title: string): string {
   const t = title.trim();
@@ -52,6 +53,10 @@ export function listTitle(o: {
     o.seoTitle && !o.freeOnly ? o.seoTitle : `${o.allFree || o.freeOnly ? 'Free ' : ''}${label}`;
   return withBrand(`${base}${o.page > 1 ? `, Page ${o.page}` : ''}`);
 }
+
+// every numbered page of a list describes itself differently in search results
+export const pagedDescription = (description: string, page: number, pages: number): string =>
+  page > 1 ? `${description} Page ${page} of ${pages}.` : description;
 
 export function freeHeading(name?: string): string {
   if (!name) return 'Free crochet patterns';

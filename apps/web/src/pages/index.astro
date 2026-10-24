@@ -3,7 +3,7 @@ import { Picture } from 'astro:assets';
 import { sharpCapped } from '../lib/sizes';
 import Base from '../layouts/Base.astro';
 import { HERO, PRODUCTS } from '../data/story.ts';
-import { homepage } from '../lib/content';
+import { homepage, settings } from '../lib/content';
 
 // the admin's words, with the original wording wherever a field is empty
 const h = await homepage();
@@ -20,13 +20,21 @@ const products = PRODUCTS.map((p, i) => {
   };
 });
 const site = Astro.site;
+// the brand's own profiles tell search engines which accounts belong to this site
+const s = await settings();
+const sameAs = [s.pinterest?.url, ...s.social.map((l) => l.url)].filter((u): u is string =>
+  Boolean(u),
+);
 const jsonLd = site
   ? [
       {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
+        '@id': `${site.href}#website`,
         name: 'Crochet Simplified',
         url: site.href,
+        inLanguage: 'en-US',
+        publisher: { '@id': `${site.href}#organization` },
         potentialAction: {
           '@type': 'SearchAction',
           target: `${new URL('/search/', site).href}?q={query}`,
@@ -36,9 +44,12 @@ const jsonLd = site
       {
         '@context': 'https://schema.org',
         '@type': 'Organization',
+        '@id': `${site.href}#organization`,
         name: 'Crochet Simplified',
         url: site.href,
         logo: new URL('/logo.png', site).href,
+        ...(s.contactEmail ? { email: s.contactEmail } : {}),
+        ...(sameAs.length ? { sameAs } : {}),
       },
     ]
   : [];

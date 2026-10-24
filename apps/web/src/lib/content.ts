@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
-import { categoryIds, sharesCategory } from './category-membership';
+import { categoryIds, relatedTo } from './category-membership';
 
 export type Pattern = CollectionEntry<'patterns'>;
 export type Article = CollectionEntry<'articles'>;
@@ -104,11 +104,8 @@ export async function settings(): Promise<Settings> {
 
 export const isFree = (p: Pattern): boolean => Boolean(p.data.pdf);
 
-export function related(p: Pattern, all: Pattern[], count = 4): Pattern[] {
-  const others = all.filter((o) => o.id !== p.id);
-  const same = others.filter((o) => sharesCategory(p, o));
-  return [...same, ...others.filter((o) => !same.includes(o))].slice(0, count);
-}
+export const related = (p: Pattern, all: Pattern[], count = 4): Pattern[] =>
+  relatedTo(p, all, count);
 
 export interface PdfInfo {
   readonly path: string;

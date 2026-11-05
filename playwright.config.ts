@@ -5,6 +5,7 @@ const ADMIN = /tests\/admin\//;
 const SITE_ONLY = [PERF, ADMIN];
 // the admin under test gets a fresh database and folders on every run, never the real ones
 const ADMIN_DIR = 'test-results/admin';
+const ADMIN_PORT = Number(process.env['CMS_TEST_PORT'] ?? 3100);
 // its own port, so a preview the owner has open on 4321 is never mistaken for the test build
 const SITE_PORT = 4390;
 
@@ -26,13 +27,13 @@ export default defineConfig({
     {
       command: [
         `rm -rf ${ADMIN_DIR} && mkdir -p ${ADMIN_DIR}/data ${ADMIN_DIR}/media && cd apps/cms &&`,
-        `ADMIN_URL=http://127.0.0.1:3100 DATABASE_URL=file:../../${ADMIN_DIR}/data/cms.db`,
+        `ADMIN_URL=http://127.0.0.1:${ADMIN_PORT} DATABASE_URL=file:../../${ADMIN_DIR}/data/cms.db`,
         `DATA_DIR=../../${ADMIN_DIR}/data MEDIA_DIR=../../${ADMIN_DIR}/media CONTENT_OUT=../../${ADMIN_DIR}/content`,
         `SITE_OUT=../../${ADMIN_DIR}/site BACKUP_DIR=../../${ADMIN_DIR}/backups PAYLOAD_SECRET=test-only-secret`,
-        'exec node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3100',
+        `exec node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${ADMIN_PORT}`,
       ].join(' '),
       gracefulShutdown: { signal: 'SIGTERM', timeout: 3000 },
-      url: 'http://127.0.0.1:3100/admin/login',
+      url: `http://127.0.0.1:${ADMIN_PORT}/admin/login`,
       reuseExistingServer: false,
       timeout: 120_000,
     },

@@ -316,6 +316,40 @@ test.describe('search engines and Pinterest', () => {
     await expect(card.locator('.title')).toHaveCSS('color', 'rgb(42, 41, 37)');
   });
 
+  for (const width of [375, 1280]) {
+    test(`paid patterns show a clear Etsy purchase link at ${width} px`, async ({
+      page,
+      request,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await visit(page, '/patterns/airpods-pouch/');
+      const purchase = page.locator('[data-purchase]');
+      const link = purchase.getByRole('link', { name: /^Buy the PDF on Etsy/ });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute(
+        'href',
+        'https://www.etsy.com/listing/9999913/airpods-pouch',
+      );
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(purchase).toContainText('Digital pattern only.');
+      await expect(purchase).toContainText('current price');
+      await expect(page.locator('a[href$="airpods-pouch.pdf"]')).toHaveCount(0);
+      expect((await request.get('/downloads/airpods-pouch.pdf')).status()).toBe(404);
+      const box = await link.boundingBox();
+      expect(box!.width).toBeGreaterThanOrEqual(200);
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+      const axe = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+        .analyze();
+      expect(axe.violations).toEqual([]);
+      await visit(page, '/patterns/blue-market-bag/');
+      await expect(page.locator('[data-purchase]')).toHaveCount(0);
+      await expect(page.locator('a[href="/downloads/blue-market-bag.pdf"]')).toBeVisible();
+    });
+  }
+
   test('the homepage declares the site, open pages allow big previews, search stays out', async ({
     page,
   }) => {
@@ -636,7 +670,7 @@ test.describe('patterns', () => {
     await expect(page.locator('[data-get] .link-card')).toBeVisible();
     await expect(page.locator('[data-get] h2')).toHaveText('Get the pattern');
     await visit(page, '/patterns/laptop-sleeve/');
-    await expect(page.locator('[data-get] .btn')).toHaveText(/Get the pattern on Etsy/);
+    await expect(page.locator('[data-get] .btn')).toHaveText(/Buy the PDF on Etsy/);
     await expect(page.locator('[data-get] .btn')).toHaveAttribute('target', '_blank');
     await expect(page.locator('[data-get] .lead')).toHaveText(
       'The full pattern is available on Etsy.',

@@ -215,7 +215,7 @@ export interface Pattern {
     terms?: ('US' | 'UK') | null;
   };
   /**
-   * Materials, abbreviations, rounds, photos and tips. Use Heading 2 for sections; a section called "Pattern" is where "Jump to pattern" lands.
+   * For free patterns: materials, rounds, photos and tips. For Etsy patterns: a short project preview, what the PDF includes and buying details. Everything entered here is public. Keep paid instructions in the Etsy PDF. Use Heading 2 for sections.
    */
   body?: {
     root: {

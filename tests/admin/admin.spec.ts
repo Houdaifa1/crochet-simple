@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 // the admin under test runs with its own empty database and folders (see playwright.config.ts)
 const ROOT = resolve(import.meta.dirname, '../../test-results/admin');
-const ORIGIN = 'http://127.0.0.1:3100';
+const ORIGIN = `http://127.0.0.1:${process.env['CMS_TEST_PORT'] ?? 3100}`;
 const REPO = resolve(import.meta.dirname, '../..');
 
 test.describe.configure({ mode: 'serial' });

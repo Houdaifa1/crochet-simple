@@ -36,6 +36,7 @@ const d = pattern.data;
 const category = await categoryOf(pattern);
 const memberships = await categoriesOf(pattern);
 const pdf = pdfInfo(pattern);
+const purchase = !pdf && Boolean(d.etsyUrl);
 const downloadLabel = (await settings()).controls.downloadLabel ?? 'Download free PDF';
 const site = Astro.site;
 const path = `/patterns/${pattern.id}/`;
@@ -167,10 +168,26 @@ const thumb = await getImage({
       <span aria-hidden="true">/</span>
       <a href={`/patterns/category/${category.id}/`}>{category.data.name}</a>
     </nav>
-    <div class="layout">
+    <div class:list={['layout', { purchase }]}>
       <header class="p-head">
+        {purchase && <p class="purchase-eyebrow">Crochet pattern · Digital PDF</p>}
         <h1>{d.heading ?? d.title}</h1>
         <p class="lede">{d.summary}</p>
+        {purchase && (
+          <div class="purchase-action" data-purchase>
+            <a class="btn" href={d.etsyUrl} rel="noopener" target="_blank" data-etsy-cta="hero">
+              Buy the PDF on Etsy
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+              <span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+            <p class="purchase-note">View the current price and purchase on Etsy.</p>
+            <p class="purchase-kind">
+              Digital pattern only. The finished item, yarn and tools are not included.
+            </p>
+          </div>
+        )}
         {pdf && (
           <a class="btn head-download" href="#download">
             {downloadLabel}
@@ -181,15 +198,18 @@ const thumb = await getImage({
             {pdf && <span class="tag free">Free PDF</span>}
             {!pdf && d.etsyUrl && <span class="tag etsy">On Etsy</span>}
             {skill && <span class="tag">{skill}</span>}
-            {memberships.map((c) => (
-              <a class="tag" href={`/patterns/category/${c.id}/`}>
-                {c.data.name}
-              </a>
-            ))}
-            <span class="tag">
-              {d.updated ? 'Updated' : 'Published'}
-              <time datetime={isoDate(modified)}>{formatDate(modified)}</time>
-            </span>
+            {!purchase &&
+              memberships.map((c) => (
+                <a class="tag" href={`/patterns/category/${c.id}/`}>
+                  {c.data.name}
+                </a>
+              ))}
+            {!purchase && (
+              <span class="tag">
+                {d.updated ? 'Updated' : 'Published'}
+                <time datetime={isoDate(modified)}>{formatDate(modified)}</time>
+              </span>
+            )}
           </div>
         </div>
       </header>
@@ -208,7 +228,7 @@ const thumb = await getImage({
               ))}
             </dl>
           )}
-          {toc.length > 1 && (
+          {!purchase && toc.length > 1 && (
             <nav class="toc" aria-label="On this page">
               <p class="toc-title">On this page</p>
               {toc.map((t) => (
@@ -364,6 +384,53 @@ const thumb = await getImage({
     display: grid;
     grid-template-columns: minmax(0, 1fr);
   }
+  .purchase-eyebrow {
+    margin: 10px 0 14px;
+    color: #79502e;
+    font: 600 12px/1.4 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .purchase h1 {
+    font-size: clamp(42px, 6vw, 62px);
+    line-height: 1.04;
+  }
+  .purchase .lede {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  .purchase-action {
+    margin-top: 24px;
+  }
+  .purchase-action .btn {
+    width: 100%;
+    min-height: 56px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: 1px solid #963b0a;
+    background: #b84408;
+    color: var(--sheet);
+    box-shadow: 0 4px 14px rgb(184 68 8 / 0.13);
+  }
+  .purchase-action .btn:hover {
+    background: #973506;
+  }
+  .purchase-note,
+  .purchase-kind {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .purchase-kind {
+    margin-top: 6px;
+  }
+  .purchase .tags {
+    margin-top: 14px;
+  }
+  .purchase .media {
+    min-width: 0;
+  }
   .facts {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -455,6 +522,35 @@ const thumb = await getImage({
     }
     .p-head {
       grid-area: head;
+    }
+    .layout.purchase {
+      grid-template-columns: minmax(0, 1.45fr) minmax(340px, 1fr);
+      grid-template-areas:
+        'media head'
+        'media side'
+        'main main';
+      column-gap: 48px;
+      row-gap: 0;
+      grid-template-rows: auto 1fr auto;
+    }
+    .purchase .p-head {
+      padding-top: 4px;
+    }
+    .purchase .media :global(.gallery) {
+      margin-top: 0;
+    }
+    .purchase .side {
+      position: static;
+      max-height: none;
+      padding-top: 22px;
+      overflow: visible;
+    }
+    .purchase .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .purchase .main {
+      width: min(100%, 760px);
+      margin: 28px auto 0;
     }
     .media {
       grid-area: media;

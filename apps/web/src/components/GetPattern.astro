@@ -62,7 +62,7 @@ const facts = pdf
         </a>
       ) : (
         <a class="btn etsy" href={etsyUrl} rel="noopener" target="_blank">
-          Get the pattern on Etsy
+          Buy the PDF on Etsy
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M7 17 17 7M9 7h8v8" />
           </svg>
@@ -147,6 +147,15 @@ const facts = pdf
   .btn:focus-visible {
     outline: 3px solid var(--blue);
     outline-offset: 5px;
+  }
+  .get .btn.etsy {
+    border-color: #963b0a;
+    background: #b84408;
+    box-shadow: 0 4px 14px rgb(184 68 8 / 0.13);
+  }
+  .get .btn.etsy:hover,
+  .get .btn.etsy:active {
+    background: #973506;
   }
   .fine {
     margin: 14px 0 0;

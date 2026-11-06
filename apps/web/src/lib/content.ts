@@ -2,6 +2,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { categoryIds, relatedTo } from './category-membership';
+import { comparePatterns } from './pattern-order';
 
 export type Pattern = CollectionEntry<'patterns'>;
 export type Article = CollectionEntry<'articles'>;
@@ -39,7 +40,7 @@ export async function patterns(): Promise<Pattern[]> {
     if (RESERVED.has(id))
       throw new Error(`Pattern "${id}": this name is reserved, please choose another`);
   }
-  return all.sort(newest);
+  return all.sort(comparePatterns);
 }
 
 export async function articles(): Promise<Article[]> {

@@ -705,6 +705,22 @@ test.describe('patterns', () => {
     await expect(page.locator('.grid .card')).toHaveCount(1);
   });
 
+  for (const width of [375, 1280]) {
+    test(`live Etsy patterns lead the catalogue at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await visit(page, '/patterns/');
+      const cards = page.locator('.grid .card');
+      await expect(cards.nth(0)).toHaveAttribute('href', '/patterns/airpods-pouch/');
+      await expect(cards.nth(1)).toHaveAttribute('href', '/patterns/laptop-sleeve/');
+      await expect(cards.nth(0).locator('.badge')).toHaveText('On Etsy');
+      await expect(cards.nth(1).locator('.badge')).toHaveText('On Etsy');
+      await page.locator('a.toggle').click();
+      await expect(page).toHaveURL(/\/patterns\/free\/$/);
+      await expect(page.locator('.grid .card')).toHaveCount(4);
+      await expect(page.locator('.grid .badge.etsy')).toHaveCount(0);
+    });
+  }
+
   test('"Free only" shows only free patterns, on its own address', async ({ page }) => {
     await visit(page, '/patterns/');
     await page.locator('a.toggle').click();

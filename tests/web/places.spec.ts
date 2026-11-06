@@ -295,6 +295,7 @@ test.describe('opening a pattern or a story', () => {
       'Safari loads pages only when they are opened, so nothing is started early',
     );
     const card = page.locator('.grid a.card').nth(1);
+    const destination = await card.getAttribute('href');
     const photos: string[] = [];
     page.on('request', (r) => r.resourceType() === 'image' && photos.push(r.url()));
     const box = (await card.boundingBox())!;
@@ -303,7 +304,7 @@ test.describe('opening a pattern or a story', () => {
     await expect.poll(() => photos.length).toBeGreaterThan(0);
     const early = [...photos];
     await page.mouse.up();
-    await expect(page).toHaveURL(/\/patterns\/daisy-clip\/$/);
+    await expect(page).toHaveURL(new RegExp(`${destination}$`));
     const shown = await page
       .locator('img[fetchpriority="high"]')
       .evaluate((i) => (i as HTMLImageElement).currentSrc);
@@ -348,7 +349,7 @@ test.describe('the menu remembers where each section was left', () => {
     await visit(page, '/patterns/');
     await expect(tab(page, 'patterns')).toHaveAttribute('href', '/patterns/');
     await scrollTo(page, 500);
-    await page.locator('.grid a.card').nth(2).click();
+    await page.locator('.grid a.card[href="/patterns/olive-cup-cozy/"]').click();
     await expect(page).toHaveURL(/\/patterns\/[a-z-]+\/$/);
     const pattern = new URL(page.url()).pathname;
     await scrollTo(page, 900);
